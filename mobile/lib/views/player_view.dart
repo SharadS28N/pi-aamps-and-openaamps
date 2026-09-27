@@ -210,21 +210,6 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
             },
           ),
           IconButton(
-            icon: const Icon(Icons.lyrics_outlined, color: Colors.white),
-            tooltip: 'Live Synced Lyrics',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => LyricsView(
-                    track: track,
-                    audioService: widget.audioService,
-                  ),
-                ),
-              );
-            },
-          ),
-          IconButton(
             icon: Stack(
               clipBehavior: Clip.none,
               children: [
@@ -257,11 +242,6 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
                 MaterialPageRoute(builder: (_) => PartyView(audioService: widget.audioService)),
               );
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.wallpaper_rounded, color: Colors.white),
-            tooltip: 'Wallpaper & Canvas',
-            onPressed: () => _showWallpaperPickerModal(context),
           ),
           IconButton(
             icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
@@ -1529,6 +1509,22 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
                       isFullScreen: true,
                     );
                     Navigator.pop(ctx);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.lyrics_outlined, color: Colors.white),
+                  title: const Text('Live Synced Lyrics', style: TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LyricsView(
+                          track: track,
+                          audioService: widget.audioService,
+                        ),
+                      ),
+                    );
                   },
                 ),
                 ListTile(
