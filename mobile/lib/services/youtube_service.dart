@@ -356,6 +356,32 @@ class YoutubeService {
     return [];
   }
 
+  /// Fetches public YouTube playlist videos directly via YoutubeExplode without requiring OAuth
+  Future<List<Track>> fetchPublicPlaylistVideos(String playlistIdOrUrl) async {
+    try {
+      final clean = playlistIdOrUrl.trim();
+      final listIdMatch = RegExp(r'[?&]list=([a-zA-Z0-9_-]+)').firstMatch(clean);
+      final id = listIdMatch != null ? listIdMatch.group(1)! : clean;
+      final videos = await _yt.playlists.getVideos(id).take(50).toList();
+      final tracks = <Track>[];
+      for (var v in videos) {
+        tracks.add(Track(
+          id: v.id.value,
+          title: v.title,
+          artist: v.author,
+          album: 'YouTube Playlist',
+          duration: v.duration ?? Duration.zero,
+          artworkUrl: v.thumbnails.highResUrl,
+          streamUrl: '',
+        ));
+      }
+      return tracks;
+    } catch (e) {
+      debugPrint('fetchPublicPlaylistVideos error: $e');
+    }
+    return [];
+  }
+
   void dispose() {
     _yt.close();
   }

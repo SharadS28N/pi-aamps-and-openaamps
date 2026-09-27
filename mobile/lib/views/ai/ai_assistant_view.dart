@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/track.dart';
 import '../../services/audio_player_service.dart';
 import '../../services/ai_voice_assistant.dart';
+import 'ai_studio_view.dart';
 
 class AiAssistantView extends StatefulWidget {
   final AudioPlayerService audioService;
@@ -25,6 +26,8 @@ class _AiAssistantViewState extends State<AiAssistantView> with SingleTickerProv
 
   int _voiceSimIndex = 0;
   final List<String> _quickCommands = [
+    'What instruments are in this song?',
+    'Analyze musical key & chords',
     'Recommend tracks > 150 BPM',
     'Who wrote Bohemian Rhapsody?',
     'What is the BPM of Blinding Lights?',
@@ -143,6 +146,21 @@ class _AiAssistantViewState extends State<AiAssistantView> with SingleTickerProv
           ],
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.psychology_rounded, color: Colors.purpleAccent),
+            tooltip: 'AI Music Studio & Instruments',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AiStudioView(
+                    audioService: widget.audioService,
+                    onPlayTrack: widget.onPlayTrack,
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Colors.white60),
             tooltip: 'Clear Chat',

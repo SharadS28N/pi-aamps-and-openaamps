@@ -29,29 +29,9 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios — '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos — '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows — '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
-      case TargetPlatform.linux:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux — '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       default:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions are not supported for this platform.',
-        );
+        return android; // Safe fallback for other platforms/simulators
     }
   }
 
@@ -61,5 +41,14 @@ class DefaultFirebaseOptions {
     messagingSenderId: '777154173201',
     projectId: 'openaamps',
     storageBucket: 'openaamps.firebasestorage.app',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBEky_XxWxdJ26FHZAUzScaPMGuD4bs3U0',
+    appId: '1:777154173201:ios:fc3b6f2f65b9468f0e94b0',
+    messagingSenderId: '777154173201',
+    projectId: 'openaamps',
+    storageBucket: 'openaamps.firebasestorage.app',
+    iosBundleId: 'com.openaamps.openAamps',
   );
 }

@@ -5,9 +5,11 @@ import '../services/audio_player_service.dart';
 import '../services/integration_service.dart';
 import '../services/settings_service.dart';
 import '../widgets/account_switcher_modal.dart';
-import '../widgets/spotify_import_modal.dart';
+import '../widgets/account_sync_modal.dart';
 import '../widgets/equalizer_sheet.dart';
+import '../widgets/app_alert.dart';
 import '../services/update_service.dart';
+import 'ai/ai_studio_view.dart';
 
 class SettingsView extends StatefulWidget {
   final AudioPlayerService? audioService;
@@ -27,12 +29,14 @@ class _SettingsViewState extends State<SettingsView> {
   final SettingsService _settings = SettingsService.instance;
   late AudioPlayerService _audio;
   late TextEditingController _customWallpaperInputCtrl;
+  late TextEditingController _geminiKeyCtrl;
 
   @override
   void initState() {
     super.initState();
     _audio = widget.audioService ?? AudioPlayerService();
     _customWallpaperInputCtrl = TextEditingController(text: _settings.customWallpaperUrl);
+    _geminiKeyCtrl = TextEditingController(text: _settings.geminiApiKey);
     _settings.addListener(_onSettingsChange);
   }
 
@@ -49,6 +53,7 @@ class _SettingsViewState extends State<SettingsView> {
   void dispose() {
     _settings.removeListener(_onSettingsChange);
     _customWallpaperInputCtrl.dispose();
+    _geminiKeyCtrl.dispose();
     super.dispose();
   }
 
@@ -556,46 +561,154 @@ class _SettingsViewState extends State<SettingsView> {
           ),
           const SizedBox(height: 28),
 
-          // Section 4: Scrobblers & Integrations
+          // Section: AI Music Studio & Gemini AI Studio Settings
           const Text(
-            'CONNECT SPOTIFY & INTEGRATIONS',
+            'AI MUSIC STUDIO & GOOGLE AI STUDIO (GEMINI)',
             style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
           ),
           const SizedBox(height: 12),
 
-          // Spotify Account Connection Tile
+          // Launch AI Studio
           ListTile(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             tileColor: const Color(0xFF141414),
-            leading: const Icon(Icons.library_music_rounded, color: Colors.white),
-            title: const Text('Spotify Account Synchronization', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            leading: const Icon(Icons.psychology_rounded, color: Colors.purpleAccent),
+            title: const Text('Launch AI Music Studio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            subtitle: const Text('Deconstruct stems, detect instruments, and query musical DNA', style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
+            trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white54, size: 16),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AiStudioView(
+                    audioService: _audio,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+
+          // Gemini API Key Input
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF141414),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: const Color(0xFF24242A)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.auto_awesome, color: Colors.amberAccent, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'Google AI Studio API Key (Gemini 1.5)',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Powers real-time deep acoustic musicology and instrument analysis. Free keys available at aistudio.google.com. (Built-in acoustic intelligence runs if left blank).',
+                  style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 11, height: 1.3),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1C1C24),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF2C2C38)),
+                        ),
+                        child: TextField(
+                          controller: _geminiKeyCtrl,
+                          obscureText: true,
+                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                          decoration: const InputDecoration(
+                            hintText: 'Paste AI Studio API Key (AIzaSy...)',
+                            hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.purpleAccent,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                      onPressed: () async {
+                        await _settings.setGeminiApiKey(_geminiKeyCtrl.text.trim());
+                        if (context.mounted) {
+                          AppAlert.show(
+                            context,
+                            _geminiKeyCtrl.text.trim().isNotEmpty
+                                ? 'AI Studio Gemini Key Saved!'
+                                : 'Cleared Gemini Key (using Acoustic AI)',
+                            icon: Icons.check_circle_rounded,
+                            isSuccess: true,
+                          );
+                        }
+                      },
+                      child: const Text('Save', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Section 4: Scrobblers & Integrations
+          const Text(
+            'ACCOUNT & CLOUD SYNCHRONIZATION (SPOTIFY & YOUTUBE)',
+            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+          ),
+          const SizedBox(height: 12),
+
+          // Spotify & YouTube Account Connection Tile
+          ListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            tileColor: const Color(0xFF141414),
+            leading: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.music_note_rounded,
+                  color: _integration.spotifyConnected ? const Color(0xFF1DB954) : Colors.white70,
+                  size: 22,
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.play_circle_filled_rounded,
+                  color: _integration.youtubeConnected ? const Color(0xFFEF4444) : Colors.white70,
+                  size: 20,
+                ),
+              ],
+            ),
+            title: const Text('Spotify & YouTube Sync Hub', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             subtitle: Text(
-              _integration.spotifyConnected
-                  ? 'Connected as @${_integration.spotifyUsername}'
-                  : 'Tap to connect Spotify profile and sync playlists',
-              style: TextStyle(
-                color: _integration.spotifyConnected ? Colors.white : const Color(0xFFA1A1AA),
+              'Spotify: ${_integration.spotifyConnected ? "@${_integration.spotifyUsername}" : "Not linked"} • YouTube: ${_integration.youtubeConnected ? _integration.youtubeChannelHandle : "Not linked"}',
+              style: const TextStyle(
+                color: Color(0xFFA1A1AA),
                 fontSize: 12,
               ),
             ),
-            trailing: Icon(
-              _integration.spotifyConnected ? Icons.check_circle_rounded : Icons.arrow_forward_ios_rounded,
-              color: Colors.white,
-              size: _integration.spotifyConnected ? 22 : 16,
-            ),
+            trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white54, size: 16),
             onTap: () {
               showModalBottomSheet(
                 context: context,
                 backgroundColor: Colors.transparent,
                 isScrollControlled: true,
-                builder: (context) => SpotifyImportModal(
-                  integrationService: _integration,
-                  onImportSuccess: (tracks) {
-                    if (tracks.isNotEmpty) {
-                      _audio.playTrack(tracks.first);
-                    }
-                  },
-                ),
+                builder: (context) => const AccountSyncModal(),
               ).then((_) => setState(() {}));
             },
           ),

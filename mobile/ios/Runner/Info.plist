@@ -66,5 +66,42 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Open Aamps needs microphone access for AI voice search and acoustic music recognition.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Open Aamps uses the local network to discover and stream to Raspberry Pi audio hubs and nearby Jam party devices.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_http._tcp</string>
+		<string>_openaamps._tcp</string>
+	</array>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Open Aamps accesses your photo library to set custom playlist artwork and user profile avatars.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Open Aamps requires camera access to scan QR codes for joining Jam party sessions.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.openaamps.openAamps</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>openaamps</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

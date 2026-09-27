@@ -17,8 +17,10 @@ import 'settings_view.dart';
 import '../widgets/app_alert.dart';
 import '../widgets/equalizer_sheet.dart';
 import '../widgets/tag_editor_modal.dart';
-import '../services/settings_service.dart';
 import 'ai/ai_playlist_maker.dart';
+import 'ai/ai_studio_view.dart';
+import '../widgets/account_sync_modal.dart';
+import '../services/settings_service.dart';
 
 class LibraryView extends StatefulWidget {
   final AccountService accountService;
@@ -548,6 +550,33 @@ class _LibraryViewState extends State<LibraryView> {
                   onPressed: () => _showHistoryModal(context),
                 ),
                 IconButton(
+                  icon: const Icon(Icons.psychology_rounded, color: Colors.purpleAccent),
+                  tooltip: 'AI Music Studio',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AiStudioView(
+                          audioService: widget.audioService ?? AudioPlayerService(),
+                          onPlayTrack: widget.onPlayTrack,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.sync_rounded, color: Colors.white70),
+                  tooltip: 'Spotify & YouTube Sync',
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      isScrollControlled: true,
+                      builder: (context) => const AccountSyncModal(),
+                    );
+                  },
+                ),
+                IconButton(
                   icon: const Icon(Icons.tune_rounded, color: Colors.white70),
                   tooltip: '15-Band EQ & AutoEq',
                   onPressed: () {
@@ -783,6 +812,112 @@ class _LibraryViewState extends State<LibraryView> {
               ],
             ),
           ),
+        ),
+        const SizedBox(height: 20),
+
+        // AI Studio & Account Cloud Sync Quick Banners
+        Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AiStudioView(
+                        audioService: widget.audioService ?? AudioPlayerService(),
+                        onPlayTrack: widget.onPlayTrack,
+                      ),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF581C87).withValues(alpha: 0.6),
+                        const Color(0xFF2E1065).withValues(alpha: 0.6),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.3)),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.psychology_rounded, color: Colors.purpleAccent, size: 20),
+                          Spacer(),
+                          Icon(Icons.arrow_forward_rounded, color: Colors.white54, size: 14),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        'AI Music Studio',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Instruments & DNA',
+                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const AccountSyncModal(),
+                  );
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF16161E),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: const Color(0xFF2A2A38)),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.sync_rounded, color: Color(0xFF1DB954), size: 20),
+                          SizedBox(width: 4),
+                          Icon(Icons.play_circle_filled_rounded, color: Color(0xFFEF4444), size: 16),
+                          Spacer(),
+                          Icon(Icons.arrow_forward_rounded, color: Colors.white54, size: 14),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        'Cloud Sync Hub',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'Spotify & YouTube',
+                        style: TextStyle(color: Colors.white70, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 20),
 

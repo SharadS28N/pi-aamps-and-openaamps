@@ -17,6 +17,7 @@ import '../services/party_service.dart';
 import '../services/ai_music_service.dart';
 import 'party_view.dart';
 import 'ai/why_recommended_modal.dart';
+import '../widgets/song_ai_studio_sheet.dart';
 
 class PlayerView extends StatefulWidget {
   final Track track;
@@ -297,6 +298,24 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
                             ),
                           ],
                         ),
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.psychology_rounded,
+                          color: Colors.purpleAccent,
+                          size: 24,
+                        ),
+                        tooltip: 'AI Music Studio & Instruments',
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (ctx) => SongAiStudioSheet(
+                              track: track,
+                            ),
+                          );
+                        },
                       ),
                       IconButton(
                         icon: const Icon(

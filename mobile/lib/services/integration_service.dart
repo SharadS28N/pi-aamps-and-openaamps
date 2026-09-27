@@ -13,11 +13,28 @@ class IntegrationService extends ChangeNotifier {
   // Spotify integration state
   bool _spotifyConnected = false;
   String _spotifyUsername = '';
+  String _spotifyClientId = '';
+  String _spotifyClientSecret = '';
+  String _spotifyAccessToken = '';
   final List<Track> _spotifySyncedTracks = [];
 
   bool get spotifyConnected => _spotifyConnected;
   String get spotifyUsername => _spotifyUsername;
+  String get spotifyClientId => _spotifyClientId;
+  String get spotifyClientSecret => _spotifyClientSecret;
+  String get spotifyAccessToken => _spotifyAccessToken;
   List<Track> get spotifySyncedTracks => List.unmodifiable(_spotifySyncedTracks);
+
+  // YouTube integration state
+  bool _youtubeConnected = false;
+  String _youtubeChannelHandle = '';
+  String _youtubeApiKey = '';
+  final List<Track> _youtubeSyncedTracks = [];
+
+  bool get youtubeConnected => _youtubeConnected;
+  String get youtubeChannelHandle => _youtubeChannelHandle;
+  String get youtubeApiKey => _youtubeApiKey;
+  List<Track> get youtubeSyncedTracks => List.unmodifiable(_youtubeSyncedTracks);
 
   // Scrobbling states
   bool _lastFmEnabled = true;
@@ -47,6 +64,14 @@ class IntegrationService extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       _spotifyConnected = prefs.getBool('spotify_connected') ?? false;
       _spotifyUsername = prefs.getString('spotify_username') ?? '';
+      _spotifyClientId = prefs.getString('spotify_client_id') ?? '';
+      _spotifyClientSecret = prefs.getString('spotify_client_secret') ?? '';
+      _spotifyAccessToken = prefs.getString('spotify_access_token') ?? '';
+
+      _youtubeConnected = prefs.getBool('youtube_connected') ?? false;
+      _youtubeChannelHandle = prefs.getString('youtube_channel_handle') ?? '';
+      _youtubeApiKey = prefs.getString('youtube_api_key') ?? '';
+
       _lastFmEnabled = prefs.getBool('lastfm_enabled') ?? true;
       _listenBrainzEnabled = prefs.getBool('listenbrainz_enabled') ?? true;
       _discordRpcEnabled = prefs.getBool('discord_rpc_enabled') ?? true;
@@ -56,27 +81,88 @@ class IntegrationService extends ChangeNotifier {
     }
   }
 
-  Future<void> connectSpotify(String username) async {
-    _spotifyConnected = true;
-    _spotifyUsername = username.isNotEmpty ? username : 'SpotifyUser';
+  Future<void> saveSpotifyCredentials({
+    String? username,
+    String? clientId,
+    String? clientSecret,
+    String? accessToken,
+    bool connected = true,
+  }) async {
+    _spotifyConnected = connected;
+    if (username != null) _spotifyUsername = username;
+    if (clientId != null) _spotifyClientId = clientId;
+    if (clientSecret != null) _spotifyClientSecret = clientSecret;
+    if (accessToken != null) _spotifyAccessToken = accessToken;
+
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('spotify_connected', true);
+      await prefs.setBool('spotify_connected', _spotifyConnected);
       await prefs.setString('spotify_username', _spotifyUsername);
+      await prefs.setString('spotify_client_id', _spotifyClientId);
+      await prefs.setString('spotify_client_secret', _spotifyClientSecret);
+      await prefs.setString('spotify_access_token', _spotifyAccessToken);
     } catch (_) {}
     notifyListeners();
+  }
+
+  Future<void> connectSpotify(String username) async {
+    await saveSpotifyCredentials(username: username.isNotEmpty ? username : 'SpotifyUser', connected: true);
   }
 
   Future<void> disconnectSpotify() async {
     _spotifyConnected = false;
     _spotifyUsername = '';
+    _spotifyAccessToken = '';
     _spotifySyncedTracks.clear();
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('spotify_connected', false);
       await prefs.setString('spotify_username', '');
+      await prefs.setString('spotify_access_token', '');
     } catch (_) {}
     notifyListeners();
+  }
+
+  Future<void> saveYouTubeCredentials({
+    required String handle,
+    String? apiKey,
+    bool connected = true,
+  }) async {
+    _youtubeConnected = connected;
+    _youtubeChannelHandle = handle;
+    if (apiKey != null) _youtubeApiKey = apiKey;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('youtube_connected', _youtubeConnected);
+      await prefs.setString('youtube_channel_handle', _youtubeChannelHandle);
+      await prefs.setString('youtube_api_key', _youtubeApiKey);
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  Future<void> disconnectYouTube() async {
+    _youtubeConnected = false;
+    _youtubeChannelHandle = '';
+    _youtubeSyncedTracks.clear();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('youtube_connected', false);
+      await prefs.setString('youtube_channel_handle', '');
+    } catch (_) {}
+    notifyListeners();
+  }
+
+  // Import YouTube / YouTube Music playlist into Open Aamps
+  Future<List<Track>> importYouTubePlaylist(String urlOrId) async {
+    final yt = YoutubeService();
+    final tracks = await yt.fetchPublicPlaylistVideos(urlOrId);
+    if (tracks.isNotEmpty) {
+      _youtubeSyncedTracks.clear();
+      _youtubeSyncedTracks.addAll(tracks);
+      notifyListeners();
+    }
+    return tracks;
   }
 
   void toggleLastFm(bool enabled) async {
