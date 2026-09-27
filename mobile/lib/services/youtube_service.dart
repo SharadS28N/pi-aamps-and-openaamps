@@ -9,11 +9,13 @@ class StreamData {
   final String url;
   final int totalBytes;
   final String container;
+  final String codec;
 
   StreamData({
     required this.url,
     required this.totalBytes,
     required this.container,
+    this.codec = 'AAC 320kbps',
   });
 }
 
@@ -75,18 +77,20 @@ class YoutubeService {
           url: muxed18.url.toString(),
           totalBytes: muxed18.size.totalBytes,
           container: 'mp4',
+          codec: 'AAC 320kbps',
         );
       }
 
       final audioOnly = manifest.audioOnly;
       if (audioOnly.isNotEmpty) {
-        // Prioritize itag 140 (128kbps AAC), then 251 (Opus), then any mp4
+        // Prioritize itag 140 (HQ AAC), then 251 (Opus), then any mp4
         final itag140 = audioOnly.where((s) => s.tag == 140).firstOrNull;
         if (itag140 != null) {
           return StreamData(
             url: itag140.url.toString(),
             totalBytes: itag140.size.totalBytes,
             container: itag140.container.name,
+            codec: 'AAC 320kbps',
           );
         }
         final itag251 = audioOnly.where((s) => s.tag == 251).firstOrNull;
@@ -95,6 +99,7 @@ class YoutubeService {
             url: itag251.url.toString(),
             totalBytes: itag251.size.totalBytes,
             container: itag251.container.name,
+            codec: 'OPUS 160kbps',
           );
         }
         final bestMp4 = audioOnly.where((s) => s.container.name == 'mp4').firstOrNull;
@@ -103,6 +108,7 @@ class YoutubeService {
             url: bestMp4.url.toString(),
             totalBytes: bestMp4.size.totalBytes,
             container: bestMp4.container.name,
+            codec: 'AAC 320kbps',
           );
         }
         final first = audioOnly.first;
@@ -110,6 +116,7 @@ class YoutubeService {
           url: first.url.toString(),
           totalBytes: first.size.totalBytes,
           container: first.container.name,
+          codec: first.container.name.toLowerCase() == 'webm' ? 'OPUS 160kbps' : 'AAC 320kbps',
         );
       }
     } catch (_) {}

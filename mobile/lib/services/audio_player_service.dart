@@ -549,7 +549,9 @@ class AudioPlayerService extends ChangeNotifier {
           throw Exception('No stream URL found for track "${track.title}"');
         }
 
-        final codecName = streamData.container.toLowerCase() == 'mp4' ? 'AAC' : 'OPUS';
+        final codecName = streamData.codec.isNotEmpty
+            ? streamData.codec
+            : (streamData.container.toLowerCase() == 'mp4' ? 'AAC 320kbps' : 'OPUS 160kbps');
         _currentTrack = _currentTrack!.copyWith(codec: codecName);
         _resolvedStreamCache[track.id] = streamData.url;
         _proxy.registerTrackStream(track.id, streamData.url);

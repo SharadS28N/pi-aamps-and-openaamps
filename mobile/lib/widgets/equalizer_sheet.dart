@@ -226,6 +226,80 @@ class _EqualizerSheetState extends State<EqualizerSheet> {
               ),
             ),
           ),
+          // 8D Binaural Surround Audio Mode
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: _eq.is8dAudio
+                    ? [const Color(0xFF0D9488).withValues(alpha: 0.25), const Color(0xFF06B6D4).withValues(alpha: 0.15)]
+                    : [const Color(0xFF18181A), const Color(0xFF141416)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: _eq.is8dAudio ? const Color(0xFF2DD4BF) : Colors.white10,
+                width: _eq.is8dAudio ? 1.5 : 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: _eq.is8dAudio ? const Color(0xFF0D9488) : const Color(0xFF27272A),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.headphones_rounded,
+                    color: _eq.is8dAudio ? Colors.white : Colors.white54,
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Text(
+                            '8D Binaural Surround',
+                            style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                          ),
+                          if (_eq.is8dAudio) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF0D9488),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text('ACTIVE', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)),
+                            ),
+                          ],
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Left-to-right orbital rotation & acoustic depth',
+                        style: TextStyle(color: Colors.white54, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _eq.is8dAudio,
+                  activeThumbColor: const Color(0xFF2DD4BF),
+                  activeTrackColor: const Color(0xFF115E59),
+                  onChanged: _eq.isEnabled ? (_) => _eq.toggle8dAudio() : null,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
           // 16D Spatial Surround Audio Mode (Survey Priority Feature)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),

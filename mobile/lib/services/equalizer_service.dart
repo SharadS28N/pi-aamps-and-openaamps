@@ -37,6 +37,7 @@ class EqualizerService extends ChangeNotifier {
   // Current gains in dB (-12.0 to +12.0)
   List<double> _bandGains = List.filled(15, 0.0);
 
+  bool _is8dAudio = false;
   bool _is16dAudio = false;
 
   bool get isEnabled => _isEnabled;
@@ -44,11 +45,13 @@ class EqualizerService extends ChangeNotifier {
   String? get activeAutoEqId => _activeAutoEqId;
   double get bassBoost => _bassBoost;
   double get virtualizer => _virtualizer;
+  bool get is8dAudio => _is8dAudio;
   bool get is16dAudio => _is16dAudio;
   List<double> get bandGains => List.unmodifiable(_bandGains);
 
   static const Map<String, List<double>> presets = {
     'Flat': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    '8D Surround': [4.0, 3.5, 2.5, 1.5, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 4.0, 3.5],
     '16D Spatial': [5.0, 4.5, 3.5, 2.0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 5.5, 5.0, 4.5],
     'Bass Boost': [6.0, 5.5, 5.0, 4.0, 2.5, 1.0, 0, 0, 0, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
     'Audiophile Reference': [-0.5, 0, 0.5, 0, -0.5, 0, 0.5, 0, 0, 0.5, 1.0, 0.5, 0, -0.5, 0],
@@ -194,6 +197,27 @@ class EqualizerService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggle8dAudio() {
+    set8dAudio(!_is8dAudio);
+  }
+
+  void set8dAudio(bool enable) {
+    _is8dAudio = enable;
+    if (_is8dAudio) {
+      _is16dAudio = false;
+      _virtualizer = 0.85;
+      _bassBoost = 0.35;
+      _activePreset = '8D Surround';
+      _bandGains = List.from(presets['8D Surround']!);
+    } else {
+      _virtualizer = 0.0;
+      _activePreset = 'Flat';
+      _bandGains = List.from(presets['Flat']!);
+    }
+    _savePreferences();
+    notifyListeners();
+  }
+
   void toggle16dAudio() {
     set16dAudio(!_is16dAudio);
   }
@@ -201,6 +225,7 @@ class EqualizerService extends ChangeNotifier {
   void set16dAudio(bool enable) {
     _is16dAudio = enable;
     if (_is16dAudio) {
+      _is8dAudio = false;
       _virtualizer = 0.95;
       _bassBoost = 0.45;
       _activePreset = '16D Spatial';
@@ -215,6 +240,7 @@ class EqualizerService extends ChangeNotifier {
   }
 
   void reset() {
+    _is8dAudio = false;
     _is16dAudio = false;
     setPreset('Flat');
     _bassBoost = 0.0;
