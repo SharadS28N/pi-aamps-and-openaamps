@@ -12,6 +12,8 @@ import 'local_stream_proxy.dart';
 import 'pi_aamps_service.dart';
 import 'party_service.dart';
 import 'integration_service.dart';
+import 'download_service.dart';
+import 'settings_service.dart';
 
 enum AudioTarget { phoneLocal, piSpeaker, partySession }
 
@@ -221,6 +223,9 @@ class AudioPlayerService extends ChangeNotifier {
     } else {
       _likedIds.add(track.id);
       _likedTracks.insert(0, track);
+      if (SettingsService.instance.autoDownloadFavorites && !DownloadService.instance.isDownloaded(track.id)) {
+        DownloadService.instance.downloadTrack(track, _ytService);
+      }
     }
     _saveLikes();
     notifyListeners();
@@ -473,6 +478,11 @@ class AudioPlayerService extends ChangeNotifier {
 
     // Scrobble track and update Discord Rich Presence
     IntegrationService.instance.scrobbleTrack(track);
+
+    // Auto-cache played track if setting enabled (0ms offline caching)
+    if (SettingsService.instance.autoCacheOnPlay && !DownloadService.instance.isDownloaded(track.id)) {
+      DownloadService.instance.downloadTrack(track, _ytService);
+    }
 
     // If target is Pi Speaker, dispatch to Raspberry Pi
     if (_target == AudioTarget.piSpeaker) {

@@ -37,15 +37,19 @@ class EqualizerService extends ChangeNotifier {
   // Current gains in dB (-12.0 to +12.0)
   List<double> _bandGains = List.filled(15, 0.0);
 
+  bool _is16dAudio = false;
+
   bool get isEnabled => _isEnabled;
   String get activePreset => _activePreset;
   String? get activeAutoEqId => _activeAutoEqId;
   double get bassBoost => _bassBoost;
   double get virtualizer => _virtualizer;
+  bool get is16dAudio => _is16dAudio;
   List<double> get bandGains => List.unmodifiable(_bandGains);
 
   static const Map<String, List<double>> presets = {
     'Flat': [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    '16D Spatial': [5.0, 4.5, 3.5, 2.0, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 5.0, 5.5, 5.0, 4.5],
     'Bass Boost': [6.0, 5.5, 5.0, 4.0, 2.5, 1.0, 0, 0, 0, 0, 0.5, 1.0, 1.5, 2.0, 2.5],
     'Audiophile Reference': [-0.5, 0, 0.5, 0, -0.5, 0, 0.5, 0, 0, 0.5, 1.0, 0.5, 0, -0.5, 0],
     'Vocal Clarity': [-2.0, -1.5, -1.0, 0, 1.0, 2.5, 4.0, 4.5, 4.0, 3.0, 2.0, 1.5, 1.0, 0, -1.0],
@@ -190,7 +194,28 @@ class EqualizerService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void toggle16dAudio() {
+    set16dAudio(!_is16dAudio);
+  }
+
+  void set16dAudio(bool enable) {
+    _is16dAudio = enable;
+    if (_is16dAudio) {
+      _virtualizer = 0.95;
+      _bassBoost = 0.45;
+      _activePreset = '16D Spatial';
+      _bandGains = List.from(presets['16D Spatial']!);
+    } else {
+      _virtualizer = 0.0;
+      _activePreset = 'Flat';
+      _bandGains = List.from(presets['Flat']!);
+    }
+    _savePreferences();
+    notifyListeners();
+  }
+
   void reset() {
+    _is16dAudio = false;
     setPreset('Flat');
     _bassBoost = 0.0;
     _virtualizer = 0.0;

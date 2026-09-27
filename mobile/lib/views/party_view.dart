@@ -825,6 +825,9 @@ class _PartyViewState extends State<PartyView> {
           const SizedBox(height: 24),
         ],
 
+        // Live Party Reactions & Chat
+        _buildPartyVibesAndReactionsBar(accent),
+
         // Collaborative Queue
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -898,6 +901,272 @@ class _PartyViewState extends State<PartyView> {
             },
           ),
       ],
+    );
+  }
+
+  Widget _buildPartyVibesAndReactionsBar(Color accent) {
+    final recentRx = _party.recentReactions.isNotEmpty ? _party.recentReactions.first : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (recentRx != null) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            margin: const EdgeInsets.only(bottom: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E22),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: Row(
+              children: [
+                _getReactionIcon(recentRx['reaction'] ?? '', 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${recentRx['sender_name']} reacted with ${recentRx['label'] ?? 'Vibe'}',
+                    style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'LIVE REACTIONS & CHAT',
+              style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+            ),
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              ),
+              icon: Icon(Icons.forum_rounded, size: 15, color: accent),
+              label: Text(
+                'Party Chat (${_party.chatMessages.length})',
+                style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.bold),
+              ),
+              onPressed: () => _showPartyChatSheet(context),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF141414),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildReactionButton('fire', 'Fire', Icons.local_fire_department_rounded, Colors.deepOrangeAccent),
+              _buildReactionButton('love', 'Love', Icons.favorite_rounded, Colors.pinkAccent),
+              _buildReactionButton('vibe', 'Vibe', Icons.music_note_rounded, Colors.cyanAccent),
+              _buildReactionButton('clap', 'Clap', Icons.thumb_up_alt_rounded, Colors.amber),
+              _buildReactionButton('hype', 'Hype', Icons.bolt_rounded, Colors.yellowAccent),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white70, size: 20),
+                tooltip: 'Send Message',
+                onPressed: () => _showPartyChatSheet(context),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildReactionButton(String type, String label, IconData icon, Color color) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () async {
+        await _party.sendReaction(type, label);
+        if (mounted) {
+          AppAlert.show(context, 'Sent $label reaction', icon: icon, isSuccess: true);
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Icon(icon, color: color, size: 24),
+      ),
+    );
+  }
+
+  Widget _getReactionIcon(String type, double size) {
+    switch (type) {
+      case 'fire':
+        return Icon(Icons.local_fire_department_rounded, color: Colors.deepOrangeAccent, size: size);
+      case 'love':
+        return Icon(Icons.favorite_rounded, color: Colors.pinkAccent, size: size);
+      case 'vibe':
+        return Icon(Icons.music_note_rounded, color: Colors.cyanAccent, size: size);
+      case 'clap':
+        return Icon(Icons.thumb_up_alt_rounded, color: Colors.amber, size: size);
+      case 'hype':
+        return Icon(Icons.bolt_rounded, color: Colors.yellowAccent, size: size);
+      default:
+        return Icon(Icons.local_fire_department_rounded, color: Colors.deepOrangeAccent, size: size);
+    }
+  }
+
+  void _showPartyChatSheet(BuildContext context) {
+    final TextEditingController chatInputController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+          child: Container(
+            height: MediaQuery.of(ctx).size.height * 0.65,
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Color(0xFF141416),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              border: Border(top: BorderSide(color: Colors.white12)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    const Icon(Icons.forum_rounded, color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                    const Text('Live Party Chat & Shoutouts', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: AnimatedBuilder(
+                    animation: _party,
+                    builder: (context, _) {
+                      final msgs = _party.chatMessages;
+                      if (msgs.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white24, size: 40),
+                              const SizedBox(height: 8),
+                              const Text('No messages yet', style: TextStyle(color: Colors.white38, fontSize: 13)),
+                              const SizedBox(height: 4),
+                              const Text('Send a shoutout to everyone listening together!', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                            ],
+                          ),
+                        );
+                      }
+                      return ListView.separated(
+                        reverse: false,
+                        itemCount: msgs.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final msg = msgs[index];
+                          final isMe = msg['sender_id'] == _account.activeAccount.id;
+                          return Align(
+                            alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isMe ? const Color(0xFF27272A) : const Color(0xFF1E1E22),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: Colors.white.withValues(alpha: isMe ? 0.15 : 0.06)),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    msg['sender_name'] ?? 'Member',
+                                    style: TextStyle(
+                                      color: isMe ? Colors.white70 : const Color(0xFF818CF8),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    msg['message'] ?? '',
+                                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: chatInputController,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: InputDecoration(
+                          hintText: 'Type a shoutout...',
+                          hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                          filled: true,
+                          fillColor: const Color(0xFF27272A),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        ),
+                        onSubmitted: (text) async {
+                          if (text.trim().isNotEmpty) {
+                            await _party.sendChatMessage(text.trim());
+                            chatInputController.clear();
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      style: IconButton.styleFrom(
+                        backgroundColor: const Color(0xFF6366F1),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      icon: const Icon(Icons.send_rounded, size: 18),
+                      onPressed: () async {
+                        final text = chatInputController.text.trim();
+                        if (text.isNotEmpty) {
+                          await _party.sendChatMessage(text);
+                          chatInputController.clear();
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

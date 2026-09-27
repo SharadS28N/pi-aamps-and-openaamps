@@ -31,6 +31,8 @@ class PartyHostServer {
 
   final Map<String, PartyMemberModel> _members = {};
   final List<PartyTrackModel> _queue = [];
+  final List<Map<String, dynamic>> _reactions = [];
+  final List<Map<String, dynamic>> _chatMessages = [];
   Track? _currentTrack;
 
   bool get isRunning => _server != null;
@@ -99,6 +101,8 @@ class PartyHostServer {
     );
 
     _queue.clear();
+    _reactions.clear();
+    _chatMessages.clear();
 
     try {
       _server = await HttpServer.bind(InternetAddress.anyIPv4, _port);
@@ -218,6 +222,8 @@ class PartyHostServer {
             'voted_members': item.votedMembers,
           }
       ],
+      'recent_reactions': List.from(_reactions),
+      'chat_messages': List.from(_chatMessages),
     };
   }
 
@@ -226,6 +232,23 @@ class PartyHostServer {
     final payload = jsonEncode({
       'type': eventType,
       'data': toSnapshot(),
+    });
+
+    final toRemove = <WebSocket>[];
+    for (var ws in _clientSockets) {
+      try {
+        ws.add(payload);
+      } catch (_) {
+        toRemove.add(ws);
+      }
+    }
+    _clientSockets.removeAll(toRemove);
+  }
+
+  void broadcastCustom(String eventType, Map<String, dynamic> data) {
+    final payload = jsonEncode({
+      'type': eventType,
+      'data': data,
     });
 
     final toRemove = <WebSocket>[];
@@ -444,7 +467,47 @@ class PartyHostServer {
       return;
     }
 
-    // 9. GET /api/party/:code/state or /api/party/state
+    // 9. POST /api/party/:code/reaction
+    if (path.endsWith('/reaction') && request.method == 'POST') {
+      final senderName = body['sender_name'] ?? 'Friend';
+      final reaction = body['reaction'] ?? 'fire';
+      final label = body['label'] ?? 'Fire';
+      final rx = {
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'sender_name': senderName,
+        'reaction': reaction,
+        'label': label,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      };
+      _reactions.insert(0, rx);
+      if (_reactions.length > 20) _reactions.removeLast();
+      broadcastCustom('party_reaction', rx);
+      response.write(jsonEncode({'status': 'ok', 'reaction': rx}));
+      await response.close();
+      return;
+    }
+
+    // 10. POST /api/party/:code/chat
+    if (path.endsWith('/chat') && request.method == 'POST') {
+      final senderName = body['sender_name'] ?? 'Friend';
+      final senderId = body['sender_id'] ?? '';
+      final message = body['message'] ?? '';
+      final chatItem = {
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'sender_id': senderId,
+        'sender_name': senderName,
+        'message': message,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+      };
+      _chatMessages.add(chatItem);
+      if (_chatMessages.length > 50) _chatMessages.removeAt(0);
+      broadcastCustom('party_chat', chatItem);
+      response.write(jsonEncode({'status': 'ok', 'chat': chatItem}));
+      await response.close();
+      return;
+    }
+
+    // 11. GET /api/party/:code/state or /api/party/state
     if (path.contains('/state') && request.method == 'GET') {
       response.write(jsonEncode({'status': 'ok', 'room': toSnapshot()}));
       await response.close();

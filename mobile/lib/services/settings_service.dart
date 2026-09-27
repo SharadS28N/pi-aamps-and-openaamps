@@ -56,6 +56,8 @@ class SettingsService extends ChangeNotifier {
   double _pitch = 1.0;
   double _crossfadeDuration = 3.0;
   bool _loudnessNormalization = true;
+  bool _autoDownloadFavorites = true;
+  bool _autoCacheOnPlay = false;
 
   PlayerStyle get playerStyle => _playerStyle;
   BackgroundStyle get backgroundStyle => _backgroundStyle;
@@ -64,6 +66,8 @@ class SettingsService extends ChangeNotifier {
   AccentVibe get accentVibe => _accentVibe;
   bool get showWallpaperOnHome => _showWallpaperOnHome;
   String get geminiApiKey => _geminiApiKey;
+  bool get autoDownloadFavorites => _autoDownloadFavorites;
+  bool get autoCacheOnPlay => _autoCacheOnPlay;
 
   Color get accentColor {
     switch (_accentVibe) {
@@ -152,6 +156,8 @@ class SettingsService extends ChangeNotifier {
       _pitch = prefs.getDouble('pref_pitch') ?? 1.0;
       _crossfadeDuration = prefs.getDouble('pref_crossfade') ?? 3.0;
       _loudnessNormalization = prefs.getBool('pref_loudness_norm') ?? true;
+      _autoDownloadFavorites = prefs.getBool('pref_auto_download_favs') ?? true;
+      _autoCacheOnPlay = prefs.getBool('pref_auto_cache_play') ?? false;
       _geminiApiKey = prefs.getString('pref_gemini_api_key') ?? '';
 
       notifyListeners();
@@ -236,5 +242,19 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('pref_loudness_norm', enabled);
+  }
+
+  Future<void> setAutoDownloadFavorites(bool value) async {
+    _autoDownloadFavorites = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('pref_auto_download_favs', value);
+  }
+
+  Future<void> setAutoCacheOnPlay(bool value) async {
+    _autoCacheOnPlay = value;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('pref_auto_cache_play', value);
   }
 }

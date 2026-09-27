@@ -112,6 +112,8 @@ class PartyService extends ChangeNotifier {
 
   final List<PartyMemberModel> _members = [];
   final List<PartyTrackModel> _partyQueue = [];
+  final List<Map<String, dynamic>> _recentReactions = [];
+  final List<Map<String, dynamic>> _chatMessages = [];
   Track? _partyCurrentTrack;
   bool _partyIsPlaying = false;
   int _lastServerPositionMs = 0;
@@ -133,6 +135,8 @@ class PartyService extends ChangeNotifier {
 
   List<PartyMemberModel> get members => List.unmodifiable(_members);
   List<PartyTrackModel> get partyQueue => List.unmodifiable(_partyQueue);
+  List<Map<String, dynamic>> get recentReactions => List.unmodifiable(_recentReactions);
+  List<Map<String, dynamic>> get chatMessages => List.unmodifiable(_chatMessages);
   Track? get partyCurrentTrack => _partyCurrentTrack;
   bool get partyIsPlaying => _partyIsPlaying;
   Stream<Map<String, dynamic>> get partyEventStream => _partyEventController.stream;
@@ -446,6 +450,8 @@ class PartyService extends ChangeNotifier {
     _activePartyBaseUrl = null;
     _members.clear();
     _partyQueue.clear();
+    _recentReactions.clear();
+    _chatMessages.clear();
     _partyCurrentTrack = null;
     _partyIsPlaying = false;
     _driftMs = 0;
@@ -489,6 +495,18 @@ class PartyService extends ChangeNotifier {
             } else if (type == 'queue_updated') {
               _applyRoomSnapshot(data);
               notifyListeners();
+            } else if (type == 'party_reaction') {
+              if (data is Map) {
+                _recentReactions.insert(0, Map<String, dynamic>.from(data));
+                if (_recentReactions.length > 20) _recentReactions.removeLast();
+                notifyListeners();
+              }
+            } else if (type == 'party_chat') {
+              if (data is Map) {
+                _chatMessages.add(Map<String, dynamic>.from(data));
+                if (_chatMessages.length > 50) _chatMessages.removeAt(0);
+                notifyListeners();
+              }
             }
           } catch (_) {}
         },
@@ -583,6 +601,22 @@ class PartyService extends ChangeNotifier {
     for (var item in qList) {
       if (item is Map) {
         _partyQueue.add(PartyTrackModel.fromJson(Map<String, dynamic>.from(item)));
+      }
+    }
+
+    // Reactions
+    if (data['recent_reactions'] is List) {
+      _recentReactions.clear();
+      for (var r in data['recent_reactions']) {
+        if (r is Map) _recentReactions.add(Map<String, dynamic>.from(r));
+      }
+    }
+
+    // Chat Messages
+    if (data['chat_messages'] is List) {
+      _chatMessages.clear();
+      for (var c in data['chat_messages']) {
+        if (c is Map) _chatMessages.add(Map<String, dynamic>.from(c));
       }
     }
   }
@@ -910,6 +944,82 @@ class PartyService extends ChangeNotifier {
       );
       _allowCollaborativeDj = allow;
       notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> sendReaction(String reactionType, String label) async {
+    if (!_isInParty || _currentRoomCode == null) return;
+    final account = AccountService.instance.activeAccount;
+    final rx = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'sender_name': account.name,
+      'reaction': reactionType,
+      'label': label,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    };
+    _recentReactions.insert(0, rx);
+    if (_recentReactions.length > 20) _recentReactions.removeLast();
+    notifyListeners();
+
+    if (PartyHostServer.instance.isRunning) {
+      PartyHostServer.instance.broadcastCustom('party_reaction', rx);
+    } else {
+      final baseUrl = _activePartyBaseUrl ?? PiAampsService.instance.baseUrl;
+      try {
+        await http.post(
+          Uri.parse('$baseUrl/api/party/$_currentRoomCode/reaction'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'sender_name': account.name,
+            'reaction': reactionType,
+            'label': label,
+          }),
+        ).timeout(const Duration(seconds: 2));
+      } catch (_) {}
+    }
+
+    try {
+      await FirebaseFirestore.instance.collection('jam_rooms').doc(_currentRoomCode!).update({
+        'recent_reactions': FieldValue.arrayUnion([rx]),
+      });
+    } catch (_) {}
+  }
+
+  Future<void> sendChatMessage(String message) async {
+    if (!_isInParty || _currentRoomCode == null || message.trim().isEmpty) return;
+    final account = AccountService.instance.activeAccount;
+    final chatItem = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'sender_id': account.id,
+      'sender_name': account.name,
+      'message': message.trim(),
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    };
+    _chatMessages.add(chatItem);
+    if (_chatMessages.length > 50) _chatMessages.removeAt(0);
+    notifyListeners();
+
+    if (PartyHostServer.instance.isRunning) {
+      PartyHostServer.instance.broadcastCustom('party_chat', chatItem);
+    } else {
+      final baseUrl = _activePartyBaseUrl ?? PiAampsService.instance.baseUrl;
+      try {
+        await http.post(
+          Uri.parse('$baseUrl/api/party/$_currentRoomCode/chat'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'sender_id': account.id,
+            'sender_name': account.name,
+            'message': message.trim(),
+          }),
+        ).timeout(const Duration(seconds: 2));
+      } catch (_) {}
+    }
+
+    try {
+      await FirebaseFirestore.instance.collection('jam_rooms').doc(_currentRoomCode!).update({
+        'chat_messages': FieldValue.arrayUnion([chatItem]),
+      });
     } catch (_) {}
   }
 }

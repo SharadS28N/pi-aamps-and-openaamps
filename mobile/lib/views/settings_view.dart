@@ -523,6 +523,39 @@ class _SettingsViewState extends State<SettingsView> {
           ),
           const SizedBox(height: 28),
 
+          // Section: Offline Storage & Direct-Saving Cache (Survey Priority)
+          const Text(
+            'OFFLINE STORAGE & DIRECT-SAVING CACHE',
+            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+          ),
+          const SizedBox(height: 12),
+
+          SwitchListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            tileColor: const Color(0xFF141414),
+            secondary: const Icon(Icons.download_for_offline_rounded, color: Colors.white),
+            title: const Text('Auto-Download Favorited Tracks', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            subtitle: const Text('Directly saves tracks to local offline storage when liked for 0ms playback', style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
+            value: _settings.autoDownloadFavorites,
+            activeTrackColor: Colors.white38,
+            activeThumbColor: Colors.white,
+            onChanged: (val) => _settings.setAutoDownloadFavorites(val),
+          ),
+          const SizedBox(height: 10),
+
+          SwitchListTile(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            tileColor: const Color(0xFF141414),
+            secondary: const Icon(Icons.cached_rounded, color: Colors.white),
+            title: const Text('Direct-Cache on Playback', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            subtitle: const Text('Pre-buffers and saves stream to phone storage on first play for 0ms reload', style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
+            value: _settings.autoCacheOnPlay,
+            activeTrackColor: Colors.white38,
+            activeThumbColor: Colors.white,
+            onChanged: (val) => _settings.setAutoCacheOnPlay(val),
+          ),
+          const SizedBox(height: 28),
+
           // Section 4: Scrobblers & Integrations
           const Text(
             'CONNECT SPOTIFY & INTEGRATIONS',
