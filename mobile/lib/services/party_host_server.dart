@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import '../models/track.dart';
 import 'party_service.dart';
+import 'audio_player_service.dart';
 
 class PartyHostServer {
   static final PartyHostServer instance = PartyHostServer._internal();
@@ -200,6 +201,7 @@ class PartyHostServer {
               'artist': _currentTrack!.artist,
               'thumbnail': _currentTrack!.artworkUrl,
               'duration': _currentTrack!.duration.inSeconds,
+              'stream_url': AudioPlayerService.instance.getResolvedStreamUrl(_currentTrack!.id) ?? _currentTrack!.streamUrl,
             }
           : null,
       'queue': [

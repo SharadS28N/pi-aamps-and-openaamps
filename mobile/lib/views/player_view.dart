@@ -496,128 +496,141 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
               const SizedBox(height: 20),
 
               // Playback Controls (Shuffle, 10s Rewind, Prev, Play/Pause, Next, 15s Forward, Repeat)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.shuffle_rounded,
-                      color: _isShuffle ? accent : Colors.white38,
-                      size: 24,
-                    ),
-                    tooltip: _isShuffle ? 'Shuffle On' : 'Shuffle Off',
-                    onPressed: () {
-                      setState(() => _isShuffle = !_isShuffle);
-                      widget.audioService.setShuffleModeEnabled(_isShuffle);
-                      AppAlert.show(
-                        context,
-                        _isShuffle ? 'Shuffle enabled' : 'Shuffle disabled',
-                        icon: Icons.shuffle_rounded,
-                        isFullScreen: true,
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.replay_10_rounded, color: Colors.white70, size: 26),
-                    tooltip: 'Rewind 10s',
-                    onPressed: () => widget.audioService.seekBackward10(),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.skip_previous_rounded, color: Colors.white, size: 34),
-                    tooltip: 'Previous Track',
-                    onPressed: () => widget.audioService.skipToPrevious(),
-                  ),
-                  GestureDetector(
-                    onTap: () {
-                      if (_isPlaying) {
-                        widget.audioService.pause();
-                      } else {
-                        if (widget.audioService.player.audioSource == null) {
-                           widget.audioService.playTrack(track);
-                        } else {
-                          widget.audioService.resume(fallbackTrack: track);
-                        }
-                      }
-                    },
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: accent,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: accent.withValues(alpha: 0.35),
-                            blurRadius: 18,
-                            spreadRadius: 2,
-                          ),
-                        ],
+              // Playback Controls (Shuffle, 10s Rewind, Prev, Play/Pause, Next, 15s Forward, Repeat)
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width - 32,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: Icon(
+                          Icons.shuffle_rounded,
+                          color: _isShuffle ? accent : Colors.white38,
+                          size: 24,
+                        ),
+                        tooltip: _isShuffle ? 'Shuffle On' : 'Shuffle Off',
+                        onPressed: () {
+                          setState(() => _isShuffle = !_isShuffle);
+                          widget.audioService.setShuffleModeEnabled(_isShuffle);
+                          AppAlert.show(
+                            context,
+                            _isShuffle ? 'Shuffle enabled' : 'Shuffle disabled',
+                            icon: Icons.shuffle_rounded,
+                            isFullScreen: true,
+                          );
+                        },
                       ),
-                      child: Center(
-                        child: (widget.audioService.isLoading && !_isPlaying && !widget.audioService.player.playing)
-                            ? SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  color: accent.computeLuminance() > 0.5 ? Colors.black : Colors.white,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            : Icon(
-                                (_isPlaying || widget.audioService.player.playing)
-                                     ? Icons.pause_rounded
-                                     : Icons.play_arrow_rounded,
-                                color: accent.computeLuminance() > 0.5 ? Colors.black : Colors.white,
-                                size: 38,
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.replay_10_rounded, color: Colors.white70, size: 26),
+                        tooltip: 'Rewind 10s',
+                        onPressed: () => widget.audioService.seekBackward10(),
+                      ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.skip_previous_rounded, color: Colors.white, size: 34),
+                        tooltip: 'Previous Track',
+                        onPressed: () => widget.audioService.skipToPrevious(),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          if (_isPlaying) {
+                            widget.audioService.pause();
+                          } else {
+                            if (widget.audioService.player.audioSource == null) {
+                               widget.audioService.playTrack(track);
+                            } else {
+                              widget.audioService.resume(fallbackTrack: track);
+                            }
+                          }
+                        },
+                        child: Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: accent,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: accent.withValues(alpha: 0.35),
+                                blurRadius: 18,
+                                spreadRadius: 2,
                               ),
+                            ],
+                          ),
+                          child: Center(
+                            child: (widget.audioService.isLoading && !_isPlaying && !widget.audioService.player.playing)
+                                ? SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      color: accent.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                : Icon(
+                                    (_isPlaying || widget.audioService.player.playing)
+                                         ? Icons.pause_rounded
+                                         : Icons.play_arrow_rounded,
+                                    color: accent.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                                    size: 38,
+                                  ),
+                          ),
+                        ),
                       ),
-                    ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 34),
+                        tooltip: 'Next Track',
+                        onPressed: () => widget.audioService.skipToNext(),
+                      ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.forward_10_rounded, color: Colors.white70, size: 26),
+                        tooltip: 'Forward 15s',
+                        onPressed: () => widget.audioService.seekForward15(),
+                      ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        icon: Icon(
+                          _loopMode == LoopMode.one
+                              ? Icons.repeat_one_rounded
+                              : Icons.repeat_rounded,
+                          color: _loopMode != LoopMode.off ? accent : Colors.white38,
+                          size: 26,
+                        ),
+                        tooltip: _loopMode == LoopMode.off
+                            ? 'Repeat Off'
+                            : (_loopMode == LoopMode.one ? 'Repeat Track' : 'Repeat All'),
+                        onPressed: () {
+                          setState(() {
+                            if (_loopMode == LoopMode.off) {
+                              _loopMode = LoopMode.all;
+                            } else if (_loopMode == LoopMode.all) {
+                              _loopMode = LoopMode.one;
+                            } else {
+                              _loopMode = LoopMode.off;
+                            }
+                          });
+                          widget.audioService.setLoopMode(_loopMode);
+                          AppAlert.show(
+                            context,
+                            _loopMode == LoopMode.one
+                                ? 'Loop current track'
+                                : (_loopMode == LoopMode.all ? 'Loop all tracks' : 'Loop disabled'),
+                            icon: _loopMode == LoopMode.one
+                                ? Icons.repeat_one_rounded
+                                : Icons.repeat_rounded,
+                            isFullScreen: true,
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 34),
-                    tooltip: 'Next Track',
-                    onPressed: () => widget.audioService.skipToNext(),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.forward_10_rounded, color: Colors.white70, size: 26),
-                    tooltip: 'Forward 15s',
-                    onPressed: () => widget.audioService.seekForward15(),
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      _loopMode == LoopMode.one
-                          ? Icons.repeat_one_rounded
-                          : Icons.repeat_rounded,
-                      color: _loopMode != LoopMode.off ? accent : Colors.white38,
-                      size: 26,
-                    ),
-                    tooltip: _loopMode == LoopMode.off
-                        ? 'Repeat Off'
-                        : (_loopMode == LoopMode.one ? 'Repeat Track' : 'Repeat All'),
-                    onPressed: () {
-                      setState(() {
-                        if (_loopMode == LoopMode.off) {
-                          _loopMode = LoopMode.all;
-                        } else if (_loopMode == LoopMode.all) {
-                          _loopMode = LoopMode.one;
-                        } else {
-                          _loopMode = LoopMode.off;
-                        }
-                      });
-                      widget.audioService.setLoopMode(_loopMode);
-                      AppAlert.show(
-                        context,
-                        _loopMode == LoopMode.one
-                            ? 'Loop current track'
-                            : (_loopMode == LoopMode.all ? 'Loop all tracks' : 'Loop disabled'),
-                        icon: _loopMode == LoopMode.one
-                            ? Icons.repeat_one_rounded
-                            : Icons.repeat_rounded,
-                        isFullScreen: true,
-                      );
-                    },
-                  ),
-                ],
+                ),
               ),
               const SizedBox(height: 20),
 

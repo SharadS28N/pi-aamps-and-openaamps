@@ -279,111 +279,127 @@ class PartyService extends ChangeNotifier {
 
   // --- Join Listening Party by Room Code ---
   Future<bool> joinParty(String roomCode) async {
-    final rawCode = roomCode.trim().toUpperCase();
-    if (rawCode.isEmpty) return false;
-    final code = rawCode.startsWith('JAM-') ? rawCode : 'JAM-$rawCode';
+    // 1. Sanitize room code properly: handles 'JAM-159', 'JAM159', '159', 'jam 159'
+    String clean = roomCode.trim().toUpperCase().replaceAll(' ', '');
+    if (clean.isEmpty) return false;
+    if (clean.startsWith('JAM')) {
+      clean = clean.substring(3);
+      if (clean.startsWith('-')) clean = clean.substring(1);
+    }
+    if (clean.isEmpty) return false;
+    final normalizedCode = 'JAM-$clean';
+    final rawNumber = clean;
 
     _isConnecting = true;
     notifyListeners();
 
     final account = AccountService.instance.activeAccount;
 
-    // 1. Resolve host base URL via UDP discovery & local network probing
-    String? hostBaseUrl = await PartyDiscoveryService.instance.resolveHostBaseUrl(code);
-    if (hostBaseUrl == null && rawCode != code) {
-      hostBaseUrl = await PartyDiscoveryService.instance.resolveHostBaseUrl(rawCode);
-    }
+    // 2. Dual-Track Parallel Discovery: Local Wi-Fi + Cloud Firestore (Tokha / WAN / LTE)
+    // Run both concurrently so remote friends join in <400ms without waiting for local subnet timeouts!
 
-    // 2. If not found via discovery, check configured Pi server
-    if (hostBaseUrl == null) {
-      final pi = PiAampsService.instance;
+    Future<bool> tryLocalLan() async {
       try {
-        final res = await http.get(Uri.parse('${pi.baseUrl}/api/party/$code/state')).timeout(const Duration(milliseconds: 600));
-        if (res.statusCode == 200) {
-          hostBaseUrl = pi.baseUrl;
+        String? hostBaseUrl = await PartyDiscoveryService.instance.resolveHostBaseUrl(normalizedCode);
+        hostBaseUrl ??= await PartyDiscoveryService.instance.resolveHostBaseUrl(rawNumber);
+
+        // Fallback check configured Pi server
+        if (hostBaseUrl == null) {
+          final pi = PiAampsService.instance;
+          try {
+            final res = await http.get(Uri.parse('${pi.baseUrl}/api/party/$normalizedCode/state')).timeout(const Duration(milliseconds: 700));
+            if (res.statusCode == 200) hostBaseUrl = pi.baseUrl;
+          } catch (_) {}
         }
-      } catch (_) {}
+
+        if (hostBaseUrl != null) {
+          final payload = {
+            'room_code': normalizedCode,
+            'member_id': account.id,
+            'member_name': account.name,
+            'device_name': _deviceName,
+            'avatar_url': account.avatarUrl,
+          };
+
+          final res = await http.post(
+            Uri.parse('$hostBaseUrl/api/party/join'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(payload),
+          ).timeout(const Duration(seconds: 3));
+
+          if (res.statusCode == 200) {
+            final data = jsonDecode(res.body)['room'];
+            _activePartyBaseUrl = hostBaseUrl;
+            _applyRoomSnapshot(data);
+            _isInParty = true;
+            _isConnecting = false;
+            _connectWebSocket();
+            _startDriftCorrection();
+            _syncLocalAudioPlayer();
+            _listenFirestoreRoom(normalizedCode);
+            notifyListeners();
+            return true;
+          }
+        }
+      } catch (e) {
+        debugPrint('[PartyService] Local LAN join attempt error: $e');
+      }
+      return false;
     }
 
-    if (hostBaseUrl != null) {
+    Future<bool> tryFirestore() async {
       try {
-        final payload = {
-          'room_code': code,
-          'member_id': account.id,
-          'member_name': account.name,
-          'device_name': _deviceName,
-          'avatar_url': account.avatarUrl,
-        };
+        var doc = await FirebaseFirestore.instance
+            .collection('jam_rooms')
+            .doc(normalizedCode)
+            .get()
+            .timeout(const Duration(seconds: 4));
 
-        final res = await http.post(
-          Uri.parse('$hostBaseUrl/api/party/join'),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(payload),
-        ).timeout(const Duration(seconds: 4));
+        if (!doc.exists) {
+          doc = await FirebaseFirestore.instance
+              .collection('jam_rooms')
+              .doc(rawNumber)
+              .get()
+              .timeout(const Duration(seconds: 4));
+        }
 
-        if (res.statusCode == 200) {
-          final data = jsonDecode(res.body)['room'];
-          _activePartyBaseUrl = hostBaseUrl;
+        if (doc.exists && doc.data() != null) {
+          final data = doc.data()!;
+          final myMember = {
+            'id': account.id,
+            'name': account.name,
+            'avatar_url': account.avatarUrl,
+            'device_name': _deviceName,
+            'role': 'listener',
+            'is_online': true,
+          };
+          await FirebaseFirestore.instance.collection('jam_rooms').doc(doc.id).set({
+            'members': {
+              account.id: myMember,
+            }
+          }, SetOptions(merge: true));
+
           _applyRoomSnapshot(data);
           _isInParty = true;
           _isConnecting = false;
-          _connectWebSocket();
+          _listenFirestoreRoom(doc.id);
           _startDriftCorrection();
           _syncLocalAudioPlayer();
-          _listenFirestoreRoom(code);
           notifyListeners();
           return true;
         }
       } catch (e) {
-        debugPrint('Error joining party at $hostBaseUrl: $e');
+        debugPrint('[PartyService] Firestore join attempt error: $e');
       }
+      return false;
     }
 
-    // 3. Cloud Firestore: enables WAN / Cellular / Tokha remote cross-network Jam Sessions
-    try {
-      var candidateCode = code;
-      var snap = await FirebaseFirestore.instance
-          .collection('jam_rooms')
-          .doc(candidateCode)
-          .get()
-          .timeout(const Duration(seconds: 5));
-
-      if (!snap.exists) {
-        candidateCode = rawCode;
-        snap = await FirebaseFirestore.instance
-            .collection('jam_rooms')
-            .doc(candidateCode)
-            .get()
-            .timeout(const Duration(seconds: 5));
-      }
-
-      if (snap.exists && snap.data() != null) {
-        final data = snap.data()!;
-        final myMember = {
-          'id': account.id,
-          'name': account.name,
-          'avatar_url': account.avatarUrl,
-          'device_name': _deviceName,
-          'role': 'listener',
-          'is_online': true,
-        };
-        await FirebaseFirestore.instance.collection('jam_rooms').doc(candidateCode).set({
-          'members': {
-            account.id: myMember,
-          }
-        }, SetOptions(merge: true));
-
-        _applyRoomSnapshot(data);
-        _isInParty = true;
-        _isConnecting = false;
-        _listenFirestoreRoom(candidateCode);
-        _startDriftCorrection();
-        _syncLocalAudioPlayer();
-        notifyListeners();
-        return true;
-      }
-    } catch (e) {
-      debugPrint('[PartyService] Firestore join jam room error: $e');
+    // Run LAN and Firestore lookups concurrently
+    final results = await Future.wait([tryLocalLan(), tryFirestore()]);
+    if (results.any((r) => r == true)) {
+      _isConnecting = false;
+      notifyListeners();
+      return true;
     }
 
     _isConnecting = false;
@@ -555,7 +571,7 @@ class PartyService extends ChangeNotifier {
         album: ct['album']?.toString() ?? '',
         duration: Duration(seconds: (ct['duration'] as num?)?.toInt() ?? 0),
         artworkUrl: ct['thumbnail']?.toString() ?? '',
-        streamUrl: '',
+        streamUrl: ct['stream_url']?.toString() ?? '',
       );
     } else {
       _partyCurrentTrack = null;
@@ -609,9 +625,9 @@ class PartyService extends ChangeNotifier {
 
     // If local player is playing a different song, load the party song
     if (audio.currentTrack?.id != _partyCurrentTrack!.id) {
-      await audio.playTrack(_partyCurrentTrack!, playImmediately: _partyIsPlaying);
+      await audio.playTrack(_partyCurrentTrack!, playImmediately: _partyIsPlaying, notifyParty: false);
       if (targetPosition > Duration.zero) {
-        audio.seek(targetPosition);
+        audio.seek(targetPosition, notifyParty: false);
       }
     } else {
       // Same song: synchronize play/pause state and position
@@ -623,7 +639,7 @@ class PartyService extends ChangeNotifier {
 
       final drift = (audio.player.position - targetPosition).inMilliseconds.abs();
       if (drift > 450) {
-        audio.seek(targetPosition);
+        audio.seek(targetPosition, notifyParty: false);
       }
     }
   }
@@ -700,6 +716,7 @@ class PartyService extends ChangeNotifier {
           'artist': activeTrack.artist,
           'thumbnail': activeTrack.artworkUrl,
           'duration': activeTrack.duration.inSeconds,
+          'stream_url': AudioPlayerService.instance.getResolvedStreamUrl(activeTrack.id) ?? activeTrack.streamUrl,
         };
       }
       await FirebaseFirestore.instance.collection('jam_rooms').doc(_currentRoomCode!).set(

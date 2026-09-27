@@ -647,11 +647,15 @@ class _PartyViewState extends State<PartyView> {
                   children: [
                     Icon(Icons.wifi_rounded, color: accent, size: 14),
                     const SizedBox(width: 6),
-                    Text(
-                      _party.isHost
-                          ? 'Hosting on Wi-Fi (${_party.activePartyBaseUrl!.replaceAll('http://', '')})'
-                          : 'Host IP: ${_party.activePartyBaseUrl!.replaceAll('http://', '')}',
-                      style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.w600),
+                    Expanded(
+                      child: Text(
+                        _party.isHost
+                            ? 'Hosting on Wi-Fi (${_party.activePartyBaseUrl!.replaceAll('http://', '')})'
+                            : 'Host IP: ${_party.activePartyBaseUrl!.replaceAll('http://', '')}',
+                        style: TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.w600),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -673,14 +677,23 @@ class _PartyViewState extends State<PartyView> {
             children: [
               Container(width: 8, height: 8, decoration: BoxDecoration(color: accent, shape: BoxShape.circle)),
               const SizedBox(width: 8),
-              Text(
-                'Synchronized (${_party.driftMs}ms drift)',
-                style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 12),
+              Flexible(
+                child: Text(
+                  'Synchronized (${_party.driftMs}ms drift)',
+                  style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 12),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Spacer(),
-              Icon(Icons.headphones_rounded, color: accent, size: 16),
-              const SizedBox(width: 4),
-              const Text('Local Audio Active', style: TextStyle(color: Colors.white70, fontSize: 11)),
+              const SizedBox(width: 8),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.headphones_rounded, color: accent, size: 16),
+                  const SizedBox(width: 4),
+                  const Text('Local Audio Active', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                ],
+              ),
             ],
           ),
         ),

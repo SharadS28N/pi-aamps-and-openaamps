@@ -1171,11 +1171,17 @@ class _LibraryViewState extends State<LibraryView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Downloaded Tracks (${downloadedTracks.length})',
-                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+              Expanded(
+                child: Text(
+                  'Downloaded Tracks (${downloadedTracks.length})',
+                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               const Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 14),
                   SizedBox(width: 4),

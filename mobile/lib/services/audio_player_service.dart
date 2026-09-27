@@ -318,6 +318,7 @@ class AudioPlayerService extends ChangeNotifier {
   Future<void> setShuffleModeEnabled(bool enabled) => _player.setShuffleModeEnabled(enabled);
 
   final Map<String, String> _resolvedStreamCache = {};
+  String? getResolvedStreamUrl(String trackId) => _resolvedStreamCache[trackId];
 
   MediaItem _mediaItemForTrack(Track track) {
     Uri? artUri;
@@ -514,10 +515,25 @@ class AudioPlayerService extends ChangeNotifier {
       } else {
         // Online stream resolution
         await _player.stop();
-        final streamData = await _ytService.getBestAudioStream(
-          track.id,
-          queryFallback: '${track.title} ${track.artist}',
-        );
+        StreamData? streamData;
+
+        // Fast-path: Check if direct stream URL was provided by Jam host or previously resolved
+        final cachedUrl = _resolvedStreamCache[track.id];
+        final directCandidate = (cachedUrl != null && cachedUrl.isNotEmpty)
+            ? cachedUrl
+            : (track.streamUrl.isNotEmpty &&
+                    (track.streamUrl.startsWith('http://') || track.streamUrl.startsWith('https://'))
+                ? track.streamUrl
+                : null);
+
+        if (directCandidate != null) {
+          streamData = StreamData(url: directCandidate, totalBytes: 0, container: 'mp4');
+        } else {
+          streamData = await _ytService.getBestAudioStream(
+            track.id,
+            queryFallback: '${track.title} ${track.artist}',
+          );
+        }
 
         if (streamData == null) {
           throw Exception('No stream URL found for track "${track.title}"');

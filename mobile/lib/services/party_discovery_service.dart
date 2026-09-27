@@ -166,8 +166,8 @@ class PartyDiscoveryService extends ChangeNotifier {
       return 'http://$ip:$port';
     }
 
-    // 3. User typed last octet e.g. 251 or JAM-251
-    final octetRegex = RegExp(r'^(?:JAM-)?(\d{1,3})$', caseSensitive: false);
+    // 3. User typed octet e.g. 159, JAM159, or JAM-159
+    final octetRegex = RegExp(r'^(?:JAM-?|jam-?)?(\d{1,3})$', caseSensitive: false);
     final octetMatch = octetRegex.firstMatch(cleaned);
     if (octetMatch != null) {
       final octet = int.tryParse(octetMatch.group(1)!);
@@ -188,18 +188,11 @@ class PartyDiscoveryService extends ChangeNotifier {
       }
     }
 
-    // 5. Active probe of local subnet on port 8765
+    // 5. Targeted probe of known Pi server IPs on port 8765
     final subnet = await _getLocalSubnetPrefix();
     if (subnet != null) {
-      // Probe common device IPs in parallel
-      final futures = <Future<String?>>[];
-      for (int i = 2; i <= 254; i++) {
-        final url = 'http://$subnet$i:8765';
-        futures.add(_probeForRoom(url, cleaned));
-      }
-
-      final results = await Future.wait(futures);
-      for (var res in results) {
+      for (final lastOctet in ['251', '159']) {
+        final res = await _probeForRoom('http://$subnet$lastOctet:8765', cleaned);
         if (res != null) return res;
       }
     }
