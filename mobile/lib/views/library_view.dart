@@ -545,12 +545,19 @@ class _LibraryViewState extends State<LibraryView> {
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.history_rounded, color: Colors.white70),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  icon: const Icon(Icons.history_rounded, color: Colors.white70, size: 20),
                   tooltip: 'History',
                   onPressed: () => _showHistoryModal(context),
                 ),
+                const SizedBox(width: 2),
                 IconButton(
-                  icon: const Icon(Icons.psychology_rounded, color: Colors.purpleAccent),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  icon: const Icon(Icons.psychology_rounded, color: Colors.white70, size: 20),
                   tooltip: 'AI Music Studio',
                   onPressed: () {
                     Navigator.push(
@@ -564,8 +571,12 @@ class _LibraryViewState extends State<LibraryView> {
                     );
                   },
                 ),
+                const SizedBox(width: 2),
                 IconButton(
-                  icon: const Icon(Icons.sync_rounded, color: Colors.white70),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  icon: const Icon(Icons.sync_rounded, color: Colors.white70, size: 20),
                   tooltip: 'Spotify & YouTube Sync',
                   onPressed: () {
                     showModalBottomSheet(
@@ -576,8 +587,12 @@ class _LibraryViewState extends State<LibraryView> {
                     );
                   },
                 ),
+                const SizedBox(width: 2),
                 IconButton(
-                  icon: const Icon(Icons.tune_rounded, color: Colors.white70),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  icon: const Icon(Icons.tune_rounded, color: Colors.white70, size: 20),
                   tooltip: '15-Band EQ & AutoEq',
                   onPressed: () {
                     showModalBottomSheet(
@@ -588,8 +603,12 @@ class _LibraryViewState extends State<LibraryView> {
                     );
                   },
                 ),
+                const SizedBox(width: 2),
                 IconButton(
-                  icon: const Icon(Icons.settings_rounded, color: Colors.white70),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  icon: const Icon(Icons.settings_rounded, color: Colors.white70, size: 20),
                   tooltip: 'Settings',
                   onPressed: () {
                     Navigator.push(
@@ -835,23 +854,16 @@ class _LibraryViewState extends State<LibraryView> {
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFF581C87).withValues(alpha: 0.6),
-                        const Color(0xFF2E1065).withValues(alpha: 0.6),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: const Color(0xFF16161E),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.3)),
+                    border: Border.all(color: const Color(0xFF2A2A38)),
                   ),
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.psychology_rounded, color: Colors.purpleAccent, size: 20),
+                          Icon(Icons.psychology_rounded, color: Colors.white70, size: 20),
                           Spacer(),
                           Icon(Icons.arrow_forward_rounded, color: Colors.white54, size: 14),
                         ],

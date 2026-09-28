@@ -19,21 +19,13 @@ class AccountSyncModal extends StatefulWidget {
 class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // Spotify controllers
+  // Controllers
   final TextEditingController _spotifyUserCtrl = TextEditingController();
-  final TextEditingController _spotifyClientCtrl = TextEditingController();
-  final TextEditingController _spotifySecretCtrl = TextEditingController();
-  final TextEditingController _spotifyTokenCtrl = TextEditingController();
   final TextEditingController _spotifyUrlCtrl = TextEditingController();
-
-  // YouTube controllers
   final TextEditingController _ytHandleCtrl = TextEditingController();
-  final TextEditingController _ytKeyCtrl = TextEditingController();
   final TextEditingController _ytUrlCtrl = TextEditingController();
 
   bool _isLoading = false;
-  bool _showSpotifyDevFields = false;
-  bool _showYtDevFields = false;
 
   @override
   void initState() {
@@ -41,28 +33,20 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
     _tabController = TabController(length: 2, vsync: this);
     final i = IntegrationService.instance;
     _spotifyUserCtrl.text = i.spotifyUsername.isNotEmpty ? i.spotifyUsername : 'sharad_spotify';
-    _spotifyClientCtrl.text = i.spotifyClientId;
-    _spotifySecretCtrl.text = i.spotifyClientSecret;
-    _spotifyTokenCtrl.text = i.spotifyAccessToken;
     _ytHandleCtrl.text = i.youtubeChannelHandle.isNotEmpty ? i.youtubeChannelHandle : '@sharad_tunes';
-    _ytKeyCtrl.text = i.youtubeApiKey;
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _spotifyUserCtrl.dispose();
-    _spotifyClientCtrl.dispose();
-    _spotifySecretCtrl.dispose();
-    _spotifyTokenCtrl.dispose();
     _spotifyUrlCtrl.dispose();
     _ytHandleCtrl.dispose();
-    _ytKeyCtrl.dispose();
     _ytUrlCtrl.dispose();
     super.dispose();
   }
 
-  // --- 1-TAP ZERO-SETUP SPOTIFY SYNC (NON-DEVELOPER FRIENDLY) ---
+  // --- 1-TAP SPOTIFY SYNC (NON-DEVELOPER FRIENDLY) ---
   Future<void> _handleOneTapSpotifySync() async {
     setState(() => _isLoading = true);
 
@@ -203,7 +187,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
       await UserDataRepository.instance.savePlaylist(p1);
       await UserDataRepository.instance.savePlaylist(p2);
 
-      // 3. Update Listening History & Taste Vector (so Home Page recommendations & Stats light up!)
+      // 3. Update Listening History & Taste Vector
       for (var t in curatedTracks) {
         AiMusicService.instance.onTrackLiked(t);
         await UserDataRepository.instance.recordListeningSession(
@@ -245,7 +229,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
     }
   }
 
-  // --- 1-TAP ZERO-SETUP YOUTUBE SYNC (NON-DEVELOPER FRIENDLY) ---
+  // --- 1-TAP YOUTUBE SYNC (NON-DEVELOPER FRIENDLY) ---
   Future<void> _handleOneTapYouTubeSync() async {
     setState(() => _isLoading = true);
 
@@ -404,7 +388,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
     final accent = SettingsService.instance.accentColor;
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.88,
+      height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
         color: Color(0xFF0F0F12),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -443,12 +427,12 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '1-Tap Account & Cloud Sync',
+                        'Account & Cloud Sync',
                         style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 2),
                       Text(
-                        'Zero-setup: 1-click sync for playlists, stats & recommendations',
+                        '1-Click sync for playlists, stats & recommendations',
                         style: TextStyle(color: Colors.white54, fontSize: 12),
                       ),
                     ],
@@ -471,11 +455,11 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
             tabs: const [
               Tab(
                 icon: Icon(Icons.music_note_rounded, color: Color(0xFF1DB954)),
-                text: 'Spotify Sync',
+                text: 'Spotify',
               ),
               Tab(
                 icon: Icon(Icons.play_circle_filled_rounded, color: Color(0xFFEF4444)),
-                text: 'YouTube Sync',
+                text: 'YouTube Music',
               ),
             ],
           ),
@@ -504,20 +488,13 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        // 1-TAP INSTANT SYNC CARD (PROMINENT FOR NON-DEVELOPERS)
+        // 1-TAP INSTANT SYNC CARD
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFF1DB954).withValues(alpha: 0.25),
-                const Color(0xFF14532D).withValues(alpha: 0.25),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: const Color(0xFF131A14),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFF1DB954).withValues(alpha: 0.4), width: 1.5),
+            border: Border.all(color: const Color(0xFF1DB954).withValues(alpha: 0.5), width: 1.5),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -527,17 +504,44 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                   Icon(Icons.bolt_rounded, color: Color(0xFF1DB954), size: 24),
                   SizedBox(width: 8),
                   Text(
-                    '1-Tap Instant Spotify Sync',
+                    'Connect & Sync Spotify',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
               const Text(
-                'No API keys or developer setup needed! Tapping this syncs your Liked Songs, Discover Weekly playlists, and instantly refreshes Home Page recommendations & listening stats.',
+                'Sync your Liked Songs, Discover Weekly playlists, and instantly calibrate your Home Page taste recommendations and stats.',
                 style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
               ),
               const SizedBox(height: 14),
+
+              // Account Handle Input
+              Text(
+                'Spotify Username / Account ID',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1A241C),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFF1DB954).withValues(alpha: 0.3)),
+                ),
+                child: TextField(
+                  controller: _spotifyUserCtrl,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.person_rounded, color: Color(0xFF1DB954), size: 18),
+                    hintText: 'e.g. sharad_spotify',
+                    hintStyle: TextStyle(color: Colors.white38),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -552,7 +556,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
                       : const Icon(Icons.sync_rounded, color: Colors.black, size: 20),
                   label: Text(
-                    _isLoading ? 'Syncing Spotify Library...' : '⚡ 1-Tap Sync Spotify Now',
+                    _isLoading ? 'Syncing Spotify Library...' : 'Sync Spotify Account Now',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ),
@@ -603,7 +607,11 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
               ),
               if (isConnected)
                 TextButton(
-                  onPressed: () => i.disconnectSpotify(),
+                  onPressed: () {
+                    setState(() {
+                      i.disconnectSpotify();
+                    });
+                  },
                   child: const Text('Disconnect', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
                 ),
             ],
@@ -659,64 +667,6 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
         ),
 
         const SizedBox(height: 24),
-        const Divider(color: Color(0xFF22222E)),
-        const SizedBox(height: 12),
-
-        // Accordion for Advanced Developer Portal Credentials (Optional)
-        InkWell(
-          onTap: () => setState(() => _showSpotifyDevFields = !_showSpotifyDevFields),
-          child: Row(
-            children: [
-              Icon(
-                _showSpotifyDevFields ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                color: Colors.white54,
-                size: 20,
-              ),
-              const SizedBox(width: 6),
-              const Text(
-                'Advanced Developer Portal Credentials (Optional)',
-                style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        ),
-
-        if (_showSpotifyDevFields) ...[
-          const SizedBox(height: 10),
-          const Text(
-            'From developer.spotify.com/dashboard (not required for normal use):',
-            style: TextStyle(color: Colors.white38, fontSize: 11),
-          ),
-          const SizedBox(height: 8),
-          _buildTextField('Username', _spotifyUserCtrl, 'Spotify Username'),
-          const SizedBox(height: 8),
-          _buildTextField('Client ID', _spotifyClientCtrl, 'Spotify Client ID'),
-          const SizedBox(height: 8),
-          _buildTextField('Client Secret', _spotifySecretCtrl, 'Spotify Client Secret', obscure: true),
-          const SizedBox(height: 8),
-          _buildTextField('OAuth Access Token', _spotifyTokenCtrl, 'Bearer Token'),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () async {
-              await IntegrationService.instance.saveSpotifyCredentials(
-                username: _spotifyUserCtrl.text.trim(),
-                clientId: _spotifyClientCtrl.text.trim(),
-                clientSecret: _spotifySecretCtrl.text.trim(),
-                accessToken: _spotifyTokenCtrl.text.trim(),
-                connected: true,
-              );
-              if (mounted) {
-                AppAlert.show(context, 'Spotify Credentials Saved', icon: Icons.check_circle_rounded, isSuccess: true);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2A2A38),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Save Developer Keys', style: TextStyle(color: Colors.white, fontSize: 12)),
-          ),
-        ],
-        const SizedBox(height: 20),
       ],
     );
   }
@@ -728,20 +678,13 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        // 1-TAP INSTANT YOUTUBE SYNC CARD (NON-DEVELOPER FRIENDLY)
+        // 1-TAP INSTANT YOUTUBE SYNC CARD
         Container(
           padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFFEF4444).withValues(alpha: 0.25),
-                const Color(0xFF7F1D1D).withValues(alpha: 0.25),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: const Color(0xFF221111),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.4), width: 1.5),
+            border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.5), width: 1.5),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -751,7 +694,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                   Icon(Icons.bolt_rounded, color: Color(0xFFEF4444), size: 24),
                   SizedBox(width: 8),
                   Text(
-                    '1-Tap Instant YouTube Music Sync',
+                    'Connect & Sync YouTube Music',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],
@@ -762,6 +705,33 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                 style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
               ),
               const SizedBox(height: 14),
+
+              // Handle Input
+              Text(
+                'YouTube Channel Handle',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2B1818),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFEF4444).withValues(alpha: 0.3)),
+                ),
+                child: TextField(
+                  controller: _ytHandleCtrl,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.alternate_email_rounded, color: Color(0xFFEF4444), size: 18),
+                    hintText: 'e.g. @sharad_tunes',
+                    hintStyle: TextStyle(color: Colors.white38),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -776,7 +746,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.sync_rounded, color: Colors.white, size: 20),
                   label: Text(
-                    _isLoading ? 'Syncing YouTube Music...' : '⚡ 1-Tap Sync YouTube Now',
+                    _isLoading ? 'Syncing YouTube Music...' : 'Sync YouTube Music Now',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ),
@@ -827,7 +797,11 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
               ),
               if (isConnected)
                 TextButton(
-                  onPressed: () => i.disconnectYouTube(),
+                  onPressed: () {
+                    setState(() {
+                      i.disconnectYouTube();
+                    });
+                  },
                   child: const Text('Disconnect', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
                 ),
             ],
@@ -883,81 +857,6 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
         ),
 
         const SizedBox(height: 24),
-        const Divider(color: Color(0xFF22222E)),
-        const SizedBox(height: 12),
-
-        // Accordion for Developer Key (Optional)
-        InkWell(
-          onTap: () => setState(() => _showYtDevFields = !_showYtDevFields),
-          child: Row(
-            children: [
-              Icon(
-                _showYtDevFields ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
-                color: Colors.white54,
-                size: 20,
-              ),
-              const SizedBox(width: 6),
-              const Text(
-                'Advanced Channel Handle & API Key (Optional)',
-                style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-        ),
-
-        if (_showYtDevFields) ...[
-          const SizedBox(height: 10),
-          _buildTextField('Channel Handle', _ytHandleCtrl, 'e.g. @username'),
-          const SizedBox(height: 8),
-          _buildTextField('YouTube Data API Key (Optional)', _ytKeyCtrl, 'AIzaSy...', obscure: true),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () async {
-              await IntegrationService.instance.saveYouTubeCredentials(
-                handle: _ytHandleCtrl.text.trim(),
-                apiKey: _ytKeyCtrl.text.trim(),
-                connected: true,
-              );
-              if (mounted) {
-                AppAlert.show(context, 'YouTube Credentials Saved', icon: Icons.check_circle_rounded, isSuccess: true);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2A2A38),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Save Channel Keys', style: TextStyle(color: Colors.white, fontSize: 12)),
-          ),
-        ],
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  Widget _buildTextField(String label, TextEditingController ctrl, String hint, {bool obscure = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
-        const SizedBox(height: 4),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF1C1C24),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF2C2C38)),
-          ),
-          child: TextField(
-            controller: ctrl,
-            obscureText: obscure,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              border: InputBorder.none,
-            ),
-          ),
-        ),
       ],
     );
   }

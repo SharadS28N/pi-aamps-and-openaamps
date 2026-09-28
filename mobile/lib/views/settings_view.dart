@@ -182,11 +182,9 @@ class _SettingsViewState extends State<SettingsView> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _buildAccentVibeChip(AccentVibe.monochromeWhite, 'Classic White', Colors.white),
-                    _buildAccentVibeChip(AccentVibe.spotifyGreen, 'Spotify Green', const Color(0xFF1DB954)),
-                    _buildAccentVibeChip(AccentVibe.deepPurple, 'Deep Purple', const Color(0xFF8B5CF6)),
+                    _buildAccentVibeChip(AccentVibe.monochromeWhite, 'Monochrome White', Colors.white),
                     _buildAccentVibeChip(AccentVibe.electricRed, 'Electric Red', const Color(0xFFEF4444)),
-                    _buildAccentVibeChip(AccentVibe.neonBlue, 'Neon Blue', const Color(0xFF06B6D4)),
+                    _buildAccentVibeChip(AccentVibe.spotifyGreen, 'Spotify Green', const Color(0xFF1DB954)),
                   ],
                 ),
               ],
@@ -572,7 +570,7 @@ class _SettingsViewState extends State<SettingsView> {
           ListTile(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             tileColor: const Color(0xFF141414),
-            leading: const Icon(Icons.psychology_rounded, color: Colors.purpleAccent),
+            leading: const Icon(Icons.psychology_rounded, color: Colors.white70),
             title: const Text('Launch AI Music Studio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             subtitle: const Text('Deconstruct stems, detect instruments, and query musical DNA', style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
             trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white54, size: 16),
@@ -641,7 +639,7 @@ class _SettingsViewState extends State<SettingsView> {
                     const SizedBox(width: 8),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.purpleAccent,
+                        backgroundColor: _settings.accentColor == Colors.white ? const Color(0xFF2A2A38) : _settings.accentColor,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
