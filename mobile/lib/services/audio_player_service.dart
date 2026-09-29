@@ -53,6 +53,7 @@ class AudioPlayerService extends ChangeNotifier {
   final StreamController<PlayerState> _playerStateController = StreamController<PlayerState>.broadcast();
   final StreamController<Duration?> _durationController = StreamController<Duration?>.broadcast();
   final StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
+  final StreamController<Track?> _currentTrackController = StreamController<Track?>.broadcast();
 
   AudioPlayer get player => _player;
   PiAampsService get piService => _piService;
@@ -75,6 +76,7 @@ class AudioPlayerService extends ChangeNotifier {
   Stream<PlayerState> get playerStateStream => _playerStateController.stream;
   Stream<Duration?> get durationStream => _durationController.stream;
   Stream<Duration> get positionStream => _positionController.stream;
+  Stream<Track?> get currentTrackStream => _currentTrackController.stream;
 
   Duration get currentPosition {
     if (_target == AudioTarget.piSpeaker) {
@@ -102,6 +104,7 @@ class AudioPlayerService extends ChangeNotifier {
           _queueIndex = idx;
           _currentTrack = _queue[idx];
           IntegrationService.instance.scrobbleTrack(_currentTrack!);
+          _currentTrackController.add(_currentTrack);
           notifyListeners();
         }
       }
@@ -117,7 +120,7 @@ class AudioPlayerService extends ChangeNotifier {
           seek(Duration.zero);
           _player.play();
         } else {
-          skipToNext();
+          _handleTrackCompletion();
         }
       }
     });
@@ -399,6 +402,22 @@ class AudioPlayerService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Called when a track finishes playing and loopMode is not LoopMode.one
+  Future<void> _handleTrackCompletion() async {
+    // If queue has next track, play it
+    if (_queue.isNotEmpty && _queueIndex + 1 < _queue.length) {
+      await skipToNext();
+    } else if (_player.loopMode == LoopMode.all && _queue.isNotEmpty) {
+      // Loop-all: restart from beginning
+      _queueIndex = 0;
+      await playTrack(_queue[0]);
+    } else {
+      // Autoplay exhausted / repeat off: stop and notify
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> skipToNext() async {
     if (_target == AudioTarget.piSpeaker) {
       if (_queue.isNotEmpty && _queueIndex + 1 < _queue.length) {
@@ -410,6 +429,7 @@ class AudioPlayerService extends ChangeNotifier {
     if (_player.hasNext) {
       await _player.seekToNext();
     } else if (_player.loopMode == LoopMode.all && _queue.isNotEmpty) {
+      _queueIndex = 0;
       await _player.seek(Duration.zero, index: 0);
     } else if (_queue.isNotEmpty && _queueIndex + 1 < _queue.length) {
       _queueIndex++;
@@ -474,6 +494,7 @@ class AudioPlayerService extends ChangeNotifier {
     _history.removeWhere((t) => t.id == track.id);
     _history.insert(0, track);
     _saveHistory();
+    _currentTrackController.add(_currentTrack);
     notifyListeners();
 
     // Scrobble track and update Discord Rich Presence
@@ -508,6 +529,27 @@ class AudioPlayerService extends ChangeNotifier {
           localFile = file;
         }
       }
+
+      // 2. Check DownloadService for cached tracks (even if track.localPath is null)
+      if (localFile == null) {
+        final downloadedTrack = DownloadService.instance.downloadedTracks
+            .where((t) => t.id == track.id)
+            .firstOrNull;
+        if (downloadedTrack?.localPath != null && downloadedTrack!.localPath!.isNotEmpty) {
+          final df = File(downloadedTrack.localPath!);
+          if (df.existsSync() && df.lengthSync() > 10000) {
+            localFile = df;
+            // Update track with local path for future lookups
+            _currentTrack = _currentTrack!.copyWith(
+              localPath: df.path,
+              isDownloaded: true,
+              isLocal: true,
+            );
+          }
+        }
+      }
+
+      // 3. Check LocalStreamProxy cache directory
       localFile ??= _proxy.getLocalCacheFile(track.id);
 
       if (localFile != null && localFile.existsSync()) {
@@ -696,6 +738,7 @@ class AudioPlayerService extends ChangeNotifier {
     _playerStateController.close();
     _durationController.close();
     _positionController.close();
+    _currentTrackController.close();
     _player.dispose();
     _ytService.dispose();
     super.dispose();

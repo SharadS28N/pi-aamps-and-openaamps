@@ -102,6 +102,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   bool _isPlaying = false;
   StreamSubscription<PlayerState>? _playerStateSub;
+  StreamSubscription<Track?>? _trackChangeSub;
 
   @override
   void initState() {
@@ -121,6 +122,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               ? _activeTrack.duration.inSeconds.toDouble()
               : 180.0,
         );
+      }
+    });
+
+    // Listen for track changes (notification controls, autoplay, queue advancement)
+    _trackChangeSub = _audioService.currentTrackStream.listen((track) {
+      if (mounted && track != null) {
+        setState(() {
+          _activeTrack = track;
+        });
       }
     });
   }
@@ -159,6 +169,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void dispose() {
     _playerStateSub?.cancel();
+    _trackChangeSub?.cancel();
     _audioService.dispose();
     super.dispose();
   }

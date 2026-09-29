@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/track.dart';
 import '../services/youtube_service.dart';
 import '../services/integration_service.dart';
+import '../services/download_service.dart';
 import 'music_recognition_view.dart';
 import '../services/settings_service.dart';
 import '../widgets/app_alert.dart';
@@ -356,12 +357,13 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
                   leading: const Icon(Icons.download_rounded, color: Color(0xFFA1A1AA)),
                   title: const Text('Download for Offline', style: TextStyle(color: Colors.white)),
                   onTap: () {
+                    Navigator.pop(ctx);
+                    DownloadService.instance.downloadTrack(track, _ytService);
                     AppAlert.show(
                       context,
                       'Downloading "${track.title}" offline...',
                       icon: Icons.download_rounded,
                     );
-                    Navigator.pop(ctx);
                   },
                 ),
               ],

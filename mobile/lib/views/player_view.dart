@@ -56,6 +56,7 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<Duration?>? _durationSub;
   StreamSubscription<PlayerState>? _stateSub;
+  StreamSubscription<Track?>? _trackChangeSub;
 
   @override
   void initState() {
@@ -107,6 +108,18 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
     DownloadService.instance.addListener(_onSettingsChange);
     widget.audioService.addListener(_onSettingsChange);
 
+    // Listen for track changes from notification controls / queue auto-advance
+    _trackChangeSub = widget.audioService.currentTrackStream.listen((track) {
+      if (mounted && track != null) {
+        setState(() {
+          _isLiked = widget.audioService.isLiked(track.id);
+        });
+      }
+    });
+
+    // Initialize volume from actual player state
+    _volume = widget.audioService.player.volume * 100.0;
+
     if (widget.audioService.player.audioSource == null || widget.audioService.currentTrack?.id != widget.track.id) {
       widget.audioService.playTrack(widget.track);
     }
@@ -124,6 +137,7 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
     _positionSub?.cancel();
     _durationSub?.cancel();
     _stateSub?.cancel();
+    _trackChangeSub?.cancel();
     _vinylController.dispose();
     super.dispose();
   }
@@ -1198,48 +1212,14 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
   }
 
   void _showQueueModal(BuildContext context) {
-    final upcomingQueue = [
-      Track(
-        id: 'yKNxeF4KMsY',
-        title: 'Yellow',
-        artist: 'Coldplay',
-        album: 'Parachutes',
-        duration: const Duration(minutes: 4, seconds: 29),
-        artworkUrl: 'https://i.ytimg.com/vi/yKNxeF4KMsY/hqdefault.jpg',
-        streamUrl: '',
-        codec: 'AAC 320kbps',
-      ),
-      Track(
-        id: '34Na4j8AVgA',
-        title: 'Starboy',
-        artist: 'The Weeknd ft. Daft Punk',
-        album: 'Starboy (Deluxe)',
-        duration: const Duration(minutes: 3, seconds: 50),
-        artworkUrl: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg',
-        streamUrl: '',
-        codec: 'FLAC 24-bit',
-      ),
-      Track(
-        id: '4NRXx6U8ABQ',
-        title: 'Blinding Lights',
-        artist: 'The Weeknd',
-        album: 'After Hours',
-        duration: const Duration(minutes: 3, seconds: 20),
-        artworkUrl: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg',
-        streamUrl: '',
-        codec: 'OPUS 160kbps',
-      ),
-      Track(
-        id: 'H5v3kku4y6Q',
-        title: 'As It Was',
-        artist: 'Harry Styles',
-        album: "Harry's House",
-        duration: const Duration(minutes: 2, seconds: 47),
-        artworkUrl: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg',
-        streamUrl: '',
-        codec: 'AAC 320kbps',
-      ),
-    ];
+    final currentTrack = widget.audioService.currentTrack ?? widget.track;
+    final fullQueue = widget.audioService.queue;
+    final currentIdx = widget.audioService.queueIndex;
+
+    // Build "Up Next" list from the queue after the current index
+    final upcomingQueue = (currentIdx + 1 < fullQueue.length)
+        ? fullQueue.sublist(currentIdx + 1)
+        : <Track>[];
 
     showModalBottomSheet(
       context: context,
@@ -1258,9 +1238,9 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Now Playing & Queue',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    Text(
+                      'Now Playing & Queue (${fullQueue.length} tracks)',
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close_rounded, color: Colors.white70),
@@ -1278,52 +1258,74 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
                   contentPadding: EdgeInsets.zero,
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(widget.track.artworkUrl, width: 44, height: 44, fit: BoxFit.cover),
+                    child: Image.network(currentTrack.artworkUrl, width: 44, height: 44, fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Container(
+                        width: 44, height: 44, color: const Color(0xFF222222),
+                        child: const Icon(Icons.music_note_rounded, color: Colors.white70),
+                      ),
+                    ),
                   ),
-                  title: Text(widget.track.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text(widget.track.artist, style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
+                  title: Text(currentTrack.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  subtitle: Text(currentTrack.artist, style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
                   trailing: const Icon(Icons.volume_up_rounded, color: Colors.white),
                 ),
                 const Divider(color: Colors.white12),
-                const Text(
-                  'UP NEXT',
-                  style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
-                ),
-                const SizedBox(height: 4),
-                Flexible(
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: upcomingQueue.length,
-                    separatorBuilder: (c, i) => const SizedBox(height: 6),
-                    itemBuilder: (c, i) {
-                      final qTrack = upcomingQueue[i];
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.network(qTrack.artworkUrl, width: 40, height: 40, fit: BoxFit.cover),
-                        ),
-                        title: Text(qTrack.title, style: const TextStyle(color: Colors.white, fontSize: 14)),
-                        subtitle: Text(qTrack.artist, style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
-                        trailing: const Icon(Icons.play_arrow_rounded, color: Colors.white),
-                        onTap: () {
-                          Navigator.pop(ctx);
-                          widget.audioService.playTrack(qTrack);
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlayerView(
-                                track: qTrack,
-                                audioService: widget.audioService,
-                                playerStyle: widget.playerStyle,
+                if (upcomingQueue.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Center(
+                      child: Text(
+                        'No more tracks in queue',
+                        style: TextStyle(color: Color(0xFF71717A), fontSize: 14),
+                      ),
+                    ),
+                  )
+                else ...[
+                  Text(
+                    'UP NEXT (${upcomingQueue.length})',
+                    style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+                  ),
+                  const SizedBox(height: 4),
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: upcomingQueue.length,
+                      separatorBuilder: (c, i) => const SizedBox(height: 6),
+                      itemBuilder: (c, i) {
+                        final qTrack = upcomingQueue[i];
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(qTrack.artworkUrl, width: 40, height: 40, fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Container(
+                                width: 40, height: 40, color: const Color(0xFF222222),
+                                child: const Icon(Icons.music_note_rounded, color: Colors.white54, size: 18),
                               ),
                             ),
-                          );
-                        },
-                      );
-                    },
+                          ),
+                          title: Text(qTrack.title, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                          subtitle: Text(qTrack.artist, style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
+                          trailing: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            widget.audioService.playTrack(qTrack);
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PlayerView(
+                                  track: qTrack,
+                                  audioService: widget.audioService,
+                                  playerStyle: widget.playerStyle,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
           ),
@@ -1565,7 +1567,7 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
                     Navigator.pop(ctx);
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const SettingsView()),
+                      MaterialPageRoute(builder: (context) => SettingsView(audioService: widget.audioService)),
                     );
                   },
                 ),

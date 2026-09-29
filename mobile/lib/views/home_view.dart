@@ -5,6 +5,7 @@ import '../services/pi_aamps_service.dart';
 import '../services/account_service.dart';
 import '../services/youtube_service.dart';
 import '../services/settings_service.dart';
+import '../services/download_service.dart';
 import '../widgets/account_switcher_modal.dart';
 import '../widgets/output_target_modal.dart';
 import '../widgets/app_alert.dart';
@@ -486,7 +487,7 @@ class _HomeViewState extends State<HomeView> {
                             onPressed: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => const SettingsView()),
+                                MaterialPageRoute(builder: (context) => SettingsView(audioService: widget.audioService)),
                               );
                             },
                           ),
@@ -781,12 +782,13 @@ class _HomeViewState extends State<HomeView> {
                   leading: const Icon(Icons.download_rounded, color: Color(0xFFA1A1AA)),
                   title: const Text('Download Offline', style: TextStyle(color: Colors.white)),
                   onTap: () {
+                    Navigator.pop(ctx);
+                    DownloadService.instance.downloadTrack(track, YoutubeService());
                     AppAlert.show(
                       context,
                       'Downloading "${track.title}" offline...',
                       icon: Icons.download_rounded,
                     );
-                    Navigator.pop(ctx);
                   },
                 ),
               ],
