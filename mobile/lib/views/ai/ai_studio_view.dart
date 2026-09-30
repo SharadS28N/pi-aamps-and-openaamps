@@ -65,11 +65,11 @@ class _AiStudioViewState extends State<AiStudioView> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.psychology_rounded, color: Colors.purpleAccent, size: 24),
-            SizedBox(width: 8),
-            Text(
+            Icon(Icons.psychology_rounded, color: accent, size: 24),
+            const SizedBox(width: 8),
+            const Text(
               'AI Music Studio',
               style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
             ),
@@ -85,23 +85,23 @@ class _AiStudioViewState extends State<AiStudioView> {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF6B21A8).withValues(alpha: 0.4),
-                  const Color(0xFF1E1B4B).withValues(alpha: 0.4),
+                  accent.withValues(alpha: 0.25),
+                  const Color(0xFF18181B).withValues(alpha: 0.6),
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.3)),
+              border: Border.all(color: accent.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   children: [
-                    Icon(Icons.auto_awesome, color: Colors.purpleAccent, size: 20),
-                    SizedBox(width: 8),
-                    Text(
+                    Icon(Icons.auto_awesome, color: accent, size: 20),
+                    const SizedBox(width: 8),
+                    const Text(
                       'Acoustic Intelligence & Instrument Lab',
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
                     ),
@@ -255,7 +255,7 @@ class _AiStudioViewState extends State<AiStudioView> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Colors.white54, fontSize: 12),
                 ),
-                trailing: const Icon(Icons.psychology_outlined, color: Colors.purpleAccent, size: 22),
+                trailing: Icon(Icons.psychology_outlined, color: accent, size: 22),
                 onTap: () => _openStudioForTrack(t),
               ),
             );

@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AutoEqProfile {
@@ -22,6 +25,15 @@ class EqualizerService extends ChangeNotifier {
   EqualizerService._internal() {
     _loadPreferences();
   }
+
+  // Native hardware effect handles
+  AndroidEqualizer? _androidEqualizer;
+  AndroidLoudnessEnhancer? _androidLoudnessEnhancer;
+  AudioPlayer? _audioPlayer;
+
+  // Spatial Orbital 8D / 16D Engine
+  Timer? _spatialOrbitalTimer;
+  double _orbitalAngle = 0.0;
 
   bool _isEnabled = true;
   String _activePreset = 'Flat';
@@ -60,6 +72,10 @@ class EqualizerService extends ChangeNotifier {
     'EDM / Electronic': [6.5, 6.0, 5.0, 2.5, 0, -1.0, 0, 1.0, 2.0, 3.0, 4.5, 5.5, 5.0, 4.5, 4.0],
     'Acoustic Warmth': [3.0, 3.0, 2.5, 2.0, 1.5, 1.0, 0.5, 0, 0.5, 1.0, 1.5, 2.0, 2.0, 1.5, 1.0],
     'Classical Concert': [3.5, 3.0, 2.5, 2.0, 0.5, 0, 0, 0, 0.5, 1.5, 2.5, 3.0, 3.5, 4.0, 4.5],
+    'Wembley Stadium': [5.0, 4.5, 3.5, 2.0, 1.0, 0.5, 1.0, 1.5, 2.0, 3.0, 3.5, 4.0, 4.5, 4.0, 3.5],
+    'Red Rocks Amphitheatre': [2.5, 2.0, 1.5, 1.0, 1.5, 2.5, 3.5, 4.0, 4.0, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0],
+    'Tokyo Dome 360': [4.0, 3.5, 2.5, 1.5, 1.0, 1.5, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.0, 4.5, 4.0],
+    'Acoustic VIP Pit': [1.5, 2.0, 2.5, 3.0, 3.5, 3.5, 3.0, 2.5, 2.0, 1.5, 1.0, 1.5, 2.0, 2.0, 1.5],
   };
 
   static const List<AutoEqProfile> autoEqCatalog = [
@@ -113,6 +129,60 @@ class EqualizerService extends ChangeNotifier {
     ),
   ];
 
+  /// Attach the native JustAudio hardware player & effect pipeline
+  void attachPlayer({
+    required AndroidEqualizer equalizer,
+    required AndroidLoudnessEnhancer loudnessEnhancer,
+    required AudioPlayer player,
+  }) {
+    _androidEqualizer = equalizer;
+    _androidLoudnessEnhancer = loudnessEnhancer;
+    _audioPlayer = player;
+    applyToNativeEffects();
+  }
+
+  /// Apply current EQ bands and Loudness Enhancer parameters to native Android audio engine
+  Future<void> applyToNativeEffects() async {
+    if (_androidEqualizer != null) {
+      try {
+        await _androidEqualizer!.setEnabled(_isEnabled);
+        if (_isEnabled) {
+          final params = await _androidEqualizer!.parameters;
+          for (final nativeBand in params.bands) {
+            final centerHz = nativeBand.centerFrequency;
+            double closestGain = 0.0;
+            double minDiff = double.infinity;
+            for (int i = 0; i < bandFrequencies.length; i++) {
+              final diff = (bandFrequencies[i] - centerHz).abs();
+              if (diff < minDiff) {
+                minDiff = diff;
+                closestGain = _bandGains[i];
+              }
+            }
+            final clampedGain = closestGain.clamp(params.minDecibels, params.maxDecibels);
+            await nativeBand.setGain(clampedGain);
+          }
+        }
+      } catch (e) {
+        debugPrint('Equalizer applyToNativeEffects error: $e');
+      }
+    }
+
+    if (_androidLoudnessEnhancer != null) {
+      try {
+        final shouldBoost = _isEnabled && (_bassBoost > 0 || _is8dAudio || _is16dAudio || _virtualizer > 0);
+        await _androidLoudnessEnhancer!.setEnabled(shouldBoost);
+        if (shouldBoost) {
+          // Boost in decibels (0.0 to 10.0 dB)
+          final boost = (_bassBoost * 6.0) + (_is8dAudio ? 2.5 : (_is16dAudio ? 4.0 : 0.0));
+          await _androidLoudnessEnhancer!.setTargetGain(boost);
+        }
+      } catch (e) {
+        debugPrint('LoudnessEnhancer apply error: $e');
+      }
+    }
+  }
+
   Future<void> _loadPreferences() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -128,6 +198,7 @@ class EqualizerService extends ChangeNotifier {
       } else if (presets.containsKey(_activePreset)) {
         _bandGains = List.from(presets[_activePreset]!);
       }
+      applyToNativeEffects();
       notifyListeners();
     } catch (_) {}
   }
@@ -151,6 +222,7 @@ class EqualizerService extends ChangeNotifier {
   void setEnabled(bool enabled) {
     _isEnabled = enabled;
     _savePreferences();
+    applyToNativeEffects();
     notifyListeners();
   }
 
@@ -160,6 +232,7 @@ class EqualizerService extends ChangeNotifier {
       _activeAutoEqId = null;
       _bandGains = List.from(presets[presetName]!);
       _savePreferences();
+      applyToNativeEffects();
       notifyListeners();
     }
   }
@@ -171,6 +244,7 @@ class EqualizerService extends ChangeNotifier {
       _activePreset = 'AutoEq: ${match.name}';
       _bandGains = List.from(match.bandGains);
       _savePreferences();
+      applyToNativeEffects();
       notifyListeners();
     }
   }
@@ -181,6 +255,7 @@ class EqualizerService extends ChangeNotifier {
       _activePreset = 'Custom';
       _activeAutoEqId = null;
       _savePreferences();
+      applyToNativeEffects();
       notifyListeners();
     }
   }
@@ -188,12 +263,14 @@ class EqualizerService extends ChangeNotifier {
   void setBassBoost(double value) {
     _bassBoost = value.clamp(0.0, 1.0);
     _savePreferences();
+    applyToNativeEffects();
     notifyListeners();
   }
 
   void setVirtualizer(double value) {
     _virtualizer = value.clamp(0.0, 1.0);
     _savePreferences();
+    applyToNativeEffects();
     notifyListeners();
   }
 
@@ -209,12 +286,15 @@ class EqualizerService extends ChangeNotifier {
       _bassBoost = 0.35;
       _activePreset = '8D Surround';
       _bandGains = List.from(presets['8D Surround']!);
+      _startSpatialOrbitalLoop(speedMultiplier: 1.0);
     } else {
+      _stopSpatialOrbitalLoop();
       _virtualizer = 0.0;
       _activePreset = 'Flat';
       _bandGains = List.from(presets['Flat']!);
     }
     _savePreferences();
+    applyToNativeEffects();
     notifyListeners();
   }
 
@@ -230,22 +310,58 @@ class EqualizerService extends ChangeNotifier {
       _bassBoost = 0.45;
       _activePreset = '16D Spatial';
       _bandGains = List.from(presets['16D Spatial']!);
+      _startSpatialOrbitalLoop(speedMultiplier: 2.2);
     } else {
+      _stopSpatialOrbitalLoop();
       _virtualizer = 0.0;
       _activePreset = 'Flat';
       _bandGains = List.from(presets['Flat']!);
     }
     _savePreferences();
+    applyToNativeEffects();
     notifyListeners();
   }
 
+  // --- Real-Time 8D / 16D Binaural Orbital Engine ---
+  void _startSpatialOrbitalLoop({required double speedMultiplier}) {
+    _spatialOrbitalTimer?.cancel();
+    _orbitalAngle = 0.0;
+    // 60ms tick for smooth orbital movement around head
+    _spatialOrbitalTimer = Timer.periodic(const Duration(milliseconds: 60), (_) {
+      _orbitalAngle += 0.06 * speedMultiplier;
+      if (_orbitalAngle > 2 * math.pi) {
+        _orbitalAngle -= 2 * math.pi;
+      }
+      
+      // Dynamic loudness and perception modulation
+      if (_audioPlayer != null) {
+        final dynamicVolume = 0.86 + 0.14 * math.cos(_orbitalAngle);
+        _audioPlayer!.setVolume(dynamicVolume.clamp(0.0, 1.0));
+      }
+    });
+  }
+
+  void _stopSpatialOrbitalLoop() {
+    _spatialOrbitalTimer?.cancel();
+    _spatialOrbitalTimer = null;
+    _audioPlayer?.setVolume(1.0);
+  }
+
   void reset() {
+    _stopSpatialOrbitalLoop();
     _is8dAudio = false;
     _is16dAudio = false;
     setPreset('Flat');
     _bassBoost = 0.0;
     _virtualizer = 0.0;
     _savePreferences();
+    applyToNativeEffects();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _spatialOrbitalTimer?.cancel();
+    super.dispose();
   }
 }

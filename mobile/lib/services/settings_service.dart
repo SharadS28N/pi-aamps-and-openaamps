@@ -48,7 +48,7 @@ class SettingsService extends ChangeNotifier {
   BackgroundStyle _backgroundStyle = BackgroundStyle.customWallpaper;
   String _customWallpaperUrl = defaultCustomWallpaper;
   EqualizerPreset _equalizerPreset = EqualizerPreset.flat;
-  AccentVibe _accentVibe = AccentVibe.monochromeWhite;
+  AccentVibe _accentVibe = AccentVibe.spotifyGreen;
   bool _showWallpaperOnHome = true;
   String _geminiApiKey = '';
 
@@ -136,7 +136,7 @@ class SettingsService extends ChangeNotifier {
         _customWallpaperUrl = defaultCustomWallpaper;
       }
 
-      final vIndex = prefs.getInt('pref_accent_vibe') ?? AccentVibe.monochromeWhite.index;
+      final vIndex = prefs.getInt('pref_accent_vibe') ?? AccentVibe.spotifyGreen.index;
       if (vIndex >= 0 && vIndex < AccentVibe.values.length) {
         _accentVibe = AccentVibe.values[vIndex];
       }

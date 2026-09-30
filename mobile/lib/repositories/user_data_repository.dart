@@ -5,6 +5,7 @@ import '../models/track.dart';
 import '../models/playlist.dart';
 import '../models/listening_history.dart';
 import '../models/user_profile.dart';
+import '../services/firebase_service.dart';
 
 class UserDataRepository extends ChangeNotifier {
   static final UserDataRepository instance = UserDataRepository._internal();
@@ -231,6 +232,8 @@ class UserDataRepository extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final list = _favorites.map((t) => jsonEncode(t.toJson())).toList();
       await prefs.setStringList(_prefFavoritesKey, list);
+      // Cloud backup via Firebase
+      FirebaseService.instance.syncFavoritesToFirestore(_favorites.map((t) => t.toJson()).toList());
     } catch (_) {}
   }
 
@@ -244,6 +247,8 @@ class UserDataRepository extends ChangeNotifier {
     }
     notifyListeners();
     await _savePlaylists();
+    // Cloud backup via Firebase
+    FirebaseService.instance.syncPlaylistToFirestore(playlist.toJson());
   }
 
   Future<void> deletePlaylist(String playlistId) async {
@@ -261,6 +266,7 @@ class UserDataRepository extends ChangeNotifier {
         _playlists[idx] = p.copyWith(tracks: updatedTracks);
         notifyListeners();
         await _savePlaylists();
+        FirebaseService.instance.syncPlaylistToFirestore(_playlists[idx].toJson());
       }
     }
   }
@@ -285,6 +291,13 @@ class UserDataRepository extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final list = _history.map((s) => jsonEncode(s.toJson())).toList();
       await prefs.setStringList(_prefHistoryKey, list);
+      // Cloud event record
+      FirebaseService.instance.recordPlayEvent(
+        trackId: session.track.id,
+        title: session.track.title,
+        artist: session.track.artist,
+        listenedSeconds: session.durationPlayedSeconds.toDouble(),
+      );
     } catch (_) {}
   }
 

@@ -14,6 +14,7 @@ import 'party_service.dart';
 import 'integration_service.dart';
 import 'download_service.dart';
 import 'settings_service.dart';
+import 'equalizer_service.dart';
 
 enum AudioTarget { phoneLocal, piSpeaker, partySession }
 
@@ -21,7 +22,9 @@ class AudioPlayerService extends ChangeNotifier {
   static final AudioPlayerService instance = AudioPlayerService._internal();
   factory AudioPlayerService() => instance;
 
-  final AudioPlayer _player = AudioPlayer();
+  final AndroidEqualizer _equalizer = AndroidEqualizer();
+  final AndroidLoudnessEnhancer _loudnessEnhancer = AndroidLoudnessEnhancer();
+  late final AudioPlayer _player;
   final YoutubeService _ytService = YoutubeService();
   final LocalStreamProxy _proxy = LocalStreamProxy();
   final PiAampsService _piService = PiAampsService.instance;
@@ -94,6 +97,25 @@ class AudioPlayerService extends ChangeNotifier {
   }
 
   AudioPlayerService._internal() {
+    final bool isAndroid = !kIsWeb && Platform.isAndroid;
+    _player = AudioPlayer(
+      audioPipeline: isAndroid
+          ? AudioPipeline(
+              androidAudioEffects: [
+                _equalizer,
+                _loudnessEnhancer,
+              ],
+            )
+          : null,
+    );
+    if (isAndroid) {
+      EqualizerService.instance.attachPlayer(
+        equalizer: _equalizer,
+        loudnessEnhancer: _loudnessEnhancer,
+        player: _player,
+      );
+    }
+
     _loadHistoryAndLikes();
     _proxy.start();
 

@@ -1,0 +1,51 @@
+Sprint,Scrum Master,Assignee,Epic,MoSCoW Priority,User Story,Tasks / Notes
+1,Sharad,Deepershan,Research & Surveys,Must Have,"As a researcher, I want to create a survey with 15 questions so that we can gather requirements from 60 people.",Create Google Form
+1,Sharad,Deepershan,Research & Surveys,Must Have,"As a researcher, I want to distribute the survey link so that we hit our target demographic.",Share in college groups
+1,Sharad,Deepershan,Personas,Must Have,"As an analyst, I want to define 5 target Personas so that our app caters to specific user needs.","Draft Alex, Priya, Tina, Ram, Nita"
+1,Rihanna,Deepershan,Flow Charts,Must Have,"As an analyst, I want to draw flowcharts for Persona journeys so that the app logic is visualized.",Use draw.io or lucidchart
+1,Rihanna,Rihanna,Personas,Should Have,"As a designer, I want to create visual persona cards in Canva so the presentation looks professional.",Export as PNGs
+1,Rihanna,Sharad,Architecture,Must Have,"As a developer, I want to initialize the GitHub repository so that all team members can collaborate.",Set up branches
+1,Sharad,Deepershan,Documentation,Must Have,"As a project manager, I want to list all features in a MoSCoW matrix so that scope is clearly defined.","Must, Should, Could, Won't"
+1,Sharad,Deepershan,Documentation,Must Have,"As Audiophile Alex, I want high-quality audio routing so that my music sounds pristine.",Add to MoSCoW
+1,Rihanna,Rihanna,Surveys,Should Have,"As an analyst, I want to summarize the 60 survey responses into pie charts so we can prove our requirements.",Add to presentation doc
+1,Rihanna,Sharad,Architecture,Must Have,"As a developer, I want to set up the Firebase project so that our database infrastructure is ready.",Configure Firestore
+2,Deepershan,Rihanna,High Fidelity UI,Must Have,"As a designer, I want to draft wireframes in Figma so that the layout is approved before high-fidelity design.",Focus on minimal layout
+2,Deepershan,Rihanna,High Fidelity UI,Must Have,"As Party Host Priya, I want a dark-mode, slick interface so that the app looks good when playing music at night.",Figma UI Theme
+2,Deepershan,Rihanna,High Fidelity UI,Must Have,"As Commuter Ram, I want large playback buttons so that I can easily pause music without looking closely.",Figma UI Components
+2,Sharad,Rihanna,High Fidelity UI,Must Have,"As Tech-Savvy Tina, I want to see device connection status clearly so I know if the Pi is online.",Figma Status Indicator
+2,Sharad,Rihanna,High Fidelity UI,Should Have,"As Casual Nita, I want to see album art prominently so that the app feels modern and engaging.",Figma Image placeholders
+2,Sharad,Sharad,Backend,Must Have,"As a developer, I want to connect the Flutter app to Firebase Auth so that user sessions are managed.",Firebase Integration
+2,Deepershan,Deepershan,Documentation,Must Have,"As a technical writer, I want to document the Firebase schema so that the database structure is clear.",Database design doc
+2,Deepershan,Rihanna,High Fidelity UI,Must Have,"As a designer, I want to finalize all Figma screens so that the prototype is ready for pre-development testing.",Link Figma screens
+2,Sharad,Deepershan,User Testing,Must Have,"As a researcher, I want to test the Figma prototype with 5 users so that we can fix UX issues early.",Prototype testing
+2,Sharad,Sharad,Backend,Must Have,"As a developer, I want to write the Python script to stream music on the Pi so that core audio works.",Audio decoding logic
+3,Rihanna,Sharad,Flutter Client,Must Have,"As a developer, I want to implement the Flutter base routing so that navigation matches the Figma design.",App scaffolding
+3,Rihanna,Sharad,Flutter Client,Must Have,"As Party Host Priya, I want to see a scrollable list of songs so that I can pick the next track.",Build ListView
+3,Rihanna,Sharad,Flutter Client,Must Have,"As Audiophile Alex, I want a volume slider on the main screen so I can adjust levels instantly.",Volume UI widget
+3,Deepershan,Sharad,Backend,Must Have,"As Tech-Savvy Tina, I want the Pi to push its playback state to Firebase so the app stays in sync.",Firebase real-time DB
+3,Deepershan,Sharad,Flutter Client,Must Have,"As Commuter Ram, I want to press play in the app and have the Pi start music instantly.",Firebase write commands
+3,Deepershan,Deepershan,iOS Build,Must Have,"As a developer, I want to pull the GitHub repo onto the MacBook so that iOS compilation can begin.",Xcode setup
+3,Rihanna,Deepershan,iOS Build,Must Have,"As Casual Nita, I want the app to run smoothly on my iPhone so I don't have to use an Android device.",Compile and run on Simulator
+3,Rihanna,Rihanna,Documentation,Must Have,"As a team member, I want to compile the Sprint 1-3 progress report so that our documentation stays updated.",Word/PDF report
+3,Deepershan,Sharad,Backend,Must Have,"As Tech-Savvy Tina, I want the Pi to automatically read ID3 tags so my song titles are correct.",Python ID3 extraction
+3,Deepershan,Sharad,Backend,Must Have,"As a developer, I want to upload the local Pi tracklist to Firebase so the phone can read it.",Firebase sync script
+4,Sharad,Sharad,Edge Cases,Should Have,"As Commuter Ram, I want the UI to show 'Offline' if the Pi loses power so I am not confused.",Connection state handling
+4,Sharad,Sharad,Edge Cases,Must Have,"As Party Host Priya, I want the next song to play automatically when one finishes so the music doesn't stop.",Auto-advance logic
+4,Sharad,Sharad,Edge Cases,Could Have,"As Audiophile Alex, I want to see the bitrate of the song playing so I know the quality.",UI text element update
+4,Rihanna,Rihanna,Presentation,Must Have,"As a presenter, I want to draft the final slide deck in Canva so that we are ready for defense.",Import Figma & Flowcharts
+4,Rihanna,Deepershan,Persona Testing,Must Have,"As a researcher, I want to find 5 people matching our Personas to test the actual coded app.",Recruit testers
+4,Rihanna,Deepershan,Persona Testing,Must Have,"As a researcher, I want to record video of 'Tech-Savvy Tina' using the app so we have proof for the professor.",Shoot video
+4,Sharad,Deepershan,Persona Testing,Must Have,"As a researcher, I want to record video of 'Casual Nita' using the app so we fulfill the video requirement.",Shoot video
+4,Sharad,Deepershan,Persona Testing,Must Have,"As a researcher, I want to record video of 'Audiophile Alex' using the app so we fulfill the video requirement.",Shoot video
+4,Sharad,Sharad,Flutter Client,Must Have,"As Casual Nita, I want the app to handle errors gracefully if a song file is corrupted.",Error state UI
+4,Rihanna,Deepershan,Persona Testing,Must Have,"As a researcher, I want to record video of 'Party Host Priya' using the app to fulfill the video requirement.",Shoot video
+5,Deepershan,Rihanna,Feedback,Must Have,"As a researcher, I want to create a final feedback Google Form so that we can evaluate user satisfaction.",Draft feedback questions
+5,Deepershan,Deepershan,Feedback,Must Have,"As a researcher, I want the 5 Persona testers to fill out the feedback form after testing.",Collect form data
+5,Deepershan,Rihanna,Documentation,Must Have,"As an analyst, I want to visualize the feedback data in charts so it can be added to the final report.",Create Canva charts
+5,Sharad,Sharad,Bug Fixes,Must Have,"As Commuter Ram, I want the volume slider to not jump erratically so I don't blow out my speakers.",Debounce volume state
+5,Sharad,Deepershan,iOS Build,Must Have,"As a developer, I want to create the final optimized iOS build on the MacBook so it runs without lag.",Release mode build
+5,Sharad,Sharad,Bug Fixes,Must Have,"As Tech-Savvy Tina, I want the Pi script to restart on failure so the server is resilient.",Systemd / Docker restart policy
+5,Deepershan,Rihanna,Documentation,Must Have,"As a project manager, I want to compile the final software documentation linking the GitHub repo.",Finalizing docs
+5,Deepershan,Rihanna,Presentation,Must Have,"As a presenter, I want to embed the Persona testing videos into the Canva slides so the presentation flows well.",Video editing/embedding
+5,Sharad,Deepershan,Submission,Must Have,"As a student, I want to ensure the 50-60 user stories are perfectly formatted in the final report.",Review CSV/Report
+5,Sharad,Sharad,Submission,Must Have,"As a student, I want to review the final codebase and documentation so that the project defense goes perfectly.",Final review

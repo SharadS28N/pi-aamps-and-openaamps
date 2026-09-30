@@ -10,6 +10,9 @@ import '../widgets/account_switcher_modal.dart';
 import '../widgets/output_target_modal.dart';
 import '../widgets/app_alert.dart';
 import 'settings_view.dart';
+import 'concert_view.dart';
+import 'stats_view.dart';
+import '../services/concert_service.dart';
 
 class HomeView extends StatefulWidget {
   final Function(Track) onPlayTrack;
@@ -466,6 +469,16 @@ class _HomeViewState extends State<HomeView> {
                       Row(
                         children: [
                           IconButton(
+                            icon: const Icon(Icons.bar_chart_rounded, color: Colors.white70),
+                            tooltip: 'Stats & AI Music DNA',
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const StatsView()),
+                              );
+                            },
+                          ),
+                          IconButton(
                             icon: const Icon(Icons.speaker_group_outlined, color: Colors.white70),
                             tooltip: 'Audio Output & Streamer',
                             onPressed: () {
@@ -558,7 +571,12 @@ class _HomeViewState extends State<HomeView> {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+
+              // OpenAAMPS Live Concert Arena Hero Banner
+              _buildConcertLiveArenaBanner(SettingsService.instance.accentColor),
+
+              const SizedBox(height: 10),
 
               // Quick Picks Section
               Row(
@@ -792,6 +810,188 @@ class _HomeViewState extends State<HomeView> {
                   },
                 ),
               ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildConcertLiveArenaBanner(Color accent) {
+    return ListenableBuilder(
+      listenable: ConcertService.instance,
+      builder: (context, _) {
+        final concert = ConcertService.instance.currentConcert;
+        final audience = ConcertService.instance.liveAudienceCount;
+        final venue = ConcertService.instance.currentVenue;
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ConcertView(
+                  audioService: widget.audioService ?? AudioPlayerService.instance,
+                ),
+              ),
+            );
+          },
+          child: Container(
+            height: 145,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: venue.primaryColor.withValues(alpha: 0.45),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: venue.primaryColor.withValues(alpha: 0.25),
+                  blurRadius: 24,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    concert.bannerUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF1B1429)),
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.94),
+                          Colors.black.withValues(alpha: 0.70),
+                          venue.primaryColor.withValues(alpha: 0.35),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 14.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFFF4757),
+                                      borderRadius: BorderRadius.circular(10),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Color(0xFFFF4757),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.fiber_manual_record_rounded, size: 7, color: Colors.white),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'LIVE ARENA',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 1.0,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      '$audience FANS LIVE',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                concert.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                '${concert.artist} • ${venue.name}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: venue.secondaryColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: venue.primaryColor,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: venue.primaryColor.withValues(alpha: 0.5),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'ENTER',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Colors.white),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );

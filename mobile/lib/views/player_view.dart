@@ -16,8 +16,8 @@ import '../widgets/output_target_modal.dart';
 import '../services/party_service.dart';
 import '../services/ai_music_service.dart';
 import 'party_view.dart';
-import 'ai/why_recommended_modal.dart';
 import '../widgets/song_ai_studio_sheet.dart';
+import 'concert_view.dart';
 
 class PlayerView extends StatefulWidget {
   final Track track;
@@ -259,6 +259,21 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
             },
           ),
           IconButton(
+            icon: const Icon(Icons.stadium_rounded, color: Color(0xFF1DB954)),
+            tooltip: 'Live Concert Arena Mode',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ConcertView(
+                    audioService: widget.audioService,
+                    initialTrack: track,
+                  ),
+                ),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
             tooltip: 'Track Options',
             onPressed: () => _showTrackOptionsModal(context, track),
@@ -315,35 +330,17 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
                       ),
                       IconButton(
                         icon: const Icon(
-                          Icons.psychology_rounded,
-                          color: Colors.purpleAccent,
-                          size: 24,
+                          Icons.auto_awesome_rounded,
+                          color: Colors.white70,
+                          size: 22,
                         ),
-                        tooltip: 'AI Music Studio & Instruments',
+                        tooltip: 'AI Studio & Acoustic DNA',
                         onPressed: () {
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
                             builder: (ctx) => SongAiStudioSheet(
-                              track: track,
-                            ),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.auto_awesome,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                        tooltip: 'Why Recommended & Acoustic DNA',
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (ctx) => WhyRecommendedModal(
                               track: track,
                             ),
                           );
@@ -719,6 +716,21 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
                     icon: const Icon(Icons.bedtime_outlined, color: Color(0xFFA1A1AA), size: 22),
                     tooltip: 'Sleep Timer',
                     onPressed: () => _showSleepTimerModal(context),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.stadium_rounded, color: Color(0xFF1DB954), size: 22),
+                    tooltip: 'Live Concert Arena Mode',
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ConcertView(
+                            audioService: widget.audioService,
+                            initialTrack: track,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                   IconButton(
                     icon: const Icon(Icons.equalizer_rounded, color: Color(0xFFA1A1AA), size: 22),

@@ -58,10 +58,22 @@ class FirebaseService extends ChangeNotifier {
     try {
       final auth = _auth;
       if (auth == null) return;
+
+      // Auto sign-in anonymously if not signed in, guaranteeing an active UID for cloud sync
+      if (auth.currentUser == null) {
+        try {
+          await auth.signInAnonymously();
+        } catch (e) {
+          debugPrint('[FirebaseService] Anonymous sign-in fallback: $e');
+        }
+      }
+
       auth.authStateChanges().listen((user) {
         if (user != null) {
           _isConnected = true;
-          _statusMessage = 'Connected as ${user.email ?? user.uid}';
+          _statusMessage = user.isAnonymous
+              ? 'Cloud Sync Active (Guest UID: ${user.uid.substring(0, user.uid.length > 6 ? 6 : user.uid.length)})'
+              : 'Connected as ${user.email ?? user.uid}';
         } else {
           _isConnected = false;
           _statusMessage = 'Not signed in';
@@ -85,21 +97,25 @@ class FirebaseService extends ChangeNotifier {
       return false;
     }
 
-    final user = auth.currentUser;
+    var user = auth.currentUser;
     if (user == null) {
-      debugPrint('[FirebaseService] Skipping Firestore sync — user not signed in');
-      return false;
+      try {
+        final cred = await auth.signInAnonymously();
+        user = cred.user;
+      } catch (_) {}
     }
+
+    final targetDocId = documentId.isNotEmpty ? documentId : (user?.uid ?? 'guest_user');
 
     try {
       await firestore
           .collection(collection)
-          .doc(documentId)
+          .doc(targetDocId)
           .set(fields, SetOptions(merge: true));
 
       _lastSyncTime = DateTime.now();
       _isConnected = true;
-      _statusMessage = 'Last synced ${_lastSyncTime!.toLocal()}';
+      _statusMessage = 'Cloud synced ${_lastSyncTime!.toLocal()}';
       notifyListeners();
       return true;
     } catch (e) {
@@ -111,11 +127,42 @@ class FirebaseService extends ChangeNotifier {
     }
   }
 
+  /// Sync playlist directly to Firestore
+  Future<bool> syncPlaylistToFirestore(Map<String, dynamic> playlistJson) async {
+    final auth = _auth;
+    final uid = auth?.currentUser?.uid ?? 'default_user';
+    final playlistId = playlistJson['id']?.toString() ?? 'pl_${DateTime.now().millisecondsSinceEpoch}';
+
+    return syncDocumentToFirestore(
+      collection: 'users/$uid/playlists',
+      documentId: playlistId,
+      fields: {
+        ...playlistJson,
+        'syncedAt': FieldValue.serverTimestamp(),
+      },
+    );
+  }
+
+  /// Sync favorites tracks to Firestore
+  Future<bool> syncFavoritesToFirestore(List<Map<String, dynamic>> tracksJson) async {
+    final auth = _auth;
+    final uid = auth?.currentUser?.uid ?? 'default_user';
+
+    return syncDocumentToFirestore(
+      collection: 'users/$uid/library',
+      documentId: 'favorites',
+      fields: {
+        'totalTracks': tracksJson.length,
+        'tracks': tracksJson,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+    );
+  }
+
   /// Sync acoustic listening preferences for the signed-in user.
   Future<bool> syncAcousticPreferences(Map<String, dynamic> prefs) async {
     final auth = _auth;
-    final uid = auth?.currentUser?.uid;
-    if (uid == null) return false;
+    final uid = auth?.currentUser?.uid ?? 'default_user';
 
     return syncDocumentToFirestore(
       collection: 'user_preferences',
@@ -159,8 +206,7 @@ class FirebaseService extends ChangeNotifier {
     final firestore = _firestore;
     if (auth == null || firestore == null) return;
 
-    final uid = auth.currentUser?.uid;
-    if (uid == null) return;
+    final uid = auth.currentUser?.uid ?? 'default_user';
 
     try {
       await firestore
