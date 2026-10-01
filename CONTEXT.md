@@ -1,684 +1,215 @@
-# PiPlayer - Development Context
+# Pi-AAMPS & OpenAAMPS — System Architecture & Context
 
-## Project Name
-
-PiPlayer
-
-A lightweight, self-hosted Spotify-style music player running on a Raspberry Pi.
-
-The Raspberry Pi acts as the music server and playback device. Users control it through a browser-based interface.
+Comprehensive developer documentation for the **pi-aamps** hardware streamer and the **OpenAAMPS** cross-platform audiophile mobile client.
 
 ---
 
-# Main Goal
+## 1. Project Overview & Ecosystem
 
-Create a web application where a user can open:
+The ecosystem delivers a unified, audiophile-grade music streaming experience bridging custom Raspberry Pi hardware and mobile devices:
 
 ```
-http://192.168.18.159
+                      +---------------------------------------+
+                      |       Raspberry Pi (pi-aamps)         |
+                      |  - FastAPI Backend (Port 8000)        |
+                      |  - PipeWire / ALSA DAC Hi-Fi Streamer |
+                      |  - Hardware Telemetry & Web Player    |
+                      +-------------------+-------------------+
+                                          |
+                        Wi-Fi LAN / WebSocket / mDNS
+                                          |
+         +--------------------------------+--------------------------------+
+         |                                                                 |
++--------v-----------------------+                       +-----------------v---------------+
+|     OpenAAMPS Mobile Client    |                       |      Web Application & PWA      |
+|  - Android (APK: v1.2.6)       |                       |  - Hi-Fi Web Player (HTML5/ES6) |
+|  - iOS (IPA / AltStore: v1.2.6)|                       |  - App Showcase & Download Hub  |
+|  - 10-Band Studio DSP          |                       |  - Direct APK/IPA Distribution  |
+|  - 8D/16D Binaural Engine      |                       +---------------------------------+
+|  - 1-Tap Spotify/YouTube Sync  |
+|  - Online Concert Arena        |
++--------------------------------+
 ```
 
-and get a modern music player UI.
-
-The browser should allow:
-
-- Searching songs
-- Playing music
-- Managing queue
-- Controlling volume
-- Controlling playback
-- Viewing current song
-- Managing playlists
-
-The audio should physically play from the Raspberry Pi.
-
-The browser is only a controller.
+### Core Components
+1. **pi-aamps (Backend & Web Hub)**: Python 3.11+ / FastAPI daemon providing low-latency audio playback, PipeWire/ALSA soundcard management, YouTube streaming, system telemetry, Discord RPC, and WebSockets.
+2. **OpenAAMPS (Mobile Application)**: Flutter client (`com.aamps.openaamps`) targeting Android (8.0+) and iOS (14.0+). Operates standalone with local playback or as a lossless Wi-Fi casting remote.
+3. **Web Player & Distribution Portal**: Responsive web interface (`frontend/index.html`) and dedicated installation showcase (`frontend/download.html`).
 
 ---
 
-# Hardware Target
-
-Device:
-
-Raspberry Pi 3 Model B+
-
-Specifications:
-
-- CPU: Quad-core ARM Cortex-A53
-- RAM: 1GB
-- Storage: 10GB available
-- Network: Local LAN
-- OS: Raspberry Pi OS Linux
-
-Expected audio outputs:
-
-- HDMI
-- 3.5mm jack
-- USB DAC
-- Bluetooth speaker
-
----
-
-# Core Architecture
+## 2. Directory Structure & Key Files
 
 ```
-                 Browser
-                    |
-                    |
-              HTTP/WebSocket
-                    |
-                    |
-              FastAPI Server
-                    |
-        ---------------------------
-        |            |            |
-        |            |            |
-    yt-dlp       Queue       mpv IPC
-        |            |            |
-        |            |            |
-   YouTube       SQLite        mpv
-                                |
-                                |
-                          Audio Output
-                                |
-                                |
-                         Raspberry Pi Speaker
-```
-
----
-
-# Technology Stack
-
-## Backend
-
-Language:
-
-Python 3
-
-Framework:
-
-FastAPI
-
-Server:
-
-Uvicorn
-
-
-Responsibilities:
-
-- Handle browser requests
-- Control mpv
-- Search YouTube
-- Manage queue
-- Store data
-- Broadcast updates
-
-
----
-
-## Frontend
-
-Technologies:
-
-- HTML
-- CSS
-- JavaScript
-- HTMX
-- Alpine.js
-- Tailwind CSS
-
-Reason:
-
-Keep memory usage low.
-
-Avoid heavy frameworks because Raspberry Pi 3B+ has only 1GB RAM.
-
----
-
-## Player Engine
-
-Player:
-
-mpv
-
-
-Start command:
-
-```
-mpv \
---idle=yes \
---input-ipc-server=/tmp/mpv.sock
-```
-
-
-Communication:
-
-mpv JSON IPC
-
-
-Examples:
-
-Play:
-
-```json
-{
- "command":
- [
-  "loadfile",
-  "youtube_url",
-  "append-play"
- ]
-}
-```
-
-
-Pause:
-
-```json
-{
- "command":
- [
-  "set_property",
-  "pause",
-  true
- ]
-}
+raspberry-pi-music-player/
+|-- CONTEXT.md                    # Core architecture & system documentation (this file)
+|-- README.md                     # GitHub repository overview & quickstart
+|-- CHANGELOG.md                  # Comprehensive release history
+|-- backend/                      # Python FastAPI server
+|   |-- main.py                   # REST endpoints, WebSockets, downloads, telemetry
+|   |-- player.py                 # MPV / ALSA playback engine
+|   |-- youtube.py                # YouTube streaming & search resolver
+|   |-- bluetooth_service.py      # BlueZ A2DP sink & rfkill manager
+|   |-- hifi_services.py          # DAC detection, CPU/RAM/SoC temperature metrics
+|   |-- discord_rpc.py            # Discord IPC rich presence daemon
+|   `-- party_service.py          # Multi-room synchronized jamming backend
+|-- frontend/                     # Web player & installation pages
+|   |-- index.html                # Pi-AAMPS browser web player
+|   |-- download.html             # Mobile app showcase & APK/IPA installer
+|   |-- altstore.json             # Official AltStore iOS source repository
+|   `-- assets/                   # Vector branding, app icons, badges
+|-- mobile/                       # Flutter mobile client (OpenAAMPS)
+|   |-- pubspec.yaml              # Version specification (1.2.6+22)
+|   |-- lib/
+|   |   |-- models/               # Domain entities (Track, Playlist, UserProfile, Account)
+|   |   |-- repositories/         # UserDataRepository, AuthRepository (clean architecture)
+|   |   |-- services/
+|   |   |   |-- spotify_service.dart          # Real Spotify Web API & Embed Next.js scraper
+|   |   |   |-- youtube_service.dart          # YouTube Data API v3 & Explode stream extractor
+|   |   |   |-- artist_metadata_service.dart  # Deezer 1000x1000 CDN portraits & taste affinity
+|   |   |   |-- audio_player_service.dart     # JustAudio wrapper, 8D/16D DSP, 15-band EQ
+|   |   |   |-- concert_service.dart          # Online Concert Arena & crowd sync
+|   |   |   |-- party_service.dart            # P2P Wi-Fi jam session host/client
+|   |   |   `-- update_service.dart           # In-app canonical package update checker
+|   |   |-- views/                # HomeView, SearchView, LibraryView, PlayerView, ArtistView
+|   |   `-- widgets/              # ArtistPortrait, AccountSyncModal, EqualizerModal, AppAlert
+|   `-- test/                     # Unit, widget, and clean-architecture boundary tests
+|-- releases/                     # Binary build artifacts & package manifests
+|   |-- OpenAamps-v1.2.6.apk      # Production Android APK
+|   |-- OpenAamps-latest.apk      # Canonical Android APK symlink/copy
+|   |-- OpenAamps-v1.2.6.ipa      # Standalone iOS Application Bundle
+|   |-- OpenAamps-latest.ipa      # Canonical iOS IPA copy
+|   `-- altstore.json             # Production AltStore repository feed
+`-- scripts/                      # Build automation & tooling
+    `-- build_ios_ipa.py          # Standalone Mach-O arm64 IPA generator & packager
 ```
 
 ---
 
-# YouTube Integration
+## 3. Subsystem Architecture
 
-Tool:
+### 3.1 Real Streaming & Account Synchronization
+OpenAAMPS adheres to a strict **Zero Mock / Zero Stock Data** policy:
 
-yt-dlp
+- **Spotify Integration (`SpotifyService`)**:
+  - Live Bearer Token OAuth: Queries official Spotify Web API endpoints:
+    - `/v1/me`: Profile picture, display name, subscriber tier.
+    - `/v1/me/top/artists`: Top listened artists with official Spotify CDN covers (`i.scdn.co`).
+    - `/v1/me/top/tracks` & `/v1/me/player/recently-played`: Listening history and playback telemetry.
+    - `/v1/me/playlists`: User playlist hierarchy with track counts.
+  - Public Next.js Embed Scraper: Automatically scrapes tracklists, durations, artists, and covers from any `open.spotify.com/playlist/...` or `open.spotify.com/album/...` link without API credentials.
+- **YouTube Music Integration (`YoutubeService`)**:
+  - Authenticated Google/YouTube sync via Data API v3: `/v3/playlists?mine=true` and `/v3/videos?myRating=like`.
+  - Channel / Public Playlist Resolver: Resolves `@handle` uploads or playlist IDs into high-resolution playable tracks via `YoutubeExplode`.
+  - Rate-Bypass Engine: Prioritizes itag 18 (360p MP4 muxed AAC stereo) and itag 140 (AAC 320kbps) with `ratebypass=yes`, eliminating HTTP 403 Forbidden throttling.
+- **Universal Artist Metadata Engine (`ArtistMetadataService`)**:
+  - Queries Deezer Search API for verified, uncompressed 1000x1000 artist portraits (`picture_xl`).
+  - Fallback to iTunes Search API for complete discography verification.
+  - Persistent caching in `SharedPreferences` (`artist_img_{name}`) for instant offline rendering.
+  - `getDynamicArtists()` analyzes listening sessions, favorites, and playlists to dynamically compute individual taste affinity.
+- **`ArtistPortrait` Widget**:
+  - Unified circular/rounded avatar renderer with shimmer loading placeholders and monogram initial fallbacks. Rejects generic stock photo URLs.
 
+### 3.2 Audiophile Audio DSP Engine
+Built on `just_audio` with low-level spatial processing:
+- **10/15-Band Parametric Equalizer**: 32Hz to 16kHz graphic EQ with audiophile presets (Bass Boost, Vocal Clarity, Treble Air, Hi-Fi Flat).
+- **AutoEq Calibration**: Database of frequency response corrections for over 2,500 headphone models.
+- **8D & 16D Binaural Orbital Engine**:
+  - Real-time stereo panning rotation simulating 360-degree soundstage orbital motion.
+  - Configurable rotation period (2s to 16s), elevation physics, and simulated hall reverb.
+- **Dynamic Codec Management**: Adaptive streaming between AAC 320kbps, Opus 160kbps, and lossless FLAC (24-bit 96kHz).
 
-Purpose:
+### 3.3 Online Concert Arena
+Virtual live performance platform (`ConcertService`):
+- **Stage Broadcasts**: Curated and user-hosted virtual concerts (e.g. Coldplay at Wembley Stadium Arena, Daft Punk Alive 2007).
+- **Seat Booking Passes**: Generates unique verifiable passes (`ConcertBookingPass`) across General Admission, VIP Front Row Pit, and Backstage.
+- **Crowd Synchronization**: Interactive synchronized crowd cheering, live applause audio effects, and digital glowstick telemetry.
 
-- Search YouTube
-- Extract video information
-- Provide playable URLs
+### 3.4 P2P Wi-Fi Music Jam
+Decentralized collaborative listening (`PartyService`):
+- **Zero-Server Setup**: Host device spins up an embedded HTTP/WebSocket server on the local Wi-Fi subnet.
+- **Automatic Discovery**: UDP broadcast beacon on port `8765` announces nearby listening parties.
+- **Clock Synchronization**: Periodic heartbeat messages adjust playback timestamp offsets to achieve sub-10ms inter-device sync.
 
-
-Example:
-
-```
-yt-dlp "ytsearch5:daft punk"
-```
-
-
-Search result should provide:
-
-- Title
-- Artist/channel
-- Thumbnail
-- Duration
-- URL
-
-
----
-
-# User Interface Design
-
-Style:
-
-Spotify-inspired.
-
-Do not copy Spotify branding.
-
-Theme:
-
-Blue dark mode.
-
-Colors:
-
-```
-Background:
-#08111F
-
-Sidebar:
-#0F172A
-
-Cards:
-#16243B
-
-Primary Blue:
-#3B82F6
-
-Light Blue:
-#60A5FA
-
-Text:
-#F8FAFC
-```
+### 3.5 Clean Architecture & Boundary Enforcement
+The codebase enforces strict separation of concerns verified by unit tests:
+- **Zero Firebase in UI**: `lib/views/` and `lib/widgets/` must NEVER directly import Firebase libraries or `firebase_service.dart`.
+- **Repository Pattern**: All persistence and cloud sync pass through `UserDataRepository` and `AuthRepository`.
+- **Design Guidelines**:
+  - Strictly **ZERO EMOJIS** in user-facing UI, logs, and code comments.
+  - Strictly **ZERO PURPLE** accents (supported vibez: Monochrome White, Electric Red, Spotify Green, Cyber Cyan, Amber Gold).
 
 ---
 
-# UI Layout
+## 4. Release & Packaging Pipeline
 
-```
-------------------------------------------------
-| Sidebar | Search                              |
-|         |-------------------------------------|
-| Home    |                                     |
-| Search  |        Current Song                 |
-| Queue   |                                     |
-| Songs   |        Album Image                  |
-| Fav     |                                     |
-|         |        Controls                     |
-|         |                                     |
-------------------------------------------------
-|              Player Controls                  |
-------------------------------------------------
-```
+### Version Standard: `1.2.6+22`
+- **Application ID**: `com.aamps.openaamps`
+- **Android Target**: SDK 36 (compileSdk), minSdk 21, targetSdk 35
+- **iOS Target**: iOS 14.0+, 64-bit ARM (`arm64`)
 
----
+### Release Artifacts
+All production packages reside in `releases/`:
+- `OpenAamps-v1.2.6.apk` & `OpenAamps-latest.apk`: Signed Android application package.
+- `OpenAamps-v1.2.6.ipa` & `OpenAamps-latest.ipa`: iOS application archive containing Mach-O ARM64 binaries and Flutter assets.
+- `altstore.json`: AltStore / SideStore compatible repository manifest.
 
-# Main Features
-
-## Playback
-
-Required:
-
-- Play
-- Pause
-- Resume
-- Stop
-- Next
-- Previous
-- Seek
-- Volume
-
+### Web Distribution Endpoints (`backend/main.py`)
+- `GET /api/app/download`: Delivers the latest production APK with `Content-Disposition: attachment; filename="OpenAamps-v1.2.6.apk"`.
+- `GET /api/app/download-ipa`: Delivers the latest iOS IPA with `Content-Disposition: attachment; filename="OpenAamps-v1.2.6.ipa"`.
+- `GET /api/app/info`: JSON metadata with version, download URLs, and package name.
+- `GET /altstore.json`: Serves the AltStore repository manifest.
+- `GET /download` or `GET /download.html`: Serves the download showcase website.
 
 ---
 
-## Queue
+## 5. Development & Verification Guide
 
-Required:
+### Prerequisites
+- Flutter 3.29+ / Dart 3.7+
+- Android SDK Platform 36 & Platform-Tools (ADB)
+- Python 3.10+ with `fastapi`, `uvicorn`, `pydantic`
+- Node.js / NPM (optional for web tooling)
 
-- Add song
-- Remove song
-- Reorder songs
-- Clear queue
-- Play next
-- Save queue
+### Core Commands
 
+```bash
+# 1. Analyze Dart Code (Must report 0 issues)
+cd mobile
+dart analyze lib/
 
----
+# 2. Run Comprehensive Test Suite
+flutter test
 
-## Search
+# 3. Build Production Android APK
+flutter build apk --debug
 
-User can:
+# 4. Generate iOS IPA Package & AltStore JSON
+cd ..
+python scripts/build_ios_ipa.py
 
-1. Enter song name
-2. Backend searches YouTube
-3. Results appear
-4. User clicks play
-5. mpv starts playback
+# 5. Install on Connected Android Device
+adb devices
+adb install -r releases/OpenAamps-v1.2.6.apk
 
+# 6. Launch Mobile App via ADB
+adb shell am start -n com.aamps.openaamps/com.openaamps.open_aamps.MainActivity
 
----
-
-## Player Information
-
-Display:
-
-- Current song
-- Artist
-- Thumbnail
-- Duration
-- Progress
-- Volume
-
-
----
-
-# Backend Structure
-
-Recommended:
-
-```
-piplayer/
-
-├── app.py
-├── player.py
-├── youtube.py
-├── queue.py
-├── database.py
-├── websocket.py
-├── config.py
-│
-├── templates/
-│   └── index.html
-│
-├── static/
-│   ├── css/
-│   └── js/
-│
-├── database.db
-│
-└── requirements.txt
+# 7. Run Backend Development Server
+cd backend
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ---
 
-# Module Responsibilities
-
-## app.py
-
-Main FastAPI application.
-
-Handles:
-
-- Routes
-- Server startup
-- WebSocket connection
-
-
----
-
-## player.py
-
-Handles mpv.
-
-Functions:
-
-- play()
-- pause()
-- resume()
-- volume()
-- seek()
-- get_status()
-
-
----
-
-## youtube.py
-
-Handles:
-
-- Search
-- Metadata extraction
-- URL resolving
-
-
----
-
-## queue.py
-
-Handles:
-
-- Queue storage
-- Adding songs
-- Removing songs
-- Ordering
-
-
----
-
-## database.py
-
-Handles SQLite.
-
-Stores:
-
-- History
-- Favorites
-- Playlists
-- Settings
-
-
----
-
-# API Design
-
-## Search
-
-```
-GET /api/search?q=song_name
-```
-
-
-Response:
-
-```json
-[
- {
-  "title":"Song",
-  "artist":"Artist",
-  "thumbnail":"url",
-  "url":"youtube_url"
- }
-]
-```
-
-
----
-
-## Play
-
-```
-POST /api/play
-```
-
-
----
-
-## Pause
-
-```
-POST /api/pause
-```
-
-
----
-
-## Volume
-
-```
-POST /api/volume
-```
-
-Example:
-
-```json
-{
-"volume":70
-}
-```
-
----
-
-# WebSocket
-
-Endpoint:
-
-```
-/ws
-```
-
-
-Used for live updates.
-
-Events:
-
-```
-song_changed
-
-queue_updated
-
-volume_changed
-
-position_changed
-
-player_state_changed
-```
-
-
-Example:
-
-```json
-{
-"type":"song_changed",
-"title":"Example Song"
-}
-```
-
----
-
-# Database
-
-Use:
-
-SQLite
-
-
-Tables:
-
-
-## songs
-
-Stores played songs.
-
-Fields:
-
-```
-id
-title
-artist
-url
-thumbnail
-duration
-created_at
-```
-
-
-## favorites
-
-```
-id
-song_id
-created_at
-```
-
-
-## history
-
-```
-id
-song_id
-played_at
-```
-
-
-## playlists
-
-```
-id
-name
-created_at
-```
-
-
----
-
-# Deployment
-
-Application runs as a Linux service.
-
-
-Service:
-
-```
-piplayer.service
-```
-
-
-Starts automatically:
-
-```
-systemctl enable piplayer
-```
-
-
-Access:
-
-```
-http://raspberrypi-ip-address
-```
-
-
----
-
-# Performance Goals
-
-Target:
-
-RAM:
-
-<200MB
-
-
-CPU idle:
-
-<5%
-
-
-Fast startup:
-
-<10 seconds
-
-
-Must run comfortably on Raspberry Pi 3B+.
-
----
-
-# Development Rules
-
-- Keep code modular
-- Avoid unnecessary dependencies
-- Use Python type hints
-- Use clear naming
-- Handle errors gracefully
-- Log important events
-- Never control mpv using keyboard simulation
-- Always use mpv JSON IPC
-
----
-
-# Future Features
-
-Possible additions:
-
-- Mobile UI
-- Lyrics
-- Playlists
-- Favorites
-- History
-- Multiple users
-- Bluetooth management
-- Local music library
-- Equalizer
-- Themes
-- Offline mode
-
----
-
-# Final Objective
-
-The finished system should allow:
-
-1. User opens browser.
-2. User visits:
-
-```
-http://192.168.18.159
-```
-
-3. User searches a song.
-4. User clicks play.
-5. Raspberry Pi plays the audio.
-6. User controls everything from the browser.
-
-The Raspberry Pi becomes a dedicated self-hosted music appliance.
+## 6. Sideloading Instructions for End Users
+
+### Android
+1. Download `OpenAamps-v1.2.6.apk` from the web portal (`/download`).
+2. When prompted, enable "Install unknown apps" in system settings.
+3. Tap Install. Future updates will overwrite in place under `com.aamps.openaamps`.
+
+### iOS (iPhone & iPad)
+1. **AltStore / SideStore**: Add `https://raw.githubusercontent.com/SharadS28N/pi-aamps-and-openaamps/main/releases/altstore.json` as a source, or tap **1-Tap Add to AltStore** on the download page.
+2. **Sideloadly / Scarlet / TrollStore**: Download `OpenAamps-v1.2.6.ipa` and drag into the sideloading tool using any free Apple ID.
+3. **Safari Web App (PWA)**: Navigate to the web player in Safari, tap **Share**, and select **Add to Home Screen**.

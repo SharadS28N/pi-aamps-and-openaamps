@@ -15,10 +15,13 @@
     <img src="https://img.shields.io/badge/Release-v1.2.6-10B981?style=for-the-badge&logo=github" alt="Release v1.2.6">
   </a>
   <a href="releases/OpenAamps-v1.2.6.apk">
-    <img src="https://img.shields.io/badge/Download_APK-v1.2.6_(70MB)-06B6D4?style=for-the-badge&logo=android&logoColor=white" alt="Download APK">
+    <img src="https://img.shields.io/badge/Download_APK-Android_v1.2.6-06B6D4?style=for-the-badge&logo=android&logoColor=white" alt="Download APK">
   </a>
-  <a href="https://sharads28n.github.io/pi-aamps-and-openaamps/">
-    <img src="https://img.shields.io/badge/Live_Website-GitHub_Pages-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Website">
+  <a href="releases/OpenAamps-v1.2.6.ipa">
+    <img src="https://img.shields.io/badge/Download_IPA-iOS_v1.2.6-111827?style=for-the-badge&logo=apple&logoColor=white" alt="Download IPA">
+  </a>
+  <a href="CONTEXT.md">
+    <img src="https://img.shields.io/badge/Architecture-CONTEXT.md-10B981?style=for-the-badge&logo=markdown&logoColor=white" alt="Context Architecture">
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-white?style=for-the-badge" alt="MIT License">
@@ -55,10 +58,15 @@ All screenshots below were captured during real-world verification on a physical
 
 ## Key Highlights
 
+- **Live 1-Tap Spotify & YouTube Music Sync**: Live profile, top artists, recently played tracks, and playlist ingestion via official Spotify Web API and Next.js embed hydration state, alongside direct YouTube Data API v3 and channel syncing.
+- **Universal Deezer & iTunes Artist Portrait Engine**: Dynamically fetches 1000x1000 uncompressed verified portraits for any artist with local persistent disk caching. 100% free of fake stock photos.
+- **8D & 16D Binaural Orbital Audio Engine**: Real-time soundstage rotation, elevation physics, room reverb modeling, and headphone acoustic virtualization.
+- **Online Concert Arena & Crowd Sync**: Virtual concert hall with live stage broadcasts, seat booking passes, interactive synced crowd waves, and digital glowstick telemetry.
+- **Dynamic Acoustic Taste Vector Learning**: On-device acoustic DNA engine analyzing tempo, valence, energy, and acousticness to compute personal listening affinity.
 - **Lossless Bit-Perfect DAC Streaming**: Bypasses Android and Linux software mixers. Direct ALSA hardware routing to I2S DAC HATs (HiFiBerry, Allo Boss, PCM5102), USB DACs, and 3.5mm analog audio up to 32-bit / 192kHz.
 - **YouTube 403 Rate-Bypass Engine**: Automatically selects ratebypass-enabled muxed audio formats (`itag 18`) with `LocalStreamProxy` fallback, completely eliminating buffer stalls and Google Video 403 Forbidden errors.
 - **Dual Output Target Switcher**: Toggle audio output on the fly between your **Raspberry Pi DAC Streamer** (`pi-aamps`) and **This Phone (Local Audio)** without interrupting your queue.
-- **Configurable Network IP:Port**: Easily discover and configure the Raspberry Pi's local network address (`192.168.18.159:8000`) directly within the app interface.
+- **Configurable Network IP:Port**: Easily discover and configure the Raspberry Pi's local network address directly within the app interface.
 - **Synchronized LRC Lyrics Engine**: Karaoke-style real-time scrolling lyrics with interactive line-seeking powered by LRCLIB.
 - **10-Band Graphic Equalizer & DSP**: Full parametric equalizer with acoustic bass boost, virtualizer, and audiophile presets.
 - **True AMOLED Black Aesthetic**: High-contrast true black (`#000000`) theme designed to conserve battery on OLED screens and eliminate eye strain.
