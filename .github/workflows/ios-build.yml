@@ -1,0 +1,60 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-ios:
+    name: Build iOS IPA Package
+    runs-on: macos-14
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Build iOS Application Bundle
+        working-directory: mobile
+        run: flutter build ios --release --no-codesign
+
+      - name: Package Payload into IPA
+        run: |
+          mkdir -p build/ios_release/Payload
+          cp -r mobile/build/ios/iphoneos/Runner.app build/ios_release/Payload/
+          cd build/ios_release
+          zip -r -9 OpenAamps-v1.2.6.ipa Payload
+          cp OpenAamps-v1.2.6.ipa OpenAamps-latest.ipa
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openaamps-ios-ipa
+          path: build/ios_release/*.ipa
+
+      - name: Upload to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/ios_release/OpenAamps-v1.2.6.ipa
+            build/ios_release/OpenAamps-latest.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

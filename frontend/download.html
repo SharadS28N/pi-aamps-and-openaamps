@@ -702,15 +702,19 @@
                         <div class="inline-block px-2.5 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-[10px] font-mono text-zinc-300 font-bold mb-2">POWER USERS</div>
                         <h3 class="text-xl font-bold text-white mb-2">Direct iOS Package (.IPA)</h3>
                         <p class="text-xs text-zinc-400 leading-relaxed mb-6">
-                            Download the unsigned standalone IPA bundle to install via AltStore, Sideloadly, Scarlet, or TrollStore.
+                            Download the unsigned standalone IPA bundle to install via AltStore, Sideloadly, Scarlet, or TrollStore with any free Apple ID.
                         </p>
                     </div>
-                    <div>
-                        <a href="/releases/OpenAamps-v1.2.6.ipa" class="w-full px-6 py-3.5 rounded-full btn-outline flex items-center justify-center gap-2 text-sm">
+                    <div class="space-y-2">
+                        <a href="/api/app/download-ipa" class="w-full px-6 py-3.5 rounded-full btn-white flex items-center justify-center gap-2 text-sm shadow">
                             <i class="fa-solid fa-download"></i>
-                            <span>Download OpenAamps.ipa (68.4 MB)</span>
+                            <span>Download OpenAamps.ipa (25.7 MB)</span>
                         </a>
-                        <span class="block text-center text-[11px] font-mono text-zinc-500 mt-2">Compatible with AltStore &amp; Sideloadly</span>
+                        <a href="altstore://source?url=https://raw.githubusercontent.com/SharadS28N/raspberry-pi-music-player/main/releases/altstore.json" class="w-full px-4 py-2 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 flex items-center justify-center gap-2 transition">
+                            <i class="fa-solid fa-plus text-[10px]"></i>
+                            <span>1-Tap Add to AltStore</span>
+                        </a>
+                        <span class="block text-center text-[11px] font-mono text-zinc-500">Free Apple ID supported • No jailbreak</span>
                     </div>
                 </div>
 
@@ -720,7 +724,7 @@
                         <div class="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white mb-4 text-xl">
                             <i class="fa-solid fa-arrow-up-from-bracket"></i>
                         </div>
-                        <div class="inline-block px-2.5 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-[10px] font-mono text-sky-400 font-bold mb-2">NO SIDELOADING</div>
+                        <div class="inline-block px-2.5 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/20 text-[10px] font-mono text-sky-400 font-bold mb-2">NO COMPUTER NEEDED</div>
                         <h3 class="text-xl font-bold text-white mb-2">Safari 1-Tap App (PWA)</h3>
                         <p class="text-xs text-zinc-400 leading-relaxed mb-6">
                             Open pi-aamps in Safari, tap the Share button, and select "Add to Home Screen" for a full native app experience with offline playback.
@@ -736,24 +740,39 @@
                 </div>
             </div>
 
-            <!-- 3-Step Sideload Walkthrough -->
+            <!-- 3-Step Sideload Walkthrough with Tool Links -->
             <div class="p-8 rounded-2xl glass-card border border-zinc-800">
-                <h4 class="text-base font-bold text-white mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-circle-info text-zinc-400"></i>
-                    <span>Quick AltStore / Sideloadly Installation Walkthrough</span>
-                </h4>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 border-b border-zinc-800 pb-4">
+                    <div>
+                        <h4 class="text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-zinc-400"></i>
+                            <span>How to Install with Sideloadly or AltStore (PC / Mac)</span>
+                        </h4>
+                        <p class="text-xs text-zinc-400 mt-1">Free Apple IDs allow sideloading up to 3 apps for 7 days with automatic refresh.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <a href="https://sideloadly.io" target="_blank" class="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs text-white font-medium flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            <span>Get Sideloadly</span>
+                        </a>
+                        <a href="https://altstore.io" target="_blank" class="px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs text-white font-medium flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            <span>Get AltStore</span>
+                        </a>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-xs text-zinc-400">
                     <div>
-                        <span class="font-bold text-white block mb-1">Step 1: Download</span>
-                        <p>Save the <code class="text-white bg-zinc-900 px-1 py-0.5 rounded">OpenAamps.ipa</code> file above to your Mac, PC, or iPhone.</p>
+                        <span class="font-bold text-white block mb-1">Step 1: Download &amp; Connect</span>
+                        <p>Download <code class="text-white bg-zinc-900 px-1 py-0.5 rounded">OpenAamps.ipa</code> above and connect your iPhone to your PC or Mac via USB.</p>
                     </div>
                     <div>
-                        <span class="font-bold text-white block mb-1">Step 2: Sideload</span>
-                        <p>Connect your iPhone via USB, open AltStore or Sideloadly, and select OpenAamps.ipa to install.</p>
+                        <span class="font-bold text-white block mb-1">Step 2: Drag &amp; Drop in Sideloadly</span>
+                        <p>Open Sideloadly (or AltStore), drag <code class="text-white bg-zinc-900 px-1 py-0.5 rounded">OpenAamps.ipa</code> into the window, enter your Apple ID, and click <strong>Start</strong>.</p>
                     </div>
                     <div>
-                        <span class="font-bold text-white block mb-1">Step 3: Trust Certificate</span>
-                        <p>On your iPhone, go to Settings &gt; General &gt; VPN &amp; Device Management, tap your developer ID, and tap Trust.</p>
+                        <span class="font-bold text-white block mb-1">Step 3: Trust Developer Profile</span>
+                        <p>On your iPhone, go to <strong>Settings &gt; General &gt; VPN &amp; Device Management</strong>, tap your Apple ID, and tap <strong>Trust</strong>. OpenAamps is now ready!</p>
                     </div>
                 </div>
             </div>
@@ -767,7 +786,7 @@
                         <i class="fa-brands fa-android text-lg"></i>
                         <span>Download APK for Android</span>
                     </a>
-                    <a href="/releases/OpenAamps-v1.2.6.ipa" class="px-7 py-3.5 rounded-full btn-outline flex items-center justify-center gap-3 text-sm">
+                    <a href="/api/app/download-ipa" class="px-7 py-3.5 rounded-full btn-outline flex items-center justify-center gap-3 text-sm">
                         <i class="fa-brands fa-apple text-lg"></i>
                         <span>Download IPA for iPhone</span>
                     </a>

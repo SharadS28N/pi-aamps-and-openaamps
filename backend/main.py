@@ -178,6 +178,7 @@ async def get_app_info():
         "version": "1.2.6",
         "description": "Standalone Android Music Player & pi-aamps Remote Control Hub",
         "download_url": "/api/app/download",
+        "ipa_download_url": "/api/app/download-ipa",
         "github_release_url": "https://github.com/SharadS28N/raspberry-pi-music-player/releases/tag/v1.2.6"
     }
 
@@ -222,6 +223,52 @@ async def download_app_apk():
         "https://github.com/SharadS28N/raspberry-pi-music-player/releases/download/v1.2.6/OpenAamps-v1.2.6.apk",
         status_code=302
     )
+
+
+@app.get("/api/app/download-ipa")
+async def download_app_ipa():
+    project_root = os.path.dirname(BASE_DIR)
+    candidate_paths = [
+        os.path.join(project_root, "releases", "OpenAamps-v1.2.6.ipa"),
+        os.path.join(project_root, "releases", "OpenAamps-latest.ipa"),
+        os.path.join(BASE_DIR, "releases", "OpenAamps-v1.2.6.ipa"),
+        os.path.join(BASE_DIR, "releases", "OpenAamps-latest.ipa"),
+    ]
+    rel_dir = os.path.join(project_root, "releases")
+    if os.path.exists(rel_dir):
+        for f in os.listdir(rel_dir):
+            if f.endswith(".ipa") and os.path.join(rel_dir, f) not in candidate_paths:
+                candidate_paths.append(os.path.join(rel_dir, f))
+
+    for ipa_path in candidate_paths:
+        if os.path.exists(ipa_path):
+            filename = os.path.basename(ipa_path)
+            return FileResponse(
+                ipa_path,
+                media_type="application/octet-stream",
+                filename=filename,
+                headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+            )
+
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(
+        "https://github.com/SharadS28N/raspberry-pi-music-player/releases/download/v1.2.6/OpenAamps-v1.2.6.ipa",
+        status_code=302
+    )
+
+
+@app.get("/altstore.json")
+async def get_altstore_source():
+    project_root = os.path.dirname(BASE_DIR)
+    candidate_paths = [
+        os.path.join(project_root, "frontend", "altstore.json"),
+        os.path.join(project_root, "releases", "altstore.json"),
+        os.path.join(BASE_DIR, "frontend", "altstore.json"),
+    ]
+    for p in candidate_paths:
+        if os.path.exists(p):
+            return FileResponse(p, media_type="application/json")
+    return {"error": "AltStore source not found"}
 
 
 # Serve OpenAamps Dedicated Download Showcase Page
