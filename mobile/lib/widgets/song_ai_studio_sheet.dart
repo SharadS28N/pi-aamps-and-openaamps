@@ -82,7 +82,7 @@ class _SongAiStudioSheetState extends State<SongAiStudioSheet> {
     AppAlert.show(
       context,
       'Synthesizing AI Playlist based on "${widget.track.title}"...',
-      icon: Icons.auto_awesome,
+      icon: Icons.graphic_eq_rounded,
     );
 
     final prompt = '${widget.track.title} ${widget.track.genre} ${widget.track.mood} instruments';
@@ -136,7 +136,7 @@ class _SongAiStudioSheetState extends State<SongAiStudioSheet> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: accent.withValues(alpha: 0.3)),
                   ),
-                  child: Icon(Icons.auto_awesome_rounded, color: accent, size: 22),
+                  child: Icon(Icons.graphic_eq_rounded, color: accent, size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -516,7 +516,7 @@ class _SongAiStudioSheetState extends State<SongAiStudioSheet> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             backgroundColor: accent.withValues(alpha: 0.08),
           ),
-          icon: Icon(Icons.auto_awesome, color: accent, size: 18),
+          icon: Icon(Icons.graphic_eq_rounded, color: accent, size: 18),
           label: Text(
             'Synthesize AI Smart Mix With This Vibe',
             style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 13),
@@ -560,7 +560,7 @@ class _SongAiStudioSheetState extends State<SongAiStudioSheet> {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             backgroundColor: accent.withValues(alpha: 0.08),
           ),
-          icon: Icon(Icons.auto_awesome, color: accent, size: 18),
+          icon: Icon(Icons.queue_music_rounded, color: accent, size: 18),
           label: Text(
             'Synthesize AI Playlist From This Sonic DNA',
             style: TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 13),

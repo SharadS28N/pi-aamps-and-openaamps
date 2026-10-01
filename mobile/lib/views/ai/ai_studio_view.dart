@@ -67,7 +67,7 @@ class _AiStudioViewState extends State<AiStudioView> {
         elevation: 0,
         title: Row(
           children: [
-            Icon(Icons.psychology_rounded, color: accent, size: 24),
+            Icon(Icons.graphic_eq_rounded, color: accent, size: 22),
             const SizedBox(width: 8),
             const Text(
               'AI Music Studio',
@@ -99,7 +99,7 @@ class _AiStudioViewState extends State<AiStudioView> {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.auto_awesome, color: accent, size: 20),
+                    Icon(Icons.graphic_eq_rounded, color: accent, size: 18),
                     const SizedBox(width: 8),
                     const Text(
                       'Acoustic Intelligence & Instrument Lab',
@@ -255,7 +255,7 @@ class _AiStudioViewState extends State<AiStudioView> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(color: Colors.white54, fontSize: 12),
                 ),
-                trailing: Icon(Icons.psychology_outlined, color: accent, size: 22),
+                trailing: Icon(Icons.tune_rounded, color: accent, size: 20),
                 onTap: () => _openStudioForTrack(t),
               ),
             );

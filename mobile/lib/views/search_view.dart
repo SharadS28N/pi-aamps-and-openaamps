@@ -205,7 +205,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
                         text: 'Explore',
                       ),
                       Tab(
-                        icon: Icon(Icons.auto_awesome_outlined, size: 20),
+                        icon: Icon(Icons.recommend_outlined, size: 20),
                         text: 'Suggestions',
                       ),
                     ],

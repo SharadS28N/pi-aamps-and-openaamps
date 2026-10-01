@@ -363,6 +363,163 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  String _customQuickPickBias = '';
+
+  void _openCustomizeQuickPicksModal() {
+    final textController = TextEditingController(text: _customQuickPickBias);
+    final accent = SettingsService.instance.accentColor;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalCtx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F0F0F),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Customize Quick Picks',
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const Text(
+                    'Tailor your real-time recommendations with custom genres, artist influences, or acoustic vibes.',
+                    style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'FAVORITE VIBE & GENRES',
+                    style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _categories.map((cat) {
+                      final isSelected = cat == _selectedCategory;
+                      return ChoiceChip(
+                        label: Text(
+                          cat,
+                          style: TextStyle(
+                            color: isSelected ? Colors.black : Colors.white,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontSize: 12,
+                          ),
+                        ),
+                        selected: isSelected,
+                        selectedColor: accent == Colors.white ? Colors.white : accent,
+                        backgroundColor: const Color(0xFF1A1A1A),
+                        side: BorderSide(
+                          color: isSelected ? Colors.transparent : Colors.white10,
+                        ),
+                        onSelected: (selected) {
+                          setModalState(() {
+                            _selectCategory(cat);
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 18),
+                  const Text(
+                    'CUSTOM ARTIST OR KEYWORD BIAS',
+                    style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1A1A1A),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12),
+                    ),
+                    child: TextField(
+                      controller: textController,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                      decoration: const InputDecoration(
+                        hintText: 'e.g. Coldplay, Acoustic Guitar, Lo-Fi, Synthwave',
+                        hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
+                        prefixIcon: Icon(Icons.search_rounded, color: Colors.white38, size: 18),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accent == Colors.white ? Colors.white : accent,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('Apply & Regenerate Picks', style: TextStyle(fontWeight: FontWeight.bold)),
+                      onPressed: () async {
+                        final query = textController.text.trim();
+                        setState(() {
+                          _customQuickPickBias = query;
+                        });
+                        Navigator.pop(context);
+                        if (query.isNotEmpty) {
+                          await _fetchCategoryFromYoutube(query);
+                        } else {
+                          await _fetchCategoryFromYoutube(_selectedCategory);
+                        }
+                        if (mounted) {
+                          AppAlert.show(
+                            this.context,
+                            'Quick Picks regenerated for ${query.isNotEmpty ? query : _selectedCategory}',
+                            icon: Icons.check_circle_rounded,
+                            isSuccess: true,
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _playArtist(String artistName) async {
     AppAlert.show(context, 'Loading $artistName tracks...', icon: Icons.music_note_rounded);
     try {
@@ -614,14 +771,23 @@ class _HomeViewState extends State<HomeView> {
                       ],
                     ],
                   ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() => _showAllQuickPicks = !_showAllQuickPicks);
-                    },
-                    child: Text(
-                      _showAllQuickPicks ? 'Show less' : 'See all (${_quickPicks.length})',
-                      style: const TextStyle(color: Color(0xFFA1A1AA)),
-                    ),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.tune_rounded, color: Colors.white70, size: 20),
+                        tooltip: 'Customize Quick Picks',
+                        onPressed: _openCustomizeQuickPicksModal,
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() => _showAllQuickPicks = !_showAllQuickPicks);
+                        },
+                        child: Text(
+                          _showAllQuickPicks ? 'Show less' : 'See all (${_quickPicks.length})',
+                          style: const TextStyle(color: Color(0xFFA1A1AA)),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

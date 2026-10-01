@@ -127,7 +127,7 @@ class _LibraryViewState extends State<LibraryView> {
               side: const BorderSide(color: Colors.white24),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            icon: const Icon(Icons.auto_awesome, size: 14),
+            icon: const Icon(Icons.queue_music_rounded, size: 14),
             label: const Text('Use AI Generator', style: TextStyle(fontSize: 12)),
             onPressed: () {
               Navigator.pop(dialogCtx);

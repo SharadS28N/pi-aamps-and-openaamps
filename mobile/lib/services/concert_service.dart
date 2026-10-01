@@ -250,6 +250,45 @@ class ConcertService extends ChangeNotifier {
   List<FanShoutout> get shoutouts => List.unmodifiable(_shoutouts);
   List<FloatingReaction> get reactions => List.unmodifiable(_reactions);
 
+  final List<LiveConcert> _hostedConcerts = [];
+  List<LiveConcert> get allConcerts => [..._hostedConcerts, ...curatedConcerts];
+
+  void hostNewConcert({
+    required String title,
+    required String artist,
+    required String venueId,
+    required List<Track> setlist,
+    String? bannerUrl,
+    String? tourName,
+  }) {
+    final venue = availableVenues.firstWhere(
+      (v) => v.id == venueId,
+      orElse: () => availableVenues[0],
+    );
+    final concert = LiveConcert(
+      id: 'hosted_${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      artist: artist,
+      tourName: tourName ?? '$artist Live Stage Arena',
+      venueName: venue.name,
+      artworkUrl: setlist.isNotEmpty && setlist.first.artworkUrl.isNotEmpty
+          ? setlist.first.artworkUrl
+          : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500',
+      bannerUrl: bannerUrl ?? 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1000',
+      baseAudience: 1450 + _random.nextInt(600),
+      status: 'ON STAGE NOW',
+      isLiveNow: true,
+      highlights: ['Artist Direct Broadcast', 'DSP Binaural Spatialization', 'Crowd Interactive Wave'],
+      setlist: setlist,
+    );
+    _hostedConcerts.insert(0, concert);
+    _currentConcert = concert;
+    _currentVenue = venue;
+    _liveAudienceCount = concert.baseAudience;
+    applyCurrentAcoustics();
+    notifyListeners();
+  }
+
   // Curated Concert Lineup
   final List<LiveConcert> curatedConcerts = [
     LiveConcert(

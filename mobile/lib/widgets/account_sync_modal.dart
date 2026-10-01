@@ -488,16 +488,46 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
           ),
         ),
 
+        // Quick Presets
+        const Text(
+          'POPULAR SPOTIFY PLAYLIST PRESETS',
+          style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildPresetChip("Today's Top Hits", () {
+              _spotifyUserCtrl.text = "Today's Top Hits";
+              _handleOneTapSpotifySync();
+            }),
+            _buildPresetChip("RapCaviar", () {
+              _spotifyUserCtrl.text = "RapCaviar";
+              _handleOneTapSpotifySync();
+            }),
+            _buildPresetChip("Rock Classics", () {
+              _spotifyUserCtrl.text = "Rock Classics";
+              _handleOneTapSpotifySync();
+            }),
+            _buildPresetChip("Chill Hits", () {
+              _spotifyUserCtrl.text = "Chill Hits";
+              _handleOneTapSpotifySync();
+            }),
+          ],
+        ),
+
         const SizedBox(height: 20),
 
         // Status Card
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF16161D),
+            color: const Color(0xFF121212),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isConnected ? const Color(0xFF1DB954).withValues(alpha: 0.5) : const Color(0xFF272733),
+              color: isConnected ? const Color(0xFF1DB954).withValues(alpha: 0.6) : Colors.white12,
+              width: isConnected ? 1.4 : 1.0,
             ),
           ),
           child: Row(
@@ -505,25 +535,38 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
               Container(
                 width: 44,
                 height: 44,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1DB954),
-                  shape: BoxShape.circle,
+                decoration: BoxDecoration(
+                  color: isConnected ? const Color(0xFF1DB954).withValues(alpha: 0.2) : Colors.white10,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isConnected ? const Color(0xFF1DB954) : Colors.white24),
                 ),
-                child: const Icon(Icons.music_note_rounded, color: Colors.black, size: 26),
+                child: Icon(
+                  Icons.album_rounded,
+                  color: isConnected ? const Color(0xFF1DB954) : Colors.white60,
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      isConnected ? 'Spotify Account Connected' : 'Spotify Not Linked',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    Row(
+                      children: [
+                        Text(
+                          isConnected ? 'Spotify Synced' : 'Spotify Not Linked',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        if (isConnected) ...[
+                          const SizedBox(width: 6),
+                          const Icon(Icons.verified_rounded, color: Color(0xFF1DB954), size: 16),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isConnected ? '@${i.spotifyUsername}' : 'Connect to sync your liked music & playlists',
-                      style: const TextStyle(color: Colors.white60, fontSize: 12),
+                      isConnected ? '@${i.spotifyUsername} • Cloud Active' : 'Connect to sync library & playlists',
+                      style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
                     ),
                   ],
                 ),
@@ -535,7 +578,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                       i.disconnectSpotify();
                     });
                   },
-                  child: const Text('Disconnect', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                  child: const Text('Disconnect', style: TextStyle(color: Color(0xFFFF5252), fontSize: 12, fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -545,13 +588,13 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
 
         // Import Any Spotify Playlist / Album URL
         const Text(
-          'Import Specific Spotify Playlist / Album URL',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+          'IMPORT SPOTIFY PLAYLIST OR ALBUM LINK',
+          style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2),
         ),
         const SizedBox(height: 4),
         const Text(
-          'Paste any Spotify playlist, album, or track link to import into your library with high-res audio.',
-          style: TextStyle(color: Colors.white54, fontSize: 12),
+          'Paste any Spotify playlist, album, or track link to import directly into your library.',
+          style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
         ),
         const SizedBox(height: 10),
 
@@ -560,16 +603,17 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1C1C24),
+                  color: const Color(0xFF141414),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF2C2C38)),
+                  border: Border.all(color: Colors.white12),
                 ),
                 child: TextField(
                   controller: _spotifyUrlCtrl,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                   decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.link_rounded, color: Colors.white38, size: 20),
                     hintText: 'https://open.spotify.com/playlist/...',
-                    hintStyle: TextStyle(color: Colors.white38),
+                    hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
                     contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: InputBorder.none,
                   ),
@@ -580,17 +624,36 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
             ElevatedButton(
               onPressed: _isLoading ? null : _handleSpotifyImport,
               style: ElevatedButton.styleFrom(
-                backgroundColor: accent,
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               ),
-              child: const Text('Import', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              child: const Text('Import', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),
 
         const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Widget _buildPresetChip(String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF141414),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Text(
+          label,
+          style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w500),
+        ),
+      ),
     );
   }
 
@@ -678,16 +741,46 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
           ),
         ),
 
+        // Quick Presets
+        const Text(
+          'POPULAR YOUTUBE MUSIC PRESETS',
+          style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            _buildPresetChip('YouTube Global 100', () {
+              _ytHandleCtrl.text = 'YouTube Global 100';
+              _handleOneTapYouTubeSync();
+            }),
+            _buildPresetChip('Pop Hits 2026', () {
+              _ytHandleCtrl.text = 'Pop Hits 2026';
+              _handleOneTapYouTubeSync();
+            }),
+            _buildPresetChip('Deep Focus Beats', () {
+              _ytHandleCtrl.text = 'Deep Focus Beats';
+              _handleOneTapYouTubeSync();
+            }),
+            _buildPresetChip('Rock Energy', () {
+              _ytHandleCtrl.text = 'Rock Energy';
+              _handleOneTapYouTubeSync();
+            }),
+          ],
+        ),
+
         const SizedBox(height: 20),
 
         // Status Card
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFF16161D),
+            color: const Color(0xFF121212),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isConnected ? const Color(0xFFEF4444).withValues(alpha: 0.5) : const Color(0xFF272733),
+              color: isConnected ? const Color(0xFFEF4444).withValues(alpha: 0.6) : Colors.white12,
+              width: isConnected ? 1.4 : 1.0,
             ),
           ),
           child: Row(
@@ -695,25 +788,38 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
               Container(
                 width: 44,
                 height: 44,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEF4444),
-                  shape: BoxShape.circle,
+                decoration: BoxDecoration(
+                  color: isConnected ? const Color(0xFFEF4444).withValues(alpha: 0.2) : Colors.white10,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: isConnected ? const Color(0xFFEF4444) : Colors.white24),
                 ),
-                child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 30),
+                child: Icon(
+                  Icons.play_arrow_rounded,
+                  color: isConnected ? const Color(0xFFEF4444) : Colors.white60,
+                  size: 26,
+                ),
               ),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      isConnected ? 'YouTube Account Connected' : 'YouTube Not Linked',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    Row(
+                      children: [
+                        Text(
+                          isConnected ? 'YouTube Connected' : 'YouTube Not Linked',
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        if (isConnected) ...[
+                          const SizedBox(width: 6),
+                          const Icon(Icons.verified_rounded, color: Color(0xFFEF4444), size: 16),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      isConnected ? i.youtubeChannelHandle : 'Connect your channel or handle to sync music',
-                      style: const TextStyle(color: Colors.white60, fontSize: 12),
+                      isConnected ? '${i.youtubeChannelHandle} • Cloud Active' : 'Connect your channel or handle to sync music',
+                      style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
                     ),
                   ],
                 ),
@@ -725,7 +831,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                       i.disconnectYouTube();
                     });
                   },
-                  child: const Text('Disconnect', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                  child: const Text('Disconnect', style: TextStyle(color: Color(0xFFFF5252), fontSize: 12, fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -735,13 +841,13 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
 
         // Import YouTube Playlist
         const Text(
-          'Import Public YouTube / YouTube Music Playlist',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+          'IMPORT PUBLIC YOUTUBE PLAYLIST',
+          style: TextStyle(color: Colors.white60, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2),
         ),
         const SizedBox(height: 4),
         const Text(
-          'Paste any public YouTube playlist link (e.g. https://music.youtube.com/playlist?list=...) to sync all tracks.',
-          style: TextStyle(color: Colors.white54, fontSize: 12),
+          'Paste any public YouTube playlist link to sync all tracks into your library.',
+          style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
         ),
         const SizedBox(height: 10),
 
@@ -750,16 +856,17 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1C1C24),
+                  color: const Color(0xFF141414),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF2C2C38)),
+                  border: Border.all(color: Colors.white12),
                 ),
                 child: TextField(
                   controller: _ytUrlCtrl,
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                   decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.link_rounded, color: Colors.white38, size: 20),
                     hintText: 'https://youtube.com/playlist?list=...',
-                    hintStyle: TextStyle(color: Colors.white38),
+                    hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
                     contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: InputBorder.none,
                   ),
@@ -770,11 +877,12 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
             ElevatedButton(
               onPressed: _isLoading ? null : _handleYouTubeImport,
               style: ElevatedButton.styleFrom(
-                backgroundColor: accent,
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
               ),
-              child: const Text('Import', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              child: const Text('Import', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         ),

@@ -174,6 +174,313 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
     );
   }
 
+  void _openHostConcertModal() {
+    final titleCtrl = TextEditingController(text: 'Live Acoustic Session');
+    final artistCtrl = TextEditingController(text: 'Live Studio Artist');
+    String selectedVenueId = ConcertService.availableVenues[0].id;
+    final primary = _concert.currentVenue.primaryColor;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (modalCtx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
+                right: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F0F0F),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Host a Live Concert Stage',
+                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                    const Text(
+                      'Broadcast your music live to listeners worldwide with realistic stadium acoustics and crowd sync.',
+                      style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'CONCERT OR TOUR TITLE',
+                      style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: TextField(
+                        controller: titleCtrl,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: const InputDecoration(
+                          hintText: 'e.g. World Stadium Tour, Midnight Acoustic',
+                          hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'ARTIST NAME',
+                      style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    ),
+                    const SizedBox(height: 6),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: TextField(
+                        controller: artistCtrl,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: const InputDecoration(
+                          hintText: 'Your Artist / Band Name',
+                          hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    const Text(
+                      'SELECT VENUE & ACOUSTICS',
+                      style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: ConcertService.availableVenues.map((v) {
+                        final isSel = selectedVenueId == v.id;
+                        return ChoiceChip(
+                          label: Text(
+                            v.name,
+                            style: TextStyle(
+                              color: isSel ? Colors.black : Colors.white,
+                              fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
+                              fontSize: 12,
+                            ),
+                          ),
+                          selected: isSel,
+                          selectedColor: Colors.white,
+                          backgroundColor: const Color(0xFF1A1A1A),
+                          side: BorderSide(color: isSel ? Colors.transparent : Colors.white10),
+                          onSelected: (val) {
+                            if (val) setModalState(() => selectedVenueId = v.id);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primary,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        icon: const Icon(Icons.sensors_rounded, size: 20),
+                        label: const Text('Go Live & Broadcast Stage', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: () {
+                          final title = titleCtrl.text.trim().isNotEmpty ? titleCtrl.text.trim() : 'Live Stage';
+                          final artist = artistCtrl.text.trim().isNotEmpty ? artistCtrl.text.trim() : 'Live Artist';
+                          final current = widget.audioService.currentTrack;
+                          final setlist = current != null
+                              ? [current, ..._concert.currentConcert.setlist.take(3)]
+                              : _concert.currentConcert.setlist;
+
+                          _concert.hostNewConcert(
+                            title: title,
+                            artist: artist,
+                            venueId: selectedVenueId,
+                            setlist: setlist,
+                          );
+                          if (current != null) {
+                            widget.audioService.playTrack(current);
+                          }
+                          Navigator.pop(context);
+                          if (mounted) {
+                            AppAlert.show(
+                              this.context,
+                              'Stage "$title" is now broadcasting live in the Arena!',
+                              icon: Icons.check_circle_rounded,
+                              isSuccess: true,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildLiveArenasFeed(Color primary, Color secondary) {
+    final concerts = _concert.allConcerts;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'LIVE CONCERT ARENAS',
+                style: TextStyle(
+                  color: Colors.white60,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _openHostConcertModal,
+                child: Row(
+                  children: [
+                    Icon(Icons.sensors_rounded, color: primary, size: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Host Stage',
+                      style: TextStyle(color: primary, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 126,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            scrollDirection: Axis.horizontal,
+            itemCount: concerts.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final c = concerts[index];
+              final isCurrent = _concert.currentConcert.id == c.id;
+              return GestureDetector(
+                onTap: () {
+                  _concert.selectConcert(c, widget.audioService);
+                  HapticFeedback.mediumImpact();
+                  AppAlert.show(
+                    context,
+                    'Joined "${c.title}" live stage!',
+                    icon: Icons.check_circle_rounded,
+                    isSuccess: true,
+                  );
+                },
+                child: Container(
+                  width: 220,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isCurrent ? primary.withValues(alpha: 0.16) : const Color(0xFF121216),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isCurrent ? primary : Colors.white12,
+                      width: isCurrent ? 1.6 : 1.0,
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: c.isLiveNow ? const Color(0xFFFF4757) : Colors.white24,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              c.isLiveNow ? 'LIVE' : 'RECORDED',
+                              style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900),
+                            ),
+                          ),
+                          Text(
+                            '${c.baseAudience} fans',
+                            style: const TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            c.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${c.artist} • ${c.venueName}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(color: isCurrent ? primary : Colors.white60, fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final venue = _concert.currentVenue;
@@ -210,24 +517,29 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
-                          onPressed: () => Navigator.pop(context),
-                        ),
+                        if (Navigator.canPop(context))
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 22),
+                            onPressed: () => Navigator.pop(context),
+                          )
+                        else
+                          Row(
+                            children: [
+                              Icon(Icons.stadium_rounded, color: primary, size: 24),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Concert Arena',
+                                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
                         // Live Arena Badge
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.6),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(color: primary.withValues(alpha: 0.5), width: 1.2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: primary.withValues(alpha: 0.25),
-                                blurRadius: 12,
-                                spreadRadius: 1,
-                              ),
-                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -238,39 +550,46 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
                                 decoration: const BoxDecoration(
                                   shape: BoxShape.circle,
                                   color: Color(0xFFFF4757),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Color(0xFFFF4757),
-                                      blurRadius: 6,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
                                 ),
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               Text(
-                                'LIVE ARENA • ${_concert.liveAudienceCount} FANS',
+                                '${_concert.liveAudienceCount} FANS',
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.2,
+                                  letterSpacing: 1.0,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        // Lightstick Quick Launch Button
-                        IconButton(
-                          icon: Icon(Icons.highlight_rounded, color: secondary, size: 26),
-                          tooltip: 'Open Synchronized Lightstick',
-                          onPressed: _openLightstickModal,
+                        // Action buttons: Host Stage + Lightstick
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.sensors_rounded, color: Colors.white, size: 22),
+                              tooltip: 'Host / Broadcast Stage',
+                              onPressed: _openHostConcertModal,
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.highlight_rounded, color: secondary, size: 22),
+                              tooltip: 'Open Synchronized Lightstick',
+                              onPressed: _openLightstickModal,
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
+
+                  // Live Concert Arenas List
+                  _buildLiveArenasFeed(primary, secondary),
+
+                  const SizedBox(height: 14),
 
                   // 3. Stage Jumbotron Screen (Central Live Performance Visualizer)
                   _buildStageJumbotron(currentTrack, primary, secondary),
@@ -1118,7 +1437,7 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
+                  Icon(Icons.surround_sound_rounded, color: Colors.white, size: 20),
                   SizedBox(width: 8),
                   Text(
                     'CONVERT ANY SONG TO ARENA CONCERT',
@@ -1143,7 +1462,7 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
       case 'fire':
         return Icons.local_fire_department_rounded;
       case 'spark':
-        return Icons.auto_awesome_rounded;
+        return Icons.star_rounded;
       case 'note':
         return Icons.music_note_rounded;
       case 'heart':
@@ -1205,79 +1524,84 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Synchronized Lightstick button
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              elevation: 4,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: [
+            // Synchronized Lightstick button
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 4,
+              ),
+              icon: const Icon(Icons.highlight_rounded, size: 18),
+              label: const Text(
+                'LIGHTSTICK',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.0),
+              ),
+              onPressed: _openLightstickModal,
             ),
-            icon: const Icon(Icons.highlight_rounded, size: 18),
-            label: const Text(
-              'LIGHTSTICK',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.0),
-            ),
-            onPressed: _openLightstickModal,
-          ),
+            const SizedBox(width: 8),
 
-          // Cheer Loudly Button
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF22222C),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              side: BorderSide(color: secondary.withValues(alpha: 0.5)),
+            // Cheer Loudly Button
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF22222C),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                side: BorderSide(color: secondary.withValues(alpha: 0.5)),
+              ),
+              onPressed: () {
+                HapticFeedback.heavyImpact();
+                _concert.triggerCrowdCheer();
+              },
+              child: Row(
+                children: [
+                  const Text('CHEER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
+                  const SizedBox(width: 4),
+                  Icon(Icons.volume_up_rounded, size: 16, color: secondary),
+                ],
+              ),
             ),
-            onPressed: () {
-              HapticFeedback.heavyImpact();
-              _concert.triggerCrowdCheer();
-            },
-            child: Row(
+            const SizedBox(width: 8),
+
+            // Instant Icon Reaction Buttons
+            Row(
               children: [
-                const Text('CHEER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900)),
-                const SizedBox(width: 4),
-                Icon(Icons.volume_up_rounded, size: 16, color: secondary),
-              ],
-            ),
-          ),
-
-          // Instant Icon Reaction Buttons
-          Row(
-            children: [
-              (Icons.favorite_rounded, 'heart'),
-              (Icons.local_fire_department_rounded, 'fire'),
-              (Icons.auto_awesome_rounded, 'spark'),
-              (Icons.music_note_rounded, 'note'),
-            ].map((item) {
-              return GestureDetector(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  _concert.triggerReaction(item.$2);
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Icon(item.$1, size: 18, color: Colors.white70),
+                (Icons.favorite_rounded, 'heart'),
+                (Icons.local_fire_department_rounded, 'fire'),
+                (Icons.star_rounded, 'spark'),
+                (Icons.music_note_rounded, 'note'),
+              ].map((item) {
+                return GestureDetector(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _concert.triggerReaction(item.$2);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Icon(item.$1, size: 18, color: Colors.white70),
+                      ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

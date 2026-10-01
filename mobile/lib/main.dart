@@ -19,8 +19,7 @@ import 'views/home_view.dart';
 import 'views/search_view.dart';
 import 'views/player_view.dart';
 import 'views/library_view.dart';
-import 'views/party_view.dart';
-import 'views/settings_view.dart';
+import 'views/concert_view.dart';
 import 'widgets/now_playing_bar.dart';
 
 Future<void> main() async {
@@ -181,15 +180,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         onPlayTrack: _onPlayTrack,
         audioService: _audioService,
       ),
-      PartyView(audioService: _audioService),
       SearchView(onPlayTrack: _onPlayTrack),
+      ConcertView(audioService: _audioService),
       LibraryView(
         accountService: AccountService.instance,
         localAudioService: LocalAudioService(),
         onPlayTrack: _onPlayTrack,
         audioService: _audioService,
       ),
-      SettingsView(audioService: _audioService),
     ];
 
     return ListenableBuilder(
@@ -261,24 +259,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   label: 'Home',
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.groups_outlined, color: Colors.white60),
-                  selectedIcon: Icon(Icons.groups_rounded, color: accent == Colors.white ? Colors.white : accent),
-                  label: 'Jam Session',
-                ),
-                NavigationDestination(
                   icon: const Icon(Icons.search_outlined, color: Colors.white60),
                   selectedIcon: Icon(Icons.search_rounded, color: accent == Colors.white ? Colors.white : accent),
                   label: 'Search',
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.library_music_outlined, color: Colors.white60),
-                  selectedIcon: Icon(Icons.library_music_rounded, color: accent == Colors.white ? Colors.white : accent),
-                  label: 'Library',
+                  icon: const Icon(Icons.stadium_outlined, color: Colors.white60),
+                  selectedIcon: Icon(Icons.stadium_rounded, color: accent == Colors.white ? Colors.white : accent),
+                  label: 'Concerts',
                 ),
                 NavigationDestination(
-                  icon: const Icon(Icons.settings_outlined, color: Colors.white60),
-                  selectedIcon: Icon(Icons.settings_rounded, color: accent == Colors.white ? Colors.white : accent),
-                  label: 'Settings',
+                  icon: const Icon(Icons.bookmarks_outlined, color: Colors.white60),
+                  selectedIcon: Icon(Icons.bookmarks_rounded, color: accent == Colors.white ? Colors.white : accent),
+                  label: 'Library',
                 ),
               ],
             ),

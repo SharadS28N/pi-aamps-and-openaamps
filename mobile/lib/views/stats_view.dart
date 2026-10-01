@@ -25,6 +25,54 @@ class _StatsViewState extends State<StatsView> {
     super.dispose();
   }
 
+  String _sanitizeArtist(String rawArtist, [String? songTitle]) {
+    var artist = rawArtist.trim();
+    if (artist.isEmpty) return 'Unknown Artist';
+
+    // 1. Strip auto-generated YouTube Music topic channels (e.g. "Coldplay - Topic" -> "Coldplay")
+    artist = artist.replaceAll(RegExp(r'\s*-\s*Topic$', caseSensitive: false), '').trim();
+
+    // 2. Strip VEVO suffixes (e.g. "TaylorSwiftVEVO" -> "Taylor Swift")
+    if (artist.toLowerCase().endsWith('vevo') && artist.length > 4) {
+      artist = artist.substring(0, artist.length - 4).trim();
+    }
+
+    // 3. If the artist name matches a generic YouTube channel and song title is "Artist - Song", extract real artist
+    if (songTitle != null && songTitle.contains(' - ')) {
+      if (_isLikelyGenericChannel(artist)) {
+        final parts = songTitle.split(' - ');
+        final potentialArtist = parts[0].trim();
+        if (potentialArtist.isNotEmpty && potentialArtist.length < 35) {
+          return potentialArtist;
+        }
+      }
+    }
+
+    return artist;
+  }
+
+  bool _isLikelyGenericChannel(String name) {
+    final lower = name.toLowerCase().trim();
+    const nonMusicKeywords = [
+      'gaming', 'gameplay', 'plays', 'vlog', 'daily', 'news', 'podcast',
+      'review', 'tutorial', 'walkthrough', 'reaction', 'unbox', 'tech',
+      'channel', 'tv', 'productions', 'shorts', 'clips', 'streamer',
+      'twitch', 'gamer', 'comedy', 'animation', 'media', 'radio station'
+    ];
+    for (final kw in nonMusicKeywords) {
+      if (lower.contains(kw) && !lower.contains('records') && !lower.contains('music')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool _isGenuineMusicArtist(String rawArtist, [String? songTitle]) {
+    final artist = _sanitizeArtist(rawArtist, songTitle);
+    if (artist.isEmpty || artist.toLowerCase() == 'unknown artist') return false;
+    return !_isLikelyGenericChannel(artist);
+  }
+
   String _formatDuration(int seconds) {
     if (seconds < 3600) {
       final mins = (seconds / 60).floor();
@@ -91,8 +139,8 @@ class _StatsViewState extends State<StatsView> {
     final artistArtworkMap = <String, String>{};
 
     for (final s in history) {
-      final a = s.track.artist.trim();
-      if (a.isNotEmpty) {
+      final a = _sanitizeArtist(s.track.artist, s.track.title);
+      if (_isGenuineMusicArtist(a, s.track.title)) {
         artistCountMap[a] = (artistCountMap[a] ?? 0) + 1;
         artistTimeMap[a] = (artistTimeMap[a] ?? 0) + s.durationPlayedSeconds;
         if (!artistArtworkMap.containsKey(a) && s.track.artworkUrl.isNotEmpty) {
@@ -101,8 +149,8 @@ class _StatsViewState extends State<StatsView> {
       }
     }
     for (final f in favorites) {
-      final a = f.artist.trim();
-      if (a.isNotEmpty) {
+      final a = _sanitizeArtist(f.artist, f.title);
+      if (_isGenuineMusicArtist(a, f.title)) {
         artistCountMap[a] = (artistCountMap[a] ?? 0) + 1;
         artistTimeMap[a] = (artistTimeMap[a] ?? 0) + f.duration.inSeconds;
         if (!artistArtworkMap.containsKey(a) && f.artworkUrl.isNotEmpty) {
@@ -512,8 +560,8 @@ class _StatsViewState extends State<StatsView> {
             ),
             actions: [
               IconButton(
-                icon: Icon(Icons.auto_awesome_rounded, color: accent),
-                tooltip: 'AI Taste Analysis',
+                icon: Icon(Icons.insights_rounded, color: accent),
+                tooltip: 'Acoustic Taste Analysis',
                 onPressed: () {
                   _askAiQuestion('Analyze my listening habits and acoustic taste vector', stats);
                 },
@@ -950,10 +998,10 @@ class _StatsViewState extends State<StatsView> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.auto_awesome_rounded, color: accent, size: 20),
+                          Icon(Icons.graphic_eq_rounded, color: accent, size: 20),
                           const SizedBox(width: 8),
                           const Text(
-                            'AI Acoustic DNA Vector',
+                            'Acoustic DNA Vector',
                             style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                         ],

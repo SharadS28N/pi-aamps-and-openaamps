@@ -182,9 +182,11 @@ class _SettingsViewState extends State<SettingsView> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    _buildAccentVibeChip(AccentVibe.monochromeWhite, 'Monochrome White', Colors.white),
-                    _buildAccentVibeChip(AccentVibe.electricRed, 'Electric Red', const Color(0xFFEF4444)),
                     _buildAccentVibeChip(AccentVibe.spotifyGreen, 'Spotify Green', const Color(0xFF1DB954)),
+                    _buildAccentVibeChip(AccentVibe.electricRed, 'Electric Red', const Color(0xFFEF4444)),
+                    _buildAccentVibeChip(AccentVibe.cyberCyan, 'Cyber Cyan', const Color(0xFF00F2FE)),
+                    _buildAccentVibeChip(AccentVibe.amberGold, 'Amber Gold', const Color(0xFFFFB800)),
+                    _buildAccentVibeChip(AccentVibe.monochromeWhite, 'Monochrome White', Colors.white),
                   ],
                 ),
               ],
@@ -570,7 +572,18 @@ class _SettingsViewState extends State<SettingsView> {
           ListTile(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             tileColor: const Color(0xFF141414),
-            leading: const Icon(Icons.psychology_rounded, color: Colors.white70),
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              ),
+              child: const Center(
+                child: Icon(Icons.graphic_eq_rounded, color: Colors.white, size: 20),
+              ),
+            ),
             title: const Text('Launch AI Music Studio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             subtitle: const Text('Deconstruct stems, detect instruments, and query musical DNA', style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
             trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white54, size: 16),
@@ -600,10 +613,10 @@ class _SettingsViewState extends State<SettingsView> {
               children: [
                 const Row(
                   children: [
-                    Icon(Icons.auto_awesome, color: Colors.amberAccent, size: 18),
+                    Icon(Icons.vpn_key_rounded, color: Colors.white70, size: 18),
                     SizedBox(width: 8),
                     Text(
-                      'Google AI Studio API Key (Gemini 1.5)',
+                      'Google AI Studio API Key (Gemini)',
                       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                   ],
@@ -649,7 +662,7 @@ class _SettingsViewState extends State<SettingsView> {
                           AppAlert.show(
                             context,
                             _geminiKeyCtrl.text.trim().isNotEmpty
-                                ? 'AI Studio Gemini Key Saved!'
+                                ? 'AI Studio Gemini Key Saved'
                                 : 'Cleared Gemini Key (using Acoustic AI)',
                             icon: Icons.check_circle_rounded,
                             isSuccess: true,
@@ -676,21 +689,17 @@ class _SettingsViewState extends State<SettingsView> {
           ListTile(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             tileColor: const Color(0xFF141414),
-            leading: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.music_note_rounded,
-                  color: _integration.spotifyConnected ? const Color(0xFF1DB954) : Colors.white70,
-                  size: 22,
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.play_circle_filled_rounded,
-                  color: _integration.youtubeConnected ? const Color(0xFFEF4444) : Colors.white70,
-                  size: 20,
-                ),
-              ],
+            leading: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              ),
+              child: const Center(
+                child: Icon(Icons.cloud_sync_rounded, color: Colors.white, size: 20),
+              ),
             ),
             title: const Text('Spotify & YouTube Sync Hub', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             subtitle: Text(

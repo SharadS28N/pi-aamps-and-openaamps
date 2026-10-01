@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 enum PlayerStyle { modern, classic, vinyl, minimal, glassmorphism }
 enum BackgroundStyle { pureBlack, darkGradient, albumArtBlur, dynamicColor, deepNebula, cyberNoir, velvetNight, customWallpaper }
 enum EqualizerPreset { flat, bassBoost, vocalBoost, trebleBoost, hifi }
-enum AccentVibe { monochromeWhite, electricRed, spotifyGreen }
+enum AccentVibe { monochromeWhite, electricRed, spotifyGreen, cyberCyan, amberGold }
 
 class SettingsService extends ChangeNotifier {
   static final SettingsService instance = SettingsService();
@@ -77,6 +77,10 @@ class SettingsService extends ChangeNotifier {
         return const Color(0xFFEF4444);
       case AccentVibe.spotifyGreen:
         return const Color(0xFF1DB954);
+      case AccentVibe.cyberCyan:
+        return const Color(0xFF00F2FE);
+      case AccentVibe.amberGold:
+        return const Color(0xFFFFB800);
     }
   }
 
