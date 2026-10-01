@@ -828,7 +828,7 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
           fit: StackFit.expand,
           children: [
             Image.network(
-              'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=1080',
+              'https://images.pexels.com/photos/956981/milky-way-starry-sky-night-sky-star-956981.jpeg?auto=compress&cs=tinysrgb&w=1080',
               fit: BoxFit.cover,
             ),
             Container(color: Colors.black.withValues(alpha: 0.78)),
@@ -840,7 +840,7 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
           fit: StackFit.expand,
           children: [
             Image.network(
-              'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1080',
+              'https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg?auto=compress&cs=tinysrgb&w=1080',
               fit: BoxFit.cover,
             ),
             Container(color: Colors.black.withValues(alpha: 0.80)),
@@ -852,7 +852,7 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
           fit: StackFit.expand,
           children: [
             Image.network(
-              'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1080',
+              'https://images.pexels.com/photos/1933239/pexels-photo-1933239.jpeg?auto=compress&cs=tinysrgb&w=1080',
               fit: BoxFit.cover,
             ),
             Container(color: Colors.black.withValues(alpha: 0.82)),
@@ -1705,7 +1705,7 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
                       controller: customUrlCtrl,
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                       decoration: InputDecoration(
-                        hintText: 'https://images.unsplash.com/...',
+                        hintText: 'https://images.pexels.com/...',
                         hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.05),

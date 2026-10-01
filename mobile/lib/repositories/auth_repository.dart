@@ -293,7 +293,7 @@ class AppAuthRepository implements AuthRepository {
         email: cleanEmail,
         displayName: displayName.trim(),
         photoUrl: credential.user!.photoURL ??
-            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+            'https://ui-avatars.com/api/?name=${Uri.encodeComponent(displayName.trim().isEmpty ? 'Music Listener' : displayName.trim())}&background=1DB954&color=fff&bold=true',
         preferredGenres: preferredGenres.isNotEmpty
             ? preferredGenres
             : const ['Rock', 'Pop', 'Lo-Fi'],
@@ -499,7 +499,7 @@ class AppAuthRepository implements AuthRepository {
           firebaseUser.email?.split('@').first ??
           'Music Listener',
       photoUrl: firebaseUser.photoURL ??
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+          'https://ui-avatars.com/api/?name=${Uri.encodeComponent(overrideDisplayName ?? firebaseUser.displayName ?? 'Music Listener')}&background=1DB954&color=fff&bold=true',
       preferredGenres: const ['Rock', 'Pop', 'Lo-Fi'],
       topArtists: const ['Coldplay', 'Queen'],
       tasteVector: const AcousticTasteVector(

@@ -12,8 +12,11 @@ import '../widgets/app_alert.dart';
 import 'settings_view.dart';
 import 'concert_view.dart';
 import 'stats_view.dart';
+import 'artist_view.dart';
 import '../services/concert_service.dart';
 import '../services/integration_service.dart';
+import '../services/artist_metadata_service.dart';
+import '../widgets/artist_portrait.dart';
 
 class HomeView extends StatefulWidget {
   final Function(Track) onPlayTrack;
@@ -50,64 +53,7 @@ class _HomeViewState extends State<HomeView> {
     'Hip Hop',
   ];
 
-  List<Map<String, String>> get _currentArtists {
-    final syncedSpotify = IntegrationService.instance.spotifySyncedTracks;
-    final syncedYt = IntegrationService.instance.youtubeSyncedTracks;
-    final allSynced = [...syncedSpotify, ...syncedYt];
-
-    if (allSynced.isNotEmpty) {
-      final seen = <String>{};
-      final list = <Map<String, String>>[];
-      for (final t in allSynced) {
-        if (t.artist.isNotEmpty && seen.add(t.artist.toLowerCase())) {
-          list.add({
-            'name': t.artist,
-            'url': t.artworkUrl.isNotEmpty
-                ? t.artworkUrl
-                : 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200',
-          });
-          if (list.length >= 8) break;
-        }
-      }
-      if (list.isNotEmpty) return list;
-    }
-
-    // Default real music legends with verified artist portraits
-    return const [
-      {
-        'name': 'Coldplay',
-        'url': 'https://i.scdn.co/image/ab6761610000e5eb989ed050d2364ec46505a43d',
-      },
-      {
-        'name': 'The Weeknd',
-        'url': 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe713969e06e271',
-      },
-      {
-        'name': 'Dua Lipa',
-        'url': 'https://i.scdn.co/image/ab6761610000e5ebd42a27db3286b58553da8858',
-      },
-      {
-        'name': 'Harry Styles',
-        'url': 'https://i.scdn.co/image/ab6761610000e5eb066e4a29c19349e5d4cbbe62',
-      },
-      {
-        'name': 'Taylor Swift',
-        'url': 'https://i.scdn.co/image/ab6761610000e5eb5a00969a4698c3132a15fbb0',
-      },
-      {
-        'name': 'Billie Eilish',
-        'url': 'https://i.scdn.co/image/ab6761610000e5eb4a3c2005086ee4a88f57fa95',
-      },
-      {
-        'name': 'Ed Sheeran',
-        'url': 'https://i.scdn.co/image/ab6761610000e5eb12a2ef496b86cf37d7a4691e',
-      },
-      {
-        'name': 'Queen',
-        'url': 'https://i.scdn.co/image/ab6761610000e5ebce4f3d2f924e24cf7e7216a6',
-      },
-    ];
-  }
+  List<Map<String, String>> get _currentArtists => ArtistMetadataService.instance.getDynamicArtists();
 
   final Map<String, List<Track>> _categoryCache = {};
 
@@ -927,40 +873,62 @@ class _HomeViewState extends State<HomeView> {
               const SizedBox(height: 16),
 
               ListenableBuilder(
-                listenable: IntegrationService.instance,
+                listenable: Listenable.merge([
+                  IntegrationService.instance,
+                  ArtistMetadataService.instance,
+                ]),
                 builder: (context, _) {
                   final artists = _currentArtists;
                   return SizedBox(
-                    height: 130,
+                    height: 125,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: artists.length,
                       separatorBuilder: (context, index) => const SizedBox(width: 16),
                       itemBuilder: (context, index) {
                         final artist = artists[index];
+                        final name = artist['name'] ?? 'Artist';
+                        final url = artist['url'];
                         return GestureDetector(
-                          onTap: () => _playArtist(artist['name']!),
+                          onTap: () {
+                            if (widget.audioService != null) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ArtistView(
+                                    artistName: name,
+                                    avatarUrl: url ?? '',
+                                    audioService: widget.audioService!,
+                                    onPlayTrack: widget.onPlayTrack,
+                                  ),
+                                ),
+                              );
+                            } else {
+                              _playArtist(name);
+                            }
+                          },
                           child: Column(
                             children: [
-                              Container(
-                                width: 80,
-                                height: 80,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  image: DecorationImage(
-                                    image: NetworkImage(artist['url']!),
-                                    fit: BoxFit.cover,
-                                  ),
-                                  border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
-                                ),
+                              ArtistPortrait(
+                                artistName: name,
+                                fallbackUrl: url,
+                                size: 76,
+                                isCircle: true,
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
                               ),
                               const SizedBox(height: 8),
-                              Text(
-                                artist['name']!,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
+                              SizedBox(
+                                width: 84,
+                                child: Text(
+                                  name,
+                                  textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ],

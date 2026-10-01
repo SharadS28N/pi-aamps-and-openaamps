@@ -6,6 +6,7 @@ import '../repositories/user_data_repository.dart';
 import 'party_service.dart';
 import 'pi_aamps_service.dart';
 import 'youtube_service.dart';
+import 'integration_service.dart';
 
 class ConnectedDevice {
   final String id;
@@ -71,13 +72,18 @@ class AccountService extends ChangeNotifier {
   }
 
   Account _buildAccountFromUser(dynamic user) {
+    final spotifyUser = IntegrationService.instance.spotifyUserProfile;
+    final fallbackAvatar = 'https://api.dicebear.com/7.x/identicon/png?seed=${user?.uid ?? "openaamps"}';
+
     if (user == null) {
       return Account(
         id: 'guest',
-        name: 'Guest User',
-        email: 'Sign in with Google / Email',
-        avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-        isPremium: false,
+        name: spotifyUser != null ? spotifyUser.displayName : 'Guest User',
+        email: spotifyUser != null ? spotifyUser.email : 'Sign in with Google / Email',
+        avatarUrl: (spotifyUser?.avatarUrl.isNotEmpty ?? false)
+            ? spotifyUser!.avatarUrl
+            : 'https://api.dicebear.com/7.x/identicon/png?seed=guest',
+        isPremium: spotifyUser?.product == 'premium',
         playlistsCount: 0,
         likedSongsCount: 0,
         subscriptionsCount: 0,
@@ -88,19 +94,27 @@ class AccountService extends ChangeNotifier {
     final playlists = UserDataRepository.instance.playlists;
     final favorites = UserDataRepository.instance.favorites;
 
+    final userPhoto = (user.photoUrl as String? ?? '').isNotEmpty
+        ? (user.photoUrl as String)
+        : (spotifyUser?.avatarUrl.isNotEmpty ?? false
+            ? spotifyUser!.avatarUrl
+            : fallbackAvatar);
+
     return Account(
       id: user.uid as String? ?? 'user',
       name: (user.displayName as String? ?? '').isNotEmpty
           ? user.displayName as String
-          : (user.email as String? ?? 'OpenAamps User').split('@').first,
-      email: user.email as String? ?? 'user@openaamps.ai',
-      avatarUrl: (user.photoUrl as String? ?? '').isNotEmpty
-          ? user.photoUrl as String
-          : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+          : (spotifyUser?.displayName.isNotEmpty ?? false
+              ? spotifyUser!.displayName
+              : (user.email as String? ?? 'OpenAamps User').split('@').first),
+      email: (user.email as String? ?? '').isNotEmpty
+          ? (user.email as String)
+          : (spotifyUser?.email ?? 'user@openaamps.ai'),
+      avatarUrl: userPhoto,
       isPremium: true,
       playlistsCount: playlists.length,
       likedSongsCount: favorites.length,
-      subscriptionsCount: playlists.where((p) => p.id.startsWith('yt_')).length,
+      subscriptionsCount: playlists.where((p) => p.id.startsWith('yt_') || p.id.startsWith('spotify_')).length,
       isCoupleProfile: false,
     );
   }

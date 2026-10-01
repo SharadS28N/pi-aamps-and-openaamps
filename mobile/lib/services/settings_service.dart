@@ -20,27 +20,27 @@ class SettingsService extends ChangeNotifier {
     {
       'id': 'deepNebula',
       'name': 'Deep Cosmic Nebula',
-      'url': 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=1080',
+      'url': 'https://images.pexels.com/photos/956981/milky-way-starry-sky-night-sky-star-956981.jpeg?auto=compress&cs=tinysrgb&w=1080',
     },
     {
       'id': 'cyberNoir',
       'name': 'Cyber Noir Studio',
-      'url': 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1080',
+      'url': 'https://images.pexels.com/photos/164745/pexels-photo-164745.jpeg?auto=compress&cs=tinysrgb&w=1080',
     },
     {
       'id': 'velvetNight',
       'name': 'Velvet Aurora Midnight',
-      'url': 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1080',
+      'url': 'https://images.pexels.com/photos/1933239/pexels-photo-1933239.jpeg?auto=compress&cs=tinysrgb&w=1080',
     },
     {
       'id': 'minimalAcoustic',
       'name': 'Dark Vinyl Studio',
-      'url': 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1080',
+      'url': 'https://images.pexels.com/photos/1389429/pexels-photo-1389429.jpeg?auto=compress&cs=tinysrgb&w=1080',
     },
     {
       'id': 'astralWaves',
       'name': 'Astral Soundwaves',
-      'url': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1080',
+      'url': 'https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=1080',
     },
   ];
 

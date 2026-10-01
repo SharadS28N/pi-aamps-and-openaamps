@@ -21,6 +21,8 @@ import 'ai/ai_playlist_maker.dart';
 import 'ai/ai_studio_view.dart';
 import '../widgets/account_sync_modal.dart';
 import '../services/settings_service.dart';
+import '../services/artist_metadata_service.dart';
+import '../widgets/artist_portrait.dart';
 
 class LibraryView extends StatefulWidget {
   final AccountService accountService;
@@ -691,79 +693,101 @@ class _LibraryViewState extends State<LibraryView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Featured "MOST PLAYED" Banner
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AlbumView(
-                  albumTitle: 'The Problem Einstein Couldn\'t Solve',
-                  artistName: '40mP',
-                  coverUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
-                  audioService: widget.audioService ?? AudioPlayerService(),
-                  onPlayTrack: widget.onPlayTrack,
-                ),
-              ),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Image.network(
-                        'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=300',
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.cover,
-                      ),
+        // Featured "MOST PLAYED" Banner (Dynamic user library)
+        Builder(
+          builder: (context) {
+            final topTrack = UserDataRepository.instance.history.firstOrNull?.track ??
+                UserDataRepository.instance.favorites.firstOrNull ??
+                Track(
+                  id: 'yKNxeF4KMsY',
+                  title: 'Yellow',
+                  artist: 'Coldplay',
+                  album: 'Parachutes',
+                  duration: const Duration(minutes: 4, seconds: 29),
+                  artworkUrl: 'https://i.ytimg.com/vi/yKNxeF4KMsY/hqdefault.jpg',
+                  streamUrl: '',
+                );
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AlbumView(
+                      albumTitle: topTrack.album,
+                      artistName: topTrack.artist,
+                      coverUrl: topTrack.artworkUrl,
+                      audioService: widget.audioService ?? AudioPlayerService(),
+                      onPlayTrack: widget.onPlayTrack,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                  ),
+                );
+              },
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Image.network(
+                            topTrack.artworkUrl,
+                            width: 64,
+                            height: 64,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              width: 64,
+                              height: 64,
+                              color: Colors.white12,
+                              child: const Icon(Icons.music_note_rounded, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
-                              const SizedBox(width: 4),
+                              Row(
+                                children: [
+                                  const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'MOST PLAYED',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.0,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
                               Text(
-                                'MOST PLAYED',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.0,
-                                ),
+                                topTrack.title,
+                                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${topTrack.artist} • ${topTrack.album}',
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          const Text(
-                            'The Problem Einstein couldn\'t solve',
-                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '11 songs • 40mP',
-                            style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -831,8 +855,10 @@ class _LibraryViewState extends State<LibraryView> {
               ],
             ),
           ),
-        ),
-        const SizedBox(height: 20),
+        );
+      },
+    ),
+    const SizedBox(height: 20),
 
         // AI Studio & Account Cloud Sync Quick Banners
         Row(
@@ -1491,29 +1517,60 @@ class _LibraryViewState extends State<LibraryView> {
 
   // --- Tab 3: Albums ---
   Widget _buildAlbumsTab() {
-    final albums = [
-      {
-        'title': 'Einstein Problem',
-        'artist': '40mP',
-        'year': '2026',
-        'songs': '11 songs',
-        'cover': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
-      },
-      {
-        'title': 'Acoustic Sessions 2026',
-        'artist': 'aimyon',
-        'year': '2026',
-        'songs': '8 songs',
-        'cover': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400',
-      },
-      {
-        'title': 'Piano Memories',
-        'artist': 'Yuika',
-        'year': '2025',
-        'songs': '6 songs',
-        'cover': 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
-      },
-    ];
+    final favorites = UserDataRepository.instance.favorites;
+    final playlists = UserDataRepository.instance.playlists;
+    final local = widget.localAudioService.localTracks;
+
+    final allTracks = <Track>[...favorites, ...local];
+    for (final p in playlists) {
+      allTracks.addAll(p.tracks);
+    }
+
+    final albumMap = <String, List<Track>>{};
+    for (final t in allTracks) {
+      final alb = t.album.trim().isNotEmpty ? t.album.trim() : 'Singles & EPs';
+      albumMap.putIfAbsent(alb, () => []).add(t);
+    }
+
+    final List<Map<String, String>> albums = [];
+    if (albumMap.isNotEmpty) {
+      for (final entry in albumMap.entries) {
+        final firstTrack = entry.value.first;
+        albums.add({
+          'title': entry.key,
+          'artist': firstTrack.artist.isNotEmpty ? firstTrack.artist : 'Various Artists',
+          'year': '2026',
+          'songs': '${entry.value.length} ${entry.value.length == 1 ? "song" : "songs"}',
+          'cover': firstTrack.artworkUrl.isNotEmpty
+              ? firstTrack.artworkUrl
+              : 'https://i.ytimg.com/vi/${firstTrack.id}/hqdefault.jpg',
+        });
+      }
+    } else {
+      albums.addAll(const [
+        {
+          'title': 'Random Access Memories',
+          'artist': 'Daft Punk',
+          'year': '2023 Edition',
+          'songs': '13 songs',
+          'cover': 'https://cdn-images.dzcdn.net/images/cover/311bba0fc112d15f72c8b5a65f0456c1/500x500-000000-80-0-0.jpg',
+        },
+        {
+          'title': 'Parachutes',
+          'artist': 'Coldplay',
+          'year': '2000',
+          'songs': '10 songs',
+          'cover': 'https://i.ytimg.com/vi/yKNxeF4KMsY/hqdefault.jpg',
+        },
+        {
+          'title': 'After Hours',
+          'artist': 'The Weeknd',
+          'year': '2020',
+          'songs': '14 songs',
+          'cover': 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg',
+        },
+      ]);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1528,7 +1585,18 @@ class _LibraryViewState extends State<LibraryView> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
-                  child: Image.network(alb['cover']!, width: 46, height: 46, fit: BoxFit.cover),
+                  child: Image.network(
+                    alb['cover']!,
+                    width: 46,
+                    height: 46,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 46,
+                      height: 46,
+                      color: Colors.white12,
+                      child: const Icon(Icons.album_rounded, color: Colors.white54),
+                    ),
+                  ),
                 ),
                 title: Text(alb['title']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 subtitle: Text('${alb['artist']} • ${alb['year']} • ${alb['songs']}', style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
@@ -1555,13 +1623,54 @@ class _LibraryViewState extends State<LibraryView> {
 
   // --- Tab 4: Artists ---
   Widget _buildArtistsTab() {
-    final artists = [
-      {'name': '40mP', 'tracks': '14 tracks', 'img': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400'},
-      {'name': 'aimyon', 'tracks': '9 tracks', 'img': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400'},
-      {'name': 'Yuika', 'tracks': '7 tracks', 'img': 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400'},
-      {'name': 'The Weeknd', 'tracks': '22 tracks', 'img': 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400'},
-      {'name': 'Coldplay', 'tracks': '18 tracks', 'img': 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=400'},
-    ];
+    final favorites = UserDataRepository.instance.favorites;
+    final playlists = UserDataRepository.instance.playlists;
+    final history = UserDataRepository.instance.history;
+    final local = widget.localAudioService.localTracks;
+
+    final allTracks = <Track>[...favorites, ...local];
+    for (final p in playlists) {
+      allTracks.addAll(p.tracks);
+    }
+    for (final s in history) {
+      allTracks.add(s.track);
+    }
+
+    final artistTrackCount = <String, int>{};
+    final artistCover = <String, String>{};
+
+    for (final t in allTracks) {
+      final a = t.artist.trim();
+      if (a.isNotEmpty && a.toLowerCase() != 'unknown artist') {
+        artistTrackCount[a] = (artistTrackCount[a] ?? 0) + 1;
+        if (!artistCover.containsKey(a) && t.artworkUrl.isNotEmpty) {
+          artistCover[a] = t.artworkUrl;
+        }
+      }
+    }
+
+    final sortedArtists = artistTrackCount.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final List<Map<String, String>> artists = [];
+    if (sortedArtists.isNotEmpty) {
+      for (final entry in sortedArtists) {
+        artists.add({
+          'name': entry.key,
+          'tracks': '${entry.value} ${entry.value == 1 ? "track" : "tracks"} in library',
+          'img': artistCover[entry.key] ?? '',
+        });
+      }
+    } else {
+      final dynamicList = ArtistMetadataService.instance.getDynamicArtists();
+      for (final a in dynamicList) {
+        artists.add({
+          'name': a['name'] ?? 'Artist',
+          'tracks': 'Featured Artist',
+          'img': a['url'] ?? '',
+        });
+      }
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1574,7 +1683,12 @@ class _LibraryViewState extends State<LibraryView> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 tileColor: const Color(0xFF141414),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                leading: CircleAvatar(radius: 23, backgroundImage: NetworkImage(art['img']!)),
+                leading: ArtistPortrait(
+                  artistName: art['name']!,
+                  fallbackUrl: art['img'],
+                  size: 46,
+                  isCircle: true,
+                ),
                 title: Text(art['name']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 subtitle: Text(art['tracks']!, style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
                 trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white38, size: 16),

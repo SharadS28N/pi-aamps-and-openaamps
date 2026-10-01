@@ -370,7 +370,7 @@ class AiMusicService extends ChangeNotifier {
     double targetAcoustic = 0.35;
     double targetTempo = 120.0;
     String detectedMood = 'General';
-    String coverUrl = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400';
+    String coverUrl = 'https://i.scdn.co/image/ab67706f0000000209dec89719704eea4f218966';
 
     if (cleanPrompt.contains('chill') || cleanPrompt.contains('relax') || cleanPrompt.contains('sleep') || cleanPrompt.contains('night')) {
       targetEnergy = 0.25;
@@ -378,42 +378,42 @@ class AiMusicService extends ChangeNotifier {
       targetAcoustic = 0.80;
       targetTempo = 80.0;
       detectedMood = 'Relax';
-      coverUrl = 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=400';
+      coverUrl = 'https://i.ytimg.com/vi/yKNxeF4KMsY/hqdefault.jpg';
     } else if (cleanPrompt.contains('workout') || cleanPrompt.contains('gym') || cleanPrompt.contains('hype') || cleanPrompt.contains('run')) {
       targetEnergy = 0.95;
       targetValence = 0.85;
       targetAcoustic = 0.05;
       targetTempo = 145.0;
       detectedMood = 'Workout';
-      coverUrl = 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400';
+      coverUrl = 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg';
     } else if (cleanPrompt.contains('focus') || cleanPrompt.contains('code') || cleanPrompt.contains('study') || cleanPrompt.contains('work')) {
       targetEnergy = 0.40;
       targetValence = 0.50;
       targetAcoustic = 0.75;
       targetTempo = 95.0;
       detectedMood = 'Focus';
-      coverUrl = 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=400';
+      coverUrl = 'https://i.scdn.co/image/ab6761610000e5eb989ed050d2364ec46505a43d';
     } else if (cleanPrompt.contains('party') || cleanPrompt.contains('dance') || cleanPrompt.contains('club')) {
       targetEnergy = 0.92;
       targetValence = 0.90;
       targetAcoustic = 0.10;
       targetTempo = 128.0;
       detectedMood = 'Party';
-      coverUrl = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400';
+      coverUrl = 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg';
     } else if (cleanPrompt.contains('sad') || cleanPrompt.contains('cry') || cleanPrompt.contains('heartbreak') || cleanPrompt.contains('rain')) {
       targetEnergy = 0.30;
       targetValence = 0.20;
       targetAcoustic = 0.70;
       targetTempo = 75.0;
       detectedMood = 'Melancholy';
-      coverUrl = 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=400';
+      coverUrl = 'https://i.scdn.co/image/ab6761610000e5eb4a3c2005086ee4a88f57fa95';
     } else if (cleanPrompt.contains('rock') || cleanPrompt.contains('metal') || cleanPrompt.contains('guitar')) {
       targetEnergy = 0.90;
       targetValence = 0.65;
       targetAcoustic = 0.35;
       targetTempo = 135.0;
       detectedMood = 'Energize';
-      coverUrl = 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400';
+      coverUrl = 'https://i.scdn.co/image/ab6761610000e5ebce4f3d2f924e24cf7e7216a6';
     }
 
     // Rank catalog tracks by closeness to this prompt profile

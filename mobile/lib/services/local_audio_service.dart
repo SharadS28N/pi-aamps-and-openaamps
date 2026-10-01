@@ -201,7 +201,7 @@ class LocalAudioService extends ChangeNotifier {
                 artist: 'Device Storage',
                 album: 'Local Music',
                 duration: const Duration(minutes: 3, seconds: 45),
-                artworkUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400',
+                artworkUrl: '',
                 streamUrl: entity.path,
                 localPath: entity.path,
                 isLocal: true,

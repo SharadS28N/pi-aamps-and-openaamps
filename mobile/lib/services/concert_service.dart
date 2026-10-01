@@ -669,8 +669,8 @@ class ConcertService extends ChangeNotifier {
       venueName: venue.name,
       artworkUrl: setlist.isNotEmpty && setlist.first.artworkUrl.isNotEmpty
           ? setlist.first.artworkUrl
-          : 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500',
-      bannerUrl: bannerUrl ?? 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=1000',
+          : 'https://images.pexels.com/photos/1105666/pexels-photo-1105666.jpeg?auto=compress&cs=tinysrgb&w=500',
+      bannerUrl: bannerUrl ?? 'https://images.pexels.com/photos/1763075/pexels-photo-1763075.jpeg?auto=compress&cs=tinysrgb&w=1080',
       baseAudience: 1450 + _random.nextInt(600),
       status: goLiveNow ? 'ON STAGE NOW' : 'SCHEDULED ONLINE EVENT',
       isLiveNow: goLiveNow,

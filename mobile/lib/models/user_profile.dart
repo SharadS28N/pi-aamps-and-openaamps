@@ -112,7 +112,7 @@ class UserProfile {
       uid: uid,
       email: 'user@openaamps.ai',
       displayName: name,
-      photoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+      photoUrl: 'https://ui-avatars.com/api/?name=${Uri.encodeComponent(name)}&background=1DB954&color=fff&bold=true',
       preferredGenres: const ['Alternative Rock', 'Synthwave', 'Lo-Fi', 'Classic Rock'],
       topArtists: const ['Coldplay', 'Queen', 'Dua Lipa', 'Linkin Park'],
       totalListeningTimeSeconds: 4320,

@@ -7,7 +7,8 @@ import '../services/integration_service.dart';
 import '../services/settings_service.dart';
 import '../services/ai_music_service.dart';
 import '../services/youtube_service.dart';
-import '../services/firebase_service.dart';
+import '../services/spotify_service.dart';
+import '../services/account_service.dart';
 import '../repositories/user_data_repository.dart';
 import 'app_alert.dart';
 
@@ -34,8 +35,10 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     final i = IntegrationService.instance;
-    _spotifyUserCtrl.text = i.spotifyUsername.isNotEmpty ? i.spotifyUsername : 'sharad_spotify';
-    _ytHandleCtrl.text = i.youtubeChannelHandle.isNotEmpty ? i.youtubeChannelHandle : '@sharad_tunes';
+    _spotifyUserCtrl.text = i.spotifyAccessToken.isNotEmpty
+        ? i.spotifyAccessToken
+        : (i.spotifyUsername.isNotEmpty ? i.spotifyUsername : '');
+    _ytHandleCtrl.text = i.youtubeChannelHandle.isNotEmpty ? i.youtubeChannelHandle : '';
   }
 
   @override
@@ -50,54 +53,78 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
 
   // --- 1-TAP SPOTIFY SYNC (REAL DATA & FIREBASE SYNC) ---
   Future<void> _handleOneTapSpotifySync() async {
+    final input = _spotifyUserCtrl.text.trim();
+    if (input.isEmpty) {
+      AppAlert.show(
+        context,
+        'Please enter your Spotify access token, username, or playlist link',
+        icon: Icons.warning_rounded,
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
-      final input = _spotifyUserCtrl.text.trim().isNotEmpty
-          ? _spotifyUserCtrl.text.trim()
-          : 'sharad_spotify';
-
-      await IntegrationService.instance.saveSpotifyCredentials(
-        username: input,
-        connected: true,
-      );
-
+      final i = IntegrationService.instance;
       List<Track> resolvedTracks = [];
+      String syncTitle = 'Spotify: $input';
 
-      // 1. If user entered a Spotify playlist or album URL, scrape it directly
-      if (input.contains('spotify.com') || input.contains('spotify:')) {
-        resolvedTracks = await IntegrationService.instance.importSpotifyPlaylist(input);
-      }
-
-      // 2. Query live tracks for this user or playlist
-      if (resolvedTracks.isEmpty) {
+      // 1. Check if user provided an Access Token (Bearer token from Spotify developer / OAuth)
+      if (input.length > 40 && !input.contains('/') && !input.contains(':')) {
+        final success = await i.syncSpotifyWithAccessToken(input);
+        if (success) {
+          resolvedTracks = List.from(i.spotifySyncedTracks);
+          final user = i.spotifyUserProfile;
+          if (user != null) {
+            syncTitle = 'Spotify: ${user.displayName}';
+            AccountService.instance.updateActiveAccount(
+              name: user.displayName,
+              email: user.email.isNotEmpty ? user.email : '${user.id}@spotify.com',
+              avatarUrl: user.avatarUrl,
+            );
+          }
+        } else {
+          throw 'Spotify token validation failed. Ensure token is valid and unexpired.';
+        }
+      } else if (input.contains('spotify.com') || input.contains('spotify:')) {
+        // 2. Direct Spotify playlist or album URL / URI
+        resolvedTracks = await SpotifyService.instance.scrapeSpotifyPlaylistOrAlbum(input);
+        if (resolvedTracks.isEmpty) {
+          resolvedTracks = await i.importSpotifyPlaylist(input);
+        }
+        await i.saveSpotifyCredentials(username: 'Spotify Music', connected: true);
+      } else {
+        // 3. User entered their Spotify Username or ID
+        await i.saveSpotifyCredentials(username: input, connected: true);
         final yt = YoutubeService();
         final query = input.replaceAll('@', '').replaceAll('_', ' ');
         final userTracks = await yt.searchTracks('$query playlist');
         if (userTracks.isNotEmpty) {
           resolvedTracks.addAll(userTracks);
         } else {
-          final topHits = await yt.searchTracks('Spotify Top Hits 2026');
-          resolvedTracks.addAll(topHits);
+          final topTracks = await SpotifyService.instance.scrapeSpotifyPlaylistOrAlbum(
+            'https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M',
+          );
+          resolvedTracks.addAll(topTracks);
         }
       }
 
       if (resolvedTracks.isEmpty) {
-        throw 'Unable to connect to Spotify music stream. Please verify network.';
+        throw 'Unable to resolve tracks from Spotify. Please check the token, username, or link.';
       }
 
       // 1. Seed Liked Songs with real tracks
       await UserDataRepository.instance.setSyncedFavorites(resolvedTracks);
 
-      // 2. Seed Real Playlists
+      // 2. Seed Real Playlist
       final p1 = Playlist(
         id: 'spotify_${DateTime.now().millisecondsSinceEpoch}',
-        title: 'Spotify: $input',
+        title: syncTitle,
         description: 'Synced live from Spotify on ${DateTime.now().toString().substring(0, 10)}',
         coverUrl: resolvedTracks.first.artworkUrl,
         tracks: resolvedTracks,
       );
-
       await UserDataRepository.instance.savePlaylist(p1);
 
       // 3. Update Listening History & Taste Vector from real tracks
@@ -124,16 +151,12 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
         tempo: resolvedTracks.first.tempo > 0 ? resolvedTracks.first.tempo : 128.0,
       ));
 
-      // 4. Cloud Backup to Firebase Firestore
-      await FirebaseService.instance.syncPlaylistToFirestore(p1.toJson());
-      await FirebaseService.instance.syncFavoritesToFirestore(resolvedTracks.map((t) => t.toJson()).toList());
-
       setState(() => _isLoading = false);
 
       if (mounted) {
         AppAlert.show(
           context,
-          'Spotify Synced! ${resolvedTracks.length} real tracks imported and backed up to Firebase.',
+          'Spotify Synced! Loaded ${resolvedTracks.length} real tracks into your library.',
           icon: Icons.check_circle_rounded,
           isSuccess: true,
         );
@@ -141,20 +164,26 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        AppAlert.show(context, 'Sync error: $e', icon: Icons.error_outline_rounded);
+        AppAlert.show(context, 'Spotify sync error: $e', icon: Icons.error_outline_rounded);
       }
     }
   }
 
   // --- 1-TAP YOUTUBE SYNC (REAL DATA & FIREBASE SYNC) ---
   Future<void> _handleOneTapYouTubeSync() async {
+    final handle = _ytHandleCtrl.text.trim();
+    if (handle.isEmpty) {
+      AppAlert.show(
+        context,
+        'Please enter your YouTube channel handle, URL, or playlist link',
+        icon: Icons.warning_rounded,
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
 
     try {
-      final handle = _ytHandleCtrl.text.trim().isNotEmpty
-          ? _ytHandleCtrl.text.trim()
-          : '@sharad_tunes';
-
       await IntegrationService.instance.saveYouTubeCredentials(
         handle: handle,
         connected: true,
@@ -163,28 +192,30 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
       final yt = YoutubeService();
       List<Track> ytTracks = [];
 
-      // 1. Try finding channel uploads
-      try {
-        final channel = await yt.getChannelByHandle(handle);
-        if (channel != null) {
-          ytTracks = await yt.getChannelUploads(channel.id, limit: 30);
-        }
-      } catch (_) {}
+      // 1. If playlist link or ID provided
+      if (handle.contains('list=') || handle.contains('playlist')) {
+        ytTracks = await yt.fetchPublicPlaylistVideos(handle);
+      } else {
+        // 2. Try finding channel uploads
+        try {
+          final channel = await yt.getChannelByHandle(handle);
+          if (channel != null) {
+            ytTracks = await yt.getChannelUploads(channel.id, limit: 30);
+          }
+        } catch (_) {}
 
-      // 2. Query live music tracks if channel has no direct uploads
-      if (ytTracks.isEmpty) {
-        final cleanHandle = handle.replaceAll('@', '');
-        final queryResults = await yt.searchTracks('$cleanHandle music playlist');
-        if (queryResults.isNotEmpty) {
-          ytTracks.addAll(queryResults);
-        } else {
-          final trending = await yt.searchTracks('YouTube Music Hotlist 2026');
-          ytTracks.addAll(trending);
+        // 3. Fallback: Search channel audio
+        if (ytTracks.isEmpty) {
+          final cleanHandle = handle.replaceAll('@', '');
+          final queryResults = await yt.searchTracks('$cleanHandle music official audio');
+          if (queryResults.isNotEmpty) {
+            ytTracks.addAll(queryResults);
+          }
         }
       }
 
       if (ytTracks.isEmpty) {
-        throw 'Unable to fetch YouTube tracks. Please check connection.';
+        throw 'Unable to fetch tracks for YouTube handle or link. Please verify.';
       }
 
       // 3. Save to favorites & playlists
@@ -215,16 +246,12 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
         );
       }
 
-      // 4. Cloud Backup to Firebase Firestore
-      await FirebaseService.instance.syncPlaylistToFirestore(pYt.toJson());
-      await FirebaseService.instance.syncFavoritesToFirestore(ytTracks.map((t) => t.toJson()).toList());
-
       setState(() => _isLoading = false);
 
       if (mounted) {
         AppAlert.show(
           context,
-          'YouTube Music Synced! ${ytTracks.length} real tracks imported and backed up to Firebase.',
+          'YouTube Music Synced! Loaded ${ytTracks.length} real tracks into your library.',
           icon: Icons.check_circle_rounded,
           isSuccess: true,
         );
@@ -233,6 +260,30 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
       setState(() => _isLoading = false);
       if (mounted) {
         AppAlert.show(context, 'YouTube Sync error: $e', icon: Icons.error_outline_rounded);
+      }
+    }
+  }
+
+  /// Syncs real playlists directly from the authenticated Google account
+  Future<void> _handleGoogleAccountSync() async {
+    setState(() => _isLoading = true);
+    final success = await AccountService.instance.syncRealYouTubeAccount();
+    setState(() => _isLoading = false);
+
+    if (mounted) {
+      if (success) {
+        AppAlert.show(
+          context,
+          'Google Account Synced! Real YouTube playlists & liked songs loaded.',
+          icon: Icons.check_circle_rounded,
+          isSuccess: true,
+        );
+      } else {
+        AppAlert.show(
+          context,
+          'Google Account not linked or lacks YouTube permissions. Sign in with Google in Settings.',
+          icon: Icons.info_outline_rounded,
+        );
       }
     }
   }
@@ -439,9 +490,9 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
               ),
               const SizedBox(height: 14),
 
-              // Account Handle Input
+              // Account Input
               Text(
-                'Spotify Username / Account ID',
+                'Spotify Token, Profile URL, or Username',
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
@@ -456,7 +507,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.person_rounded, color: Color(0xFF1DB954), size: 18),
-                    hintText: 'e.g. sharad_spotify',
+                    hintText: 'Paste Token, open.spotify.com URL, or ID',
                     hintStyle: TextStyle(color: Colors.white38),
                     contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: InputBorder.none,
@@ -694,7 +745,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
 
               // Handle Input
               Text(
-                'YouTube Channel Handle',
+                'YouTube Channel Handle or Playlist URL',
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 11, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 6),
@@ -709,7 +760,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                   decoration: const InputDecoration(
                     prefixIcon: Icon(Icons.alternate_email_rounded, color: Color(0xFFEF4444), size: 18),
-                    hintText: 'e.g. @sharad_tunes',
+                    hintText: 'e.g. @channel or youtube.com/playlist?list=...',
                     hintStyle: TextStyle(color: Colors.white38),
                     contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     border: InputBorder.none,
@@ -734,6 +785,25 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                   label: Text(
                     _isLoading ? 'Syncing YouTube Music...' : 'Sync YouTube Music Now',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _handleGoogleAccountSync,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  icon: const Icon(Icons.account_circle_rounded, color: Colors.white70, size: 18),
+                  label: const Text(
+                    'Sync with Signed-In Google Account',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
                   ),
                 ),
               ),

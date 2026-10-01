@@ -7,6 +7,8 @@ import '../models/track.dart';
 import 'pi_aamps_service.dart';
 import 'youtube_service.dart';
 
+import 'spotify_service.dart';
+
 class IntegrationService extends ChangeNotifier {
   static final IntegrationService instance = IntegrationService();
 
@@ -16,14 +18,18 @@ class IntegrationService extends ChangeNotifier {
   String _spotifyClientId = '';
   String _spotifyClientSecret = '';
   String _spotifyAccessToken = '';
+  SpotifyUserProfile? _spotifyUserProfile;
   final List<Track> _spotifySyncedTracks = [];
+  final List<SpotifyArtist> _spotifyTopArtists = [];
 
   bool get spotifyConnected => _spotifyConnected;
   String get spotifyUsername => _spotifyUsername;
   String get spotifyClientId => _spotifyClientId;
   String get spotifyClientSecret => _spotifyClientSecret;
   String get spotifyAccessToken => _spotifyAccessToken;
+  SpotifyUserProfile? get spotifyUserProfile => _spotifyUserProfile;
   List<Track> get spotifySyncedTracks => List.unmodifiable(_spotifySyncedTracks);
+  List<SpotifyArtist> get spotifyTopArtists => List.unmodifiable(_spotifyTopArtists);
 
   // YouTube integration state
   bool _youtubeConnected = false;
@@ -68,6 +74,17 @@ class IntegrationService extends ChangeNotifier {
       _spotifyClientSecret = prefs.getString('spotify_client_secret') ?? '';
       _spotifyAccessToken = prefs.getString('spotify_access_token') ?? '';
 
+      final cachedArtistsJson = prefs.getString('spotify_top_artists_json');
+      if (cachedArtistsJson != null && cachedArtistsJson.isNotEmpty) {
+        try {
+          final List<dynamic> list = jsonDecode(cachedArtistsJson);
+          _spotifyTopArtists.clear();
+          for (final a in list) {
+            _spotifyTopArtists.add(SpotifyArtist.fromJson(a as Map<String, dynamic>));
+          }
+        } catch (_) {}
+      }
+
       _youtubeConnected = prefs.getBool('youtube_connected') ?? false;
       _youtubeChannelHandle = prefs.getString('youtube_channel_handle') ?? '';
       _youtubeApiKey = prefs.getString('youtube_api_key') ?? '';
@@ -105,6 +122,53 @@ class IntegrationService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Performs full real Spotify sync using a User Access Token
+  Future<bool> syncSpotifyWithAccessToken(String token) async {
+    try {
+      final spotify = SpotifyService.instance;
+      final profile = await spotify.fetchUserProfile(token);
+      final topArtists = await spotify.fetchUserTopArtists(token, limit: 20);
+      final topTracks = await spotify.fetchUserTopTracks(token, limit: 50);
+      final recentTracks = await spotify.fetchUserRecentlyPlayed(token, limit: 30);
+
+      _spotifyAccessToken = token;
+      _spotifyConnected = true;
+      if (profile != null) {
+        _spotifyUserProfile = profile;
+        _spotifyUsername = profile.displayName.isNotEmpty ? profile.displayName : profile.id;
+      }
+
+      _spotifyTopArtists.clear();
+      _spotifyTopArtists.addAll(topArtists);
+
+      final combinedTracks = <Track>[];
+      final seenIds = <String>{};
+      for (final t in [...topTracks, ...recentTracks]) {
+        if (seenIds.add(t.title.toLowerCase() + t.artist.toLowerCase())) {
+          combinedTracks.add(t);
+        }
+      }
+
+      _spotifySyncedTracks.clear();
+      _spotifySyncedTracks.addAll(combinedTracks);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('spotify_connected', true);
+      await prefs.setString('spotify_username', _spotifyUsername);
+      await prefs.setString('spotify_access_token', token);
+      await prefs.setString(
+        'spotify_top_artists_json',
+        jsonEncode(_spotifyTopArtists.map((a) => a.toJson()).toList()),
+      );
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('syncSpotifyWithAccessToken error: $e');
+      return false;
+    }
+  }
+
   Future<void> connectSpotify(String username) async {
     await saveSpotifyCredentials(username: username.isNotEmpty ? username : 'SpotifyUser', connected: true);
   }
@@ -113,12 +177,15 @@ class IntegrationService extends ChangeNotifier {
     _spotifyConnected = false;
     _spotifyUsername = '';
     _spotifyAccessToken = '';
+    _spotifyUserProfile = null;
     _spotifySyncedTracks.clear();
+    _spotifyTopArtists.clear();
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('spotify_connected', false);
       await prefs.setString('spotify_username', '');
       await prefs.setString('spotify_access_token', '');
+      await prefs.remove('spotify_top_artists_json');
     } catch (_) {}
     notifyListeners();
   }

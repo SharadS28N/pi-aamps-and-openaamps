@@ -4,6 +4,8 @@ import '../models/track.dart';
 import '../services/youtube_service.dart';
 import '../services/download_service.dart';
 import '../services/settings_service.dart';
+import '../services/artist_metadata_service.dart';
+import '../widgets/artist_portrait.dart';
 import '../widgets/app_alert.dart';
 
 class SearchView extends StatefulWidget {
@@ -675,7 +677,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
 
         const SizedBox(height: 24),
 
-        // Section 2: Pure Artists Spotlight
+        // Section 2: Pure Artists Spotlight (Dynamic user affinity & verified portraits)
         const Text(
           'Featured Pure Artists',
           style: TextStyle(
@@ -686,17 +688,22 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 100,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              _buildArtistSpotlightTile('Coldplay', 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=200'),
-              _buildArtistSpotlightTile('The Weeknd', 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=200'),
-              _buildArtistSpotlightTile('Dua Lipa', 'https://images.unsplash.com/photo-1520523839898-507127cd55d5?w=200'),
-              _buildArtistSpotlightTile('Harry Styles', 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200'),
-              _buildArtistSpotlightTile('Taylor Swift', 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=200'),
-              _buildArtistSpotlightTile('Billie Eilish', 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200'),
-            ],
+          height: 105,
+          child: Builder(
+            builder: (context) {
+              final artists = ArtistMetadataService.instance.getDynamicArtists();
+              return ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: artists.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 14),
+                itemBuilder: (context, index) {
+                  final a = artists[index];
+                  final name = a['name'] ?? 'Artist';
+                  final url = a['url'];
+                  return _buildArtistSpotlightTile(name, url);
+                },
+              );
+            },
           ),
         ),
         const SizedBox(height: 24),
@@ -704,32 +711,30 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildArtistSpotlightTile(String name, String imageUrl) {
+  Widget _buildArtistSpotlightTile(String name, String? imageUrl) {
     return GestureDetector(
       onTap: () => _performSearch('$name greatest hits official audio'),
-      child: Container(
-        margin: const EdgeInsets.only(right: 16),
-        child: Column(
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                image: DecorationImage(
-                  image: NetworkImage(imageUrl),
-                  fit: BoxFit.cover,
-                ),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.5),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
+      child: Column(
+        children: [
+          ArtistPortrait(
+            artistName: name,
+            fallbackUrl: imageUrl,
+            size: 64,
+            isCircle: true,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.5),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: 72,
+            child: Text(
               name,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(color: Colors.white70, fontSize: 11.5, fontWeight: FontWeight.w500),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
