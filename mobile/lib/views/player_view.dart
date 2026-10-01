@@ -288,12 +288,15 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
               child: Column(
                 children: [
-                  const Spacer(),
-
-                  // Artwork View
-                  _buildArtworkWidget(track),
-
-                  const Spacer(),
+                  Expanded(
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: _buildArtworkWidget(track),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
 
                   // Track Info & Like Button
                   Row(

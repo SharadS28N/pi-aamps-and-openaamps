@@ -522,33 +522,30 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
                     const SizedBox(height: 14),
 
                     // FREE OR PAID TOGGLE
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const Text(
+                      'TICKET PRICING',
+                      style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
                       children: [
-                        const Text(
-                          'TICKET PRICING',
-                          style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+                        ChoiceChip(
+                          label: const Text('Free Concert', style: TextStyle(fontSize: 11)),
+                          selected: !isPaid,
+                          selectedColor: primary,
+                          onSelected: (val) {
+                            if (val) setModalState(() => isPaid = false);
+                          },
                         ),
-                        Row(
-                          children: [
-                            ChoiceChip(
-                              label: const Text('Free Concert', style: TextStyle(fontSize: 11)),
-                              selected: !isPaid,
-                              selectedColor: primary,
-                              onSelected: (val) {
-                                if (val) setModalState(() => isPaid = false);
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            ChoiceChip(
-                              label: const Text('Paid Tickets', style: TextStyle(fontSize: 11)),
-                              selected: isPaid,
-                              selectedColor: primary,
-                              onSelected: (val) {
-                                if (val) setModalState(() => isPaid = true);
-                              },
-                            ),
-                          ],
+                        ChoiceChip(
+                          label: const Text('Paid Tickets', style: TextStyle(fontSize: 11)),
+                          selected: isPaid,
+                          selectedColor: primary,
+                          onSelected: (val) {
+                            if (val) setModalState(() => isPaid = true);
+                          },
                         ),
                       ],
                     ),
@@ -726,22 +723,32 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          if (Navigator.canPop(context))
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
-                              onPressed: () => Navigator.pop(context),
-                            )
-                          else
-                            Icon(Icons.stadium_rounded, color: primary, size: 22),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Online Concert Arena',
-                            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                      Expanded(
+                        child: Row(
+                          children: [
+                            if (Navigator.canPop(context))
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+                                onPressed: () => Navigator.pop(context),
+                              )
+                            else
+                              Icon(Icons.stadium_rounded, color: primary, size: 20),
+                            const SizedBox(width: 6),
+                            const Expanded(
+                              child: Text(
+                                'Concert Arena',
+                                style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
 
                       // Stage Status Badge
                       Container(
@@ -861,7 +868,9 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
                   style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 13, height: 1.4),
                 ),
                 const SizedBox(height: 16),
-                Row(
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
                   children: [
                     ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
@@ -874,7 +883,6 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
                       label: const Text('Host Concert', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                       onPressed: _openHostConcertModal,
                     ),
-                    const SizedBox(width: 12),
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.white,

@@ -404,7 +404,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
             crossAxisCount: 2,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.45,
+            childAspectRatio: 1.22,
           ),
           itemBuilder: (context, index) {
             final genre = _exploreGenres[index];
@@ -1087,9 +1087,11 @@ class _VoiceAndHumRecognitionSheetState extends State<_VoiceAndHumRecognitionShe
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             // Modal Handle
             Center(
               child: Container(
@@ -1256,7 +1258,8 @@ class _VoiceAndHumRecognitionSheetState extends State<_VoiceAndHumRecognitionShe
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildModePill(String title, bool isSelected, VoidCallback onTap) {

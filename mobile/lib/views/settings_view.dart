@@ -641,7 +641,7 @@ class _SettingsViewState extends State<SettingsView> {
                           obscureText: true,
                           style: const TextStyle(color: Colors.white, fontSize: 13),
                           decoration: const InputDecoration(
-                            hintText: 'Paste AI Studio API Key (AIzaSy...)',
+                            hintText: 'Paste Gemini / AI Studio API Key',
                             hintStyle: TextStyle(color: Colors.white38, fontSize: 12),
                             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             border: InputBorder.none,

@@ -72,31 +72,39 @@ class _HomeViewState extends State<HomeView> {
       if (list.isNotEmpty) return list;
     }
 
-    // Default real music legends with verified portraits
+    // Default real music legends with verified artist portraits
     return const [
       {
         'name': 'Coldplay',
-        'url': 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400',
+        'url': 'https://i.scdn.co/image/ab6761610000e5eb989ed050d2364ec46505a43d',
       },
       {
         'name': 'The Weeknd',
-        'url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+        'url': 'https://i.scdn.co/image/ab6761610000e5eb214f3cf1cbe713969e06e271',
       },
       {
         'name': 'Dua Lipa',
-        'url': 'https://images.unsplash.com/photo-1520523839898-507127cd55d5?w=400',
+        'url': 'https://i.scdn.co/image/ab6761610000e5ebd42a27db3286b58553da8858',
       },
       {
         'name': 'Harry Styles',
-        'url': 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
+        'url': 'https://i.scdn.co/image/ab6761610000e5eb066e4a29c19349e5d4cbbe62',
       },
       {
         'name': 'Taylor Swift',
-        'url': 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400',
+        'url': 'https://i.scdn.co/image/ab6761610000e5eb5a00969a4698c3132a15fbb0',
       },
       {
         'name': 'Billie Eilish',
-        'url': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400',
+        'url': 'https://i.scdn.co/image/ab6761610000e5eb4a3c2005086ee4a88f57fa95',
+      },
+      {
+        'name': 'Ed Sheeran',
+        'url': 'https://i.scdn.co/image/ab6761610000e5eb12a2ef496b86cf37d7a4691e',
+      },
+      {
+        'name': 'Queen',
+        'url': 'https://i.scdn.co/image/ab6761610000e5ebce4f3d2f924e24cf7e7216a6',
       },
     ];
   }
@@ -412,10 +420,12 @@ class _HomeViewState extends State<HomeView> {
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   Center(
                     child: Container(
                       width: 40,
@@ -538,7 +548,8 @@ class _HomeViewState extends State<HomeView> {
                   ),
                 ],
               ),
-            );
+            ),
+          );
           },
         );
       },
@@ -651,7 +662,10 @@ class _HomeViewState extends State<HomeView> {
                       Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.bar_chart_rounded, color: Colors.white70),
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            icon: const Icon(Icons.bar_chart_rounded, color: Colors.white70, size: 20),
                             tooltip: 'Stats & AI Music DNA',
                             onPressed: () {
                               Navigator.push(
@@ -661,7 +675,10 @@ class _HomeViewState extends State<HomeView> {
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.speaker_group_outlined, color: Colors.white70),
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            icon: const Icon(Icons.speaker_group_outlined, color: Colors.white70, size: 20),
                             tooltip: 'Audio Output & Streamer',
                             onPressed: () {
                               final audio = widget.audioService;
@@ -677,7 +694,10 @@ class _HomeViewState extends State<HomeView> {
                             },
                           ),
                           IconButton(
-                            icon: const Icon(Icons.settings_outlined, color: Colors.white70),
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.all(6),
+                            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                            icon: const Icon(Icons.settings_outlined, color: Colors.white70, size: 20),
                             tooltip: 'Settings & Profile',
                             onPressed: () {
                               Navigator.push(
@@ -700,13 +720,13 @@ class _HomeViewState extends State<HomeView> {
                             child: Padding(
                               padding: const EdgeInsets.only(left: 4.0),
                               child: CircleAvatar(
-                                radius: 15,
+                                radius: 14,
                                 backgroundColor: const Color(0xFF222222),
                                 backgroundImage: AccountService.instance.activeAccount.avatarUrl.isNotEmpty
                                     ? NetworkImage(AccountService.instance.activeAccount.avatarUrl)
                                     : null,
                                 child: AccountService.instance.activeAccount.avatarUrl.isEmpty
-                                    ? const Icon(Icons.person_rounded, size: 18, color: Colors.white)
+                                    ? const Icon(Icons.person_rounded, size: 16, color: Colors.white)
                                     : null,
                               ),
                             ),
@@ -764,37 +784,43 @@ class _HomeViewState extends State<HomeView> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      const Text(
-                        'Quick picks',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Flexible(
+                          child: Text(
+                            'Quick picks',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${_quickPicks.length} tracks',
-                          style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 11, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      if (_isLoadingCategory) ...[
                         const SizedBox(width: 8),
-                        const SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${_quickPicks.length} tracks',
+                            style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
                         ),
+                        if (_isLoadingCategory) ...[
+                          const SizedBox(width: 8),
+                          const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                   Row(
                     children: [

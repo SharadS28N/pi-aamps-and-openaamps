@@ -35,8 +35,13 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const String _firebaseApiKey = String.fromEnvironment(
+    'FIREBASE_API_KEY',
+    defaultValue: 'OPENAAMPS_SECURE_API_KEY',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBEky_XxWxdJ26FHZAUzScaPMGuD4bs3U0',
+    apiKey: _firebaseApiKey,
     appId: '1:777154173201:android:fc3b6f2f65b9468f0e94b0',
     messagingSenderId: '777154173201',
     projectId: 'openaamps',
@@ -44,7 +49,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBEky_XxWxdJ26FHZAUzScaPMGuD4bs3U0',
+    apiKey: _firebaseApiKey,
     appId: '1:777154173201:ios:fc3b6f2f65b9468f0e94b0',
     messagingSenderId: '777154173201',
     projectId: 'openaamps',
