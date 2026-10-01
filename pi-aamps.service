@@ -5,8 +5,8 @@ After=network.target sound.target bluetooth.target
 [Service]
 Type=simple
 User=aamps
-WorkingDirectory=/home/aamps/pi-aamps
-ExecStart=/home/aamps/raspberry-pi-music-player/venv/bin/python /home/aamps/pi-aamps/run.py
+WorkingDirectory=/home/aamps/pi-aamps-and-openaamps
+ExecStart=/home/aamps/pi-aamps-and-openaamps/venv/bin/python /home/aamps/pi-aamps-and-openaamps/run.py
 Restart=always
 
 RestartSec=3

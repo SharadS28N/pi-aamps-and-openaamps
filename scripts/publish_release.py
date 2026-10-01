@@ -17,7 +17,7 @@ def main():
         print('Error: Could not retrieve GitHub token from git credentials')
         sys.exit(1)
 
-    repo = 'SharadS28N/raspberry-pi-music-player'
+    repo = 'SharadS28N/pi-aamps-and-openaamps'
     tag = 'v1.2.6'
     release_name = 'OpenAamps v1.2.6 — Autonomous On-Device AI, 5 Player Themes & In-Place Updates'
     body = """## OpenAamps v1.2.6 Release Notes

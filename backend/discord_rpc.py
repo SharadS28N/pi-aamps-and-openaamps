@@ -10,8 +10,8 @@ from typing import Optional, Dict, Any
 logger = logging.getLogger("discord_rpc")
 
 # Default OpenAamps application client ID and Public Key
-DEFAULT_CLIENT_ID = "1552567371615440896"
-PUBLIC_KEY = "82d9fd585caa22bef8d40fdbf6ad6b70d60c58fae786beb623ab04d408d87438"
+DEFAULT_CLIENT_ID = os.environ.get("DISCORD_CLIENT_ID", "1552567371615440896")
+PUBLIC_KEY = os.environ.get("DISCORD_PUBLIC_KEY", "82d9fd585caa22bef8d40fdbf6ad6b70d60c58fae786beb623ab04d408d87438")
 
 class DiscordRPC:
     def __init__(self, client_id: str = DEFAULT_CLIENT_ID):

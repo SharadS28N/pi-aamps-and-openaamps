@@ -13,6 +13,7 @@ import 'settings_view.dart';
 import 'concert_view.dart';
 import 'stats_view.dart';
 import '../services/concert_service.dart';
+import '../services/integration_service.dart';
 
 class HomeView extends StatefulWidget {
   final Function(Track) onPlayTrack;
@@ -49,32 +50,56 @@ class _HomeViewState extends State<HomeView> {
     'Hip Hop',
   ];
 
-  final List<Map<String, String>> _artists = [
-    {
-      'name': 'Coldplay',
-      'url': 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=200',
-    },
-    {
-      'name': 'The Weeknd',
-      'url': 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200',
-    },
-    {
-      'name': 'Dua Lipa',
-      'url': 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200',
-    },
-    {
-      'name': 'Harry Styles',
-      'url': 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
-    },
-    {
-      'name': 'Taylor Swift',
-      'url': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200',
-    },
-    {
-      'name': 'Queen',
-      'url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=200',
-    },
-  ];
+  List<Map<String, String>> get _currentArtists {
+    final syncedSpotify = IntegrationService.instance.spotifySyncedTracks;
+    final syncedYt = IntegrationService.instance.youtubeSyncedTracks;
+    final allSynced = [...syncedSpotify, ...syncedYt];
+
+    if (allSynced.isNotEmpty) {
+      final seen = <String>{};
+      final list = <Map<String, String>>[];
+      for (final t in allSynced) {
+        if (t.artist.isNotEmpty && seen.add(t.artist.toLowerCase())) {
+          list.add({
+            'name': t.artist,
+            'url': t.artworkUrl.isNotEmpty
+                ? t.artworkUrl
+                : 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=200',
+          });
+          if (list.length >= 8) break;
+        }
+      }
+      if (list.isNotEmpty) return list;
+    }
+
+    // Default real music legends with verified portraits
+    return const [
+      {
+        'name': 'Coldplay',
+        'url': 'https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=400',
+      },
+      {
+        'name': 'The Weeknd',
+        'url': 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400',
+      },
+      {
+        'name': 'Dua Lipa',
+        'url': 'https://images.unsplash.com/photo-1520523839898-507127cd55d5?w=400',
+      },
+      {
+        'name': 'Harry Styles',
+        'url': 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400',
+      },
+      {
+        'name': 'Taylor Swift',
+        'url': 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400',
+      },
+      {
+        'name': 'Billie Eilish',
+        'url': 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400',
+      },
+    ];
+  }
 
   final Map<String, List<Track>> _categoryCache = {};
 
@@ -875,44 +900,50 @@ class _HomeViewState extends State<HomeView> {
               ),
               const SizedBox(height: 16),
 
-              SizedBox(
-                height: 130,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _artists.length,
-                  separatorBuilder: (context, index) => const SizedBox(width: 16),
-                  itemBuilder: (context, index) {
-                    final artist = _artists[index];
-                    return GestureDetector(
-                      onTap: () => _playArtist(artist['name']!),
-                      child: Column(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              image: DecorationImage(
-                                image: NetworkImage(artist['url']!),
-                                fit: BoxFit.cover,
+              ListenableBuilder(
+                listenable: IntegrationService.instance,
+                builder: (context, _) {
+                  final artists = _currentArtists;
+                  return SizedBox(
+                    height: 130,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: artists.length,
+                      separatorBuilder: (context, index) => const SizedBox(width: 16),
+                      itemBuilder: (context, index) {
+                        final artist = artists[index];
+                        return GestureDetector(
+                          onTap: () => _playArtist(artist['name']!),
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  image: DecorationImage(
+                                    image: NetworkImage(artist['url']!),
+                                    fit: BoxFit.cover,
+                                  ),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
+                                ),
                               ),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
-                            ),
+                              const SizedBox(height: 8),
+                              Text(
+                                artist['name']!,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            artist['name']!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                        );
+                      },
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: 40),
             ],
@@ -990,6 +1021,7 @@ class _HomeViewState extends State<HomeView> {
         final concert = ConcertService.instance.currentConcert;
         final audience = ConcertService.instance.liveAudienceCount;
         final venue = ConcertService.instance.currentVenue;
+        final isStageLive = ConcertService.instance.isStageLive;
 
         return GestureDetector(
           onTap: () {
@@ -1003,30 +1035,34 @@ class _HomeViewState extends State<HomeView> {
             );
           },
           child: Container(
-            height: 145,
+            height: 135,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(
-                color: venue.primaryColor.withValues(alpha: 0.45),
-                width: 1.5,
+                color: isStageLive
+                    ? venue.primaryColor.withValues(alpha: 0.6)
+                    : Colors.white.withValues(alpha: 0.12),
+                width: isStageLive ? 1.5 : 1.0,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: venue.primaryColor.withValues(alpha: 0.25),
-                  blurRadius: 24,
-                  offset: const Offset(0, 6),
-                ),
-              ],
+              boxShadow: isStageLive
+                  ? [
+                      BoxShadow(
+                        color: venue.primaryColor.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : null,
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(21),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   Image.network(
                     concert.bannerUrl,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF1B1429)),
+                    errorBuilder: (context, error, stackTrace) => Container(color: const Color(0xFF141414)),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -1034,9 +1070,9 @@ class _HomeViewState extends State<HomeView> {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          Colors.black.withValues(alpha: 0.94),
-                          Colors.black.withValues(alpha: 0.70),
-                          venue.primaryColor.withValues(alpha: 0.35),
+                          Colors.black.withValues(alpha: 0.95),
+                          Colors.black.withValues(alpha: 0.75),
+                          isStageLive ? venue.primaryColor.withValues(alpha: 0.3) : Colors.black45,
                         ],
                       ),
                     ),
@@ -1055,24 +1091,21 @@ class _HomeViewState extends State<HomeView> {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFFFF4757),
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Color(0xFFFF4757),
-                                          blurRadius: 8,
-                                          spreadRadius: 1,
-                                        ),
-                                      ],
+                                      color: isStageLive ? const Color(0xFFEF4444) : Colors.white12,
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: const Row(
+                                    child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.fiber_manual_record_rounded, size: 7, color: Colors.white),
-                                        SizedBox(width: 4),
+                                        Icon(
+                                          isStageLive ? Icons.fiber_manual_record_rounded : Icons.calendar_today_rounded,
+                                          size: 8,
+                                          color: isStageLive ? Colors.white : Colors.white70,
+                                        ),
+                                        const SizedBox(width: 4),
                                         Text(
-                                          'LIVE ARENA',
-                                          style: TextStyle(
+                                          isStageLive ? 'LIVE ARENA' : 'ONLINE CONCERT HALL',
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontSize: 9,
                                             fontWeight: FontWeight.w900,
@@ -1085,13 +1118,15 @@ class _HomeViewState extends State<HomeView> {
                                   const SizedBox(width: 8),
                                   Flexible(
                                     child: Text(
-                                      '$audience FANS LIVE',
+                                      isStageLive
+                                          ? '$audience FANS LIVE'
+                                          : concert.scheduledTime.toUpperCase(),
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white70,
+                                      style: TextStyle(
+                                        color: isStageLive ? venue.secondaryColor : Colors.white60,
                                         fontSize: 10,
                                         fontWeight: FontWeight.w700,
-                                        letterSpacing: 0.8,
+                                        letterSpacing: 0.6,
                                       ),
                                     ),
                                   ),
@@ -1114,7 +1149,7 @@ class _HomeViewState extends State<HomeView> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  color: venue.secondaryColor,
+                                  color: isStageLive ? venue.secondaryColor : const Color(0xFFA1A1AA),
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -1126,30 +1161,30 @@ class _HomeViewState extends State<HomeView> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           decoration: BoxDecoration(
-                            color: venue.primaryColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: venue.primaryColor.withValues(alpha: 0.5),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
+                            color: isStageLive ? venue.primaryColor : const Color(0xFF222222),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: isStageLive ? Colors.transparent : Colors.white24,
+                            ),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'ENTER',
+                                isStageLive ? 'ENTER' : 'RESERVE',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: isStageLive ? Colors.black : Colors.white,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1.0,
                                 ),
                               ),
-                              SizedBox(width: 4),
-                              Icon(Icons.arrow_forward_ios_rounded, size: 11, color: Colors.white),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.arrow_forward_ios_rounded,
+                                size: 10,
+                                color: isStageLive ? Colors.black : Colors.white,
+                              ),
                             ],
                           ),
                         ),
@@ -1164,5 +1199,4 @@ class _HomeViewState extends State<HomeView> {
       },
     );
   }
-
 }

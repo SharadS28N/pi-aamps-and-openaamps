@@ -248,8 +248,9 @@ class PartyService extends ChangeNotifier {
         }
       } catch (_) {}
 
-      final lastOctet = localIp.split('.').last;
-      final roomCode = 'JAM-$lastOctet';
+      final randCode = 1000 + (DateTime.now().millisecondsSinceEpoch % 9000);
+      final roomCode = 'JAM-$randCode';
+      debugPrint('[PartyHost] Starting jam room $roomCode on host IP $localIp');
 
       final success = await PartyHostServer.instance.start(
         hostId: account.id,

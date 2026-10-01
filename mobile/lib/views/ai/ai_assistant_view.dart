@@ -147,7 +147,7 @@ class _AiAssistantViewState extends State<AiAssistantView> with SingleTickerProv
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.psychology_rounded, color: Color(0xFF1DB954)),
+            icon: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF1DB954)),
             tooltip: 'AI Music Studio & Instruments',
             onPressed: () {
               Navigator.push(

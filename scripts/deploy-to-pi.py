@@ -10,7 +10,7 @@ PI_PASS = "aamps"
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ZIP_PATH = os.path.join(PROJECT_DIR, "piplayer.zip")
 PI_REMOTE_ZIP = "/home/aamps/piplayer.zip"
-PI_TARGET_DIR = "/home/aamps/raspberry-pi-music-player"
+PI_TARGET_DIR = "/home/aamps/pi-aamps-and-openaamps"
 
 
 def create_project_zip():

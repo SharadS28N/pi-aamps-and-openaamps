@@ -342,7 +342,7 @@ class _AccountSyncModalState extends State<AccountSyncModal> with SingleTickerPr
                     color: Colors.white12,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.sync_rounded, color: Colors.white, size: 24),
+                  child: const Icon(Icons.cloud_sync_rounded, color: Colors.white, size: 24),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'settings_service.dart';
 
 class AutoEqProfile {
   final String id;
@@ -170,12 +171,13 @@ class EqualizerService extends ChangeNotifier {
 
     if (_androidLoudnessEnhancer != null) {
       try {
-        final shouldBoost = _isEnabled && (_bassBoost > 0 || _is8dAudio || _is16dAudio || _virtualizer > 0);
+        final norm = SettingsService.instance.loudnessNormalization;
+        final shouldBoost = _isEnabled && (_bassBoost > 0 || _is8dAudio || _is16dAudio || _virtualizer > 0 || norm);
         await _androidLoudnessEnhancer!.setEnabled(shouldBoost);
         if (shouldBoost) {
-          // Boost in decibels (0.0 to 10.0 dB)
-          final boost = (_bassBoost * 6.0) + (_is8dAudio ? 2.5 : (_is16dAudio ? 4.0 : 0.0));
-          await _androidLoudnessEnhancer!.setTargetGain(boost);
+          final normBoost = norm ? 3.5 : 0.0;
+          final boost = normBoost + (_bassBoost * 4.5) + (_is8dAudio ? 2.0 : (_is16dAudio ? 3.5 : 0.0));
+          await _androidLoudnessEnhancer!.setTargetGain(boost.clamp(0.0, 10.0));
         }
       } catch (e) {
         debugPrint('LoudnessEnhancer apply error: $e');

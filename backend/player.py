@@ -321,6 +321,14 @@ class MPVPlayer:
         self._send_command(["set_property", "af", filter_str])
         return "custom"
 
+    def set_loudness_norm(self, enabled: bool):
+        self.loudness_norm = enabled
+        logger.info(f"Setting MPV Loudness Normalization: {enabled}")
+        if enabled:
+            self._send_command(["af", "add", "lavfi=[dynaudnorm=f=500:g=31:m=10.0:r=0.9:b=1]"])
+        else:
+            self._send_command(["af", "del", "lavfi=[dynaudnorm=f=500:g=31:m=10.0:r=0.9:b=1]"])
+
 
     def _update_sim_pos(self):
         if not (self.sock or self.pipe_file) and not self.sim_paused:
@@ -340,6 +348,7 @@ class MPVPlayer:
             "volume": self.sim_volume,
             "audio_device": self.current_audio_device,
             "equalizer": self.current_eq,
+            "loudness_normalization": getattr(self, "loudness_norm", False),
             "connected": bool(self.sock or self.pipe_file)
         }
 

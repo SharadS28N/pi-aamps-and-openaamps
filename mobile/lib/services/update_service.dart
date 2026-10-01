@@ -84,7 +84,7 @@ class UpdateService extends ChangeNotifier {
       // In production, this queries the latest GitHub release or Pi backend API.
       // Default fallback metadata endpoint:
       final url = Uri.parse(
-        'https://api.github.com/repos/SharadS28N/raspberry-pi-music-player/releases/latest',
+        'https://api.github.com/repos/SharadS28N/pi-aamps-and-openaamps/releases/latest',
       );
 
       final resp = await http.get(url).timeout(const Duration(seconds: 5));
@@ -94,7 +94,7 @@ class UpdateService extends ChangeNotifier {
         final body = data['body'] as String? ?? 'Performance optimizations, dynamic player styles, and bug fixes.';
         
         // Find APK asset download URL
-        String apkDownload = 'https://github.com/SharadS28N/raspberry-pi-music-player/releases/latest';
+        String apkDownload = 'https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/latest';
         final assets = data['assets'] as List<dynamic>?;
         if (assets != null) {
           for (final asset in assets) {

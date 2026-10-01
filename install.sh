@@ -22,7 +22,7 @@ TMP_REPO="/tmp/pi-aamps-install-repo"
 if [ ! -f "run.py" ]; then
   echo "[+] Downloading latest release from GitHub..."
   rm -rf "$TMP_REPO"
-  git clone https://github.com/SharadS28N/raspberry-pi-music-player.git "$TMP_REPO"
+  git clone https://github.com/SharadS28N/pi-aamps-and-openaamps.git "$TMP_REPO"
   cd "$TMP_REPO"
 fi
 

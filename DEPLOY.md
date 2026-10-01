@@ -12,7 +12,7 @@
    ```
 2. Clone repository or copy package:
    ```bash
-   git clone https://github.com/SharadS28N/raspberry-pi-music-player.git pi-aamps
+   git clone https://github.com/SharadS28N/pi-aamps-and-openaamps.git pi-aamps
    cd pi-aamps
    ```
 3. Run installer:

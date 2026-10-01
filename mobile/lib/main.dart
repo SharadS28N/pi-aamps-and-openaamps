@@ -19,7 +19,6 @@ import 'views/home_view.dart';
 import 'views/search_view.dart';
 import 'views/player_view.dart';
 import 'views/library_view.dart';
-import 'views/concert_view.dart';
 import 'widgets/now_playing_bar.dart';
 
 Future<void> main() async {
@@ -181,7 +180,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         audioService: _audioService,
       ),
       SearchView(onPlayTrack: _onPlayTrack),
-      ConcertView(audioService: _audioService),
       LibraryView(
         accountService: AccountService.instance,
         localAudioService: LocalAudioService(),
@@ -201,7 +199,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 74.0),
                 child: IndexedStack(
-                  index: _currentIndex,
+                  index: _currentIndex.clamp(0, 2),
                   children: screens,
                 ),
               ),
@@ -241,7 +239,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.08), width: 0.8)),
             ),
             child: NavigationBar(
-              selectedIndex: _currentIndex,
+              selectedIndex: _currentIndex.clamp(0, 2),
               backgroundColor: const Color(0xFF000000),
               indicatorColor: accent == Colors.white
                   ? Colors.white.withValues(alpha: 0.14)
@@ -262,11 +260,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   icon: const Icon(Icons.search_outlined, color: Colors.white60),
                   selectedIcon: Icon(Icons.search_rounded, color: accent == Colors.white ? Colors.white : accent),
                   label: 'Search',
-                ),
-                NavigationDestination(
-                  icon: const Icon(Icons.stadium_outlined, color: Colors.white60),
-                  selectedIcon: Icon(Icons.stadium_rounded, color: accent == Colors.white ? Colors.white : accent),
-                  label: 'Concerts',
                 ),
                 NavigationDestination(
                   icon: const Icon(Icons.bookmarks_outlined, color: Colors.white60),

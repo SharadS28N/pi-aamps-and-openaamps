@@ -12,6 +12,10 @@ import re
 import json
 import urllib.request
 import urllib.parse
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("aamps")
 
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -109,6 +113,10 @@ class AutoplayToggleRequest(BaseModel):
     enabled: bool
 
 
+class LoudnessNormRequest(BaseModel):
+    enabled: bool
+
+
 class PortSettingsRequest(BaseModel):
     port: int
 
@@ -179,7 +187,7 @@ async def get_app_info():
         "description": "Standalone Android Music Player & pi-aamps Remote Control Hub",
         "download_url": "/api/app/download",
         "ipa_download_url": "/api/app/download-ipa",
-        "github_release_url": "https://github.com/SharadS28N/raspberry-pi-music-player/releases/tag/v1.2.6"
+        "github_release_url": "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/tag/v1.2.6"
     }
 
 
@@ -220,7 +228,7 @@ async def download_app_apk():
 
     from fastapi.responses import RedirectResponse
     return RedirectResponse(
-        "https://github.com/SharadS28N/raspberry-pi-music-player/releases/download/v1.2.6/OpenAamps-v1.2.6.apk",
+        "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.6/OpenAamps-v1.2.6.apk",
         status_code=302
     )
 
@@ -252,7 +260,7 @@ async def download_app_ipa():
 
     from fastapi.responses import RedirectResponse
     return RedirectResponse(
-        "https://github.com/SharadS28N/raspberry-pi-music-player/releases/download/v1.2.6/OpenAamps-v1.2.6.ipa",
+        "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.6/OpenAamps-v1.2.6.ipa",
         status_code=302
     )
 
@@ -555,6 +563,13 @@ async def set_custom_equalizer(req: CustomEQBandsRequest):
     preset = player.set_custom_equalizer(req.bands)
     await broadcast_state_update("player_state_changed", player.get_status())
     return {"status": "ok", "equalizer": preset, "bands": req.bands}
+
+
+@app.post("/api/loudness-norm")
+async def set_loudness_norm(req: LoudnessNormRequest):
+    player.set_loudness_norm(req.enabled)
+    await broadcast_state_update("player_state_changed", player.get_status())
+    return {"status": "ok", "loudness_normalization": req.enabled}
 
 
 # System Telemetry & Metrics Endpoint

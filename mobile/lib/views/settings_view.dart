@@ -581,7 +581,7 @@ class _SettingsViewState extends State<SettingsView> {
                 border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
               ),
               child: const Center(
-                child: Icon(Icons.graphic_eq_rounded, color: Colors.white, size: 20),
+                child: Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 20),
               ),
             ),
             title: const Text('Launch AI Music Studio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

@@ -296,6 +296,20 @@ class PiAampsService extends ChangeNotifier {
     }
   }
 
+  Future<bool> setLoudnessNorm(bool enabled) async {
+    try {
+      final res = await http.post(
+        Uri.parse('$baseUrl/api/loudness-norm'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'enabled': enabled}),
+      ).timeout(const Duration(seconds: 3));
+      await fetchFullStatus();
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // --- Bluetooth Receiver / Speaker Controls ---
 
   Future<bool> toggleBluetoothPower(bool power) async {

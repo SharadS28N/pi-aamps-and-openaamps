@@ -557,7 +557,7 @@ class _LibraryViewState extends State<LibraryView> {
                   visualDensity: VisualDensity.compact,
                   padding: EdgeInsets.zero,
                   constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                  icon: const Icon(Icons.psychology_rounded, color: Colors.white70, size: 20),
+                  icon: const Icon(Icons.auto_awesome_rounded, color: Colors.white70, size: 20),
                   tooltip: 'AI Music Studio',
                   onPressed: () {
                     Navigator.push(
@@ -863,7 +863,7 @@ class _LibraryViewState extends State<LibraryView> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.psychology_rounded, color: Colors.white70, size: 20),
+                          Icon(Icons.auto_awesome_rounded, color: Colors.white70, size: 20),
                           Spacer(),
                           Icon(Icons.arrow_forward_rounded, color: Colors.white54, size: 14),
                         ],
@@ -907,9 +907,7 @@ class _LibraryViewState extends State<LibraryView> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.sync_rounded, color: Color(0xFF1DB954), size: 20),
-                          SizedBox(width: 4),
-                          Icon(Icons.play_circle_filled_rounded, color: Color(0xFFEF4444), size: 16),
+                          Icon(Icons.cloud_sync_rounded, color: Colors.white70, size: 20),
                           Spacer(),
                           Icon(Icons.arrow_forward_rounded, color: Colors.white54, size: 14),
                         ],

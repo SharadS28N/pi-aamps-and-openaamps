@@ -21,6 +21,10 @@ database/*.db-journal
 scratch/
 backend/releases/
 openaamps-release.apk
+releases/*.apk
+releases/*.ipa
+*.apk
+*.ipa
 
 
 # Logs & Temporary Files

@@ -67,7 +67,7 @@ class _AiStudioViewState extends State<AiStudioView> {
         elevation: 0,
         title: Row(
           children: [
-            Icon(Icons.graphic_eq_rounded, color: accent, size: 22),
+            Icon(Icons.auto_awesome_rounded, color: accent, size: 22),
             const SizedBox(width: 8),
             const Text(
               'AI Music Studio',

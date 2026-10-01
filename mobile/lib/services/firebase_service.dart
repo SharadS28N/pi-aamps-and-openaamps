@@ -47,9 +47,9 @@ class FirebaseService extends ChangeNotifier {
 
   String get apiKey {
     try {
-      return _firestore?.app.options.apiKey ?? 'AIzaSyBEky_XxWxdJ26FHZAUzScaPMGuD4bs3U0';
+      return _firestore?.app.options.apiKey ?? '';
     } catch (_) {
-      return 'AIzaSyBEky_XxWxdJ26FHZAUzScaPMGuD4bs3U0';
+      return '';
     }
   }
 

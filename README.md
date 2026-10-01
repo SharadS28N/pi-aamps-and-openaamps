@@ -11,13 +11,13 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/SharadS28N/raspberry-pi-music-player/releases/tag/v1.2.6">
+  <a href="https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/tag/v1.2.6">
     <img src="https://img.shields.io/badge/Release-v1.2.6-10B981?style=for-the-badge&logo=github" alt="Release v1.2.6">
   </a>
   <a href="releases/OpenAamps-v1.2.6.apk">
     <img src="https://img.shields.io/badge/Download_APK-v1.2.6_(70MB)-06B6D4?style=for-the-badge&logo=android&logoColor=white" alt="Download APK">
   </a>
-  <a href="https://sharads28n.github.io/raspberry-pi-music-player/">
+  <a href="https://sharads28n.github.io/pi-aamps-and-openaamps/">
     <img src="https://img.shields.io/badge/Live_Website-GitHub_Pages-8B5CF6?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live Website">
   </a>
   <a href="LICENSE">
@@ -101,7 +101,7 @@ All screenshots below were captured during real-world verification on a physical
 Run the official one-line installation script on your Raspberry Pi (Raspberry Pi OS Bookworm or Bullseye):
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/SharadS28N/raspberry-pi-music-player/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/SharadS28N/pi-aamps-and-openaamps/main/install.sh | bash
 ```
 
 The script automatically installs MPV, yt-dlp, Python dependencies, configures ALSA audio output, and registers `pi-aamps.service` as a background systemd daemon.
@@ -118,7 +118,7 @@ Access the desktop web player in your browser at `http://<your-pi-ip>:8000`.
 
 1. Download the release APK directly to your phone:
    - **Download Link**: [OpenAamps-v1.2.6.apk](releases/OpenAamps-v1.2.6.apk)
-   - Or from GitHub Releases: [Releases / v1.2.6](https://github.com/SharadS28N/raspberry-pi-music-player/releases/tag/v1.2.6)
+   - Or from GitHub Releases: [Releases / v1.2.6](https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/tag/v1.2.6)
 2. Tap the downloaded file and select **Install** (allow installation from unknown sources if prompted).
 3. Open **OpenAamps**. Tap the audio pill in the player or settings to verify the connection to your Raspberry Pi.
 
@@ -145,7 +145,7 @@ sudo bash build_deb.sh
 ## Project Structure
 
 ```
-raspberry-pi-music-player/
+pi-aamps-and-openaamps/
 ├── backend/                  # FastAPI backend, MPV controller, yt-dlp engine
 ├── database/                 # SQLite schema, playlist, and track models
 ├── docs/                     # Public showcase website & architectural documentation

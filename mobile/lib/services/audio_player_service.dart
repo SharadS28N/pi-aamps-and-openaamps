@@ -338,6 +338,10 @@ class AudioPlayerService extends ChangeNotifier {
 
   void setLoudnessNormalization(bool enabled) {
     _loudnessNormalization = enabled;
+    EqualizerService.instance.applyToNativeEffects();
+    if (_target == AudioTarget.piSpeaker) {
+      _piService.setLoudnessNorm(enabled);
+    }
     notifyListeners();
   }
 
@@ -650,6 +654,9 @@ class AudioPlayerService extends ChangeNotifier {
       if (playImmediately) {
         _player.play();
       }
+      Future.delayed(const Duration(milliseconds: 350), () {
+        EqualizerService.instance.applyToNativeEffects();
+      });
       if (notifyParty) {
         _notifyPartyPlaybackChange(isPlaying: playImmediately, track: track);
       }
