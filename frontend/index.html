@@ -210,12 +210,16 @@
                 <span class="hidden sm:inline" x-text="bluetoothStatus.powered ? 'BT Speaker: ON' : 'BT Speaker: OFF'"></span>
             </button>
 
-            <!-- Install OpenAamps Android App Button -->
+            <!-- Download OpenAamps Mobile App (iOS / Android) -->
             <a href="/download" 
-               title="Install OpenAamps Android App for pi-aamps"
-               class="px-4 py-2 bg-black hover:bg-zinc-900 border border-white text-white hover:scale-105 transition duration-200 rounded-full text-xs font-bold flex items-center gap-2 shadow">
-                <i class="fa-brands fa-android text-sm"></i>
-                <span class="hidden sm:inline">Install OpenAamps</span>
+               title="Download OpenAamps Mobile Companion for Android & iPhone (iOS)"
+               class="px-4 py-2 bg-black hover:bg-zinc-900 border border-white text-white hover:scale-105 transition duration-200 rounded-full text-xs font-bold flex items-center gap-2.5 shadow">
+                <div class="flex items-center gap-1.5">
+                    <i class="fa-brands fa-apple text-sm text-white"></i>
+                    <i class="fa-brands fa-android text-sm text-white"></i>
+                </div>
+                <span class="hidden sm:inline">Get Mobile App</span>
+                <span class="hidden lg:inline text-[10px] font-mono text-zinc-400 font-normal">(iOS / APK)</span>
             </a>
 
             <!-- System Customization Gear -->
@@ -289,6 +293,28 @@
                         <button @click="searchPodcasts()" class="px-4 py-1.5 bg-white text-black font-bold text-xs rounded-full hover:scale-105 transition shadow">
                             Browse podcasts
                         </button>
+                    </div>
+
+                    <!-- OpenAamps Mobile App Card (iOS & Android) -->
+                    <div class="bg-gradient-to-b from-[#1C1C20] to-[#121214] border border-zinc-700/60 rounded-xl p-4 space-y-2.5 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1.5">
+                                <i class="fa-solid fa-mobile-screen"></i> MOBILE CLIENT
+                            </span>
+                            <span class="badge-monochrome px-2 py-0.5 rounded-full text-[9px] font-mono text-zinc-400">v1.2.6</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-white leading-snug">OpenAamps for iPhone &amp; Android</h4>
+                        <p class="text-[11px] text-zinc-400 leading-relaxed">
+                            Audiophile companion app with 8D/16D binaural spatializer, concert arena, and Wi-Fi streaming.
+                        </p>
+                        <div class="flex items-center gap-2 pt-1">
+                            <a href="/download#download-ios" class="flex-1 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white font-semibold text-[11px] rounded-lg border border-zinc-700 flex items-center justify-center gap-1.5 transition">
+                                <i class="fa-brands fa-apple text-xs"></i> iPhone
+                            </a>
+                            <a href="/api/app/download" class="flex-1 px-3 py-1.5 bg-white text-black font-bold text-[11px] rounded-lg flex items-center justify-center gap-1.5 hover:bg-zinc-200 transition shadow">
+                                <i class="fa-brands fa-android text-xs"></i> APK
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Spotify Style Prompt Card 3: Raspberry Pi Bluetooth Speaker -->

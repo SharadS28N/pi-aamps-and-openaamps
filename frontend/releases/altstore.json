@@ -1,0 +1,24 @@
+{
+  "name": "OpenAamps Official Source",
+  "identifier": "com.aamps.openaamps.source",
+  "website": "https://github.com/SharadS28N/pi-aamps-and-openaamps",
+  "subtitle": "Next-Gen Audiophile Music Player & pi-aamps Hub",
+  "description": "High-fidelity audio streaming, online concert platform, 10-band DSP, and 1-tap Spotify/YouTube sync.",
+  "apps": [
+    {
+      "name": "OpenAamps",
+      "bundleIdentifier": "com.aamps.openaamps",
+      "developerName": "OpenAamps Team",
+      "subtitle": "Audiophile Music Player",
+      "version": "1.2.6",
+      "versionDate": "2026-10-01",
+      "versionDescription": "Online concert arena, 4-tab clean navbar, subtle iconography, 5 accents, and Spotify/YouTube sync.",
+      "downloadURL": "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.6/OpenAamps-v1.2.6.ipa",
+      "localizedDescription": "Native music player with DSP acoustics, live concert arenas, synchronized lyrics, and lossless Wi-Fi casting.",
+      "iconURL": "https://raw.githubusercontent.com/SharadS28N/pi-aamps-and-openaamps/main/frontend/assets/app_icon.png",
+      "tintColor": "1DB954",
+      "size": 27031533,
+      "minOSVersion": "14.0"
+    }
+  ]
+}

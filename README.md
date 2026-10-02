@@ -130,6 +130,25 @@ Access the desktop web player in your browser at `http://<your-pi-ip>:8000`.
 2. Tap the downloaded file and select **Install** (allow installation from unknown sources if prompted).
 3. Open **OpenAamps**. Tap the audio pill in the player or settings to verify the connection to your Raspberry Pi.
 
+### 3. iOS App Installation (iPhone & iPad)
+
+OpenAamps supports all iPhones and iPads running iOS 14.0+ without jailbreaking:
+
+1. **AltStore / SideStore (1-Tap Recommended)**:
+   - Add the official source: `https://raw.githubusercontent.com/SharadS28N/pi-aamps-and-openaamps/main/releases/altstore.json`
+   - Or tap the 1-Tap Add button on the web portal at `http://<your-pi-ip>:8000/download#download-ios`.
+2. **Direct IPA Sideloading (Sideloadly / Scarlet / TrollStore)**:
+   - Download the standalone package: [OpenAamps-v1.2.6.ipa](releases/OpenAamps-v1.2.6.ipa).
+   - Drag into Sideloadly on Mac or PC and sign with any free Apple ID.
+3. **Safari Progressive Web App (PWA)**:
+   - Open the web player in Safari, tap the iOS **Share** button, and choose **Add to Home Screen**.
+
+### 4. Interactive Figma Design System Showcase
+
+Inspect the production visual design system, mobile UI tokens, and interactive screen mockups in Chrome:
+- **Web Link**: `http://<your-pi-ip>:8000/design` (or open `frontend/design_showcase.html` locally).
+- Features full artboards for Now Playing, 3-Column Album Library, 15-Band Equalizer & Dual Dials, and Home View with live CSS design tokens.
+
 ---
 
 ## Building from Source
@@ -142,6 +161,12 @@ flutter build apk --release
 ```
 The compiled binary will be generated at:
 `mobile/build/app/outputs/flutter-apk/app-release.apk`
+
+### Packaging iOS IPA
+```bash
+python scripts/build_ios_ipa.py
+```
+Generates signed ARM64 bundle and updates `releases/OpenAamps-v1.2.6.ipa` and `releases/altstore.json`.
 
 ### Building Debian Package (`.deb`)
 ```bash

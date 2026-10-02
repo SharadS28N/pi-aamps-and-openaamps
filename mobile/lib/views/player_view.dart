@@ -284,478 +284,698 @@ class _PlayerViewState extends State<PlayerView> with SingleTickerProviderStateM
         children: [
           Positioned.fill(child: _buildBackgroundLayer(track)),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-              child: Column(
-                children: [
-                  Expanded(
-                    child: Center(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: _buildArtworkWidget(track),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact = constraints.maxHeight < 680;
+                final artSize = (constraints.maxHeight * (isCompact ? 0.36 : 0.42))
+                    .clamp(190.0, 310.0);
 
-                  // Track Info & Like Button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              track.title,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -0.4,
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // 1. Scaled Album Artwork
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Center(
+                              child: SizedBox(
+                                width: artSize,
+                                height: artSize,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: _buildArtworkWidget(track),
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              track.artist,
-                              style: const TextStyle(
-                                color: Color(0xFFA1A1AA),
-                                fontSize: 16,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.auto_awesome_rounded,
-                          color: Colors.white70,
-                          size: 22,
-                        ),
-                        tooltip: 'AI Studio & Acoustic DNA',
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (ctx) => SongAiStudioSheet(
-                              track: track,
-                            ),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                          color: _isLiked ? Colors.white : Colors.white60,
-                          size: 26,
-                        ),
-                        onPressed: () {
-                          widget.audioService.toggleLike(track);
-                          setState(() {
-                            _isLiked = widget.audioService.isLiked(track.id);
-                          });
-                          if (_isLiked) {
-                            AiMusicService.instance.onTrackLiked(track);
-                          }
-                          AppAlert.show(
-                            context,
-                            _isLiked ? 'Added to Liked Songs' : 'Removed from Liked Songs',
-                            icon: _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                            isFullScreen: true,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                          ),
 
-              // Progress Bar Slider + Codec Pill (Pure White & Zinc)
-              Builder(
-                builder: (context) {
-                  final fallbackSec = widget.track.duration.inSeconds > 0
-                      ? widget.track.duration.inSeconds.toDouble()
-                      : 230.0;
-                  final maxSec = _duration.inSeconds > 0
-                      ? _duration.inSeconds.toDouble()
-                      : fallbackSec;
-                  final currentSec = _isDragging
-                      ? _dragValue.clamp(0.0, maxSec)
-                      : _position.inSeconds.toDouble().clamp(0.0, maxSec);
-
-                  return Column(
-                    children: [
-                      SliderTheme(
-                        data: SliderThemeData(
-                          trackHeight: 3.5,
-                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-                          activeTrackColor: accent,
-                          inactiveTrackColor: const Color(0xFF27272A),
-                          thumbColor: accent,
-                        ),
-                        child: Slider(
-                          value: currentSec,
-                          min: 0.0,
-                          max: maxSec,
-                          onChanged: (val) {
-                            setState(() {
-                              _isDragging = true;
-                              _dragValue = val;
-                            });
-                          },
-                          onChangeEnd: (val) {
-                            setState(() {
-                              _isDragging = false;
-                              _position = Duration(seconds: val.toInt());
-                            });
-                            widget.audioService.seek(Duration(seconds: val.toInt()));
-                          },
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _formatDuration(_isDragging ? Duration(seconds: _dragValue.toInt()) : _position),
-                              style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
-                            ),
-
-                            // Audio Codec Format Pill
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF141414),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 0.8),
-                              ),
-                              child: Row(
+                          // 2. Track Info & Controls Group (Guaranteed zero overflow)
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Track Info & Like Button (Reference Image 1: Artist above Title)
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  const Icon(Icons.graphic_eq_rounded, color: Colors.white, size: 12),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    track.codec,
-                                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          track.artist,
+                                          style: const TextStyle(
+                                            color: Color(0xFFA1A1AA),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          track.title,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: -0.4,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.auto_awesome_rounded,
+                                      color: Colors.white70,
+                                      size: 22,
+                                    ),
+                                    tooltip: 'AI Studio & Acoustic DNA',
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (ctx) => SongAiStudioSheet(track: track),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                      color: _isLiked ? (accent == Colors.white ? const Color(0xFFFF4081) : accent) : Colors.white60,
+                                      size: 26,
+                                    ),
+                                    onPressed: () {
+                                      widget.audioService.toggleLike(track);
+                                      setState(() {
+                                        _isLiked = widget.audioService.isLiked(track.id);
+                                      });
+                                      if (_isLiked) {
+                                        AiMusicService.instance.onTrackLiked(track);
+                                      }
+                                      AppAlert.show(
+                                        context,
+                                        _isLiked ? 'Added to Liked Songs' : 'Removed from Liked Songs',
+                                        icon: _isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                        isFullScreen: true,
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
-                            ),
 
-                            Text(
-                              _formatDuration(_duration > Duration.zero ? _duration : Duration(seconds: maxSec.toInt())),
-                              style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
-                            ),
-                          ],
+                              const SizedBox(height: 12),
+
+                              // Progress Bar Slider & Codec (Reference Image 1: Thin Glowing Track + Timestamps)
+                              _buildSeekSection(track, accent),
+
+                              const SizedBox(height: 16),
+
+                              // Playback Controls Row (Reference Image 1 & 2: Clean 5-button setup)
+                              _buildControlsRow(track, accent),
+
+                              const SizedBox(height: 14),
+
+                              // Swipe up for playlist indicator (Reference Image 1: Bottom swipe hint)
+                              _buildBottomSwipeIndicator(context, track, accent),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- Sub-widgets for Clean Non-overflowing UI ---
+
+  Widget _buildSeekSection(Track track, Color accent) {
+    final fallbackSec = widget.track.duration.inSeconds > 0
+        ? widget.track.duration.inSeconds.toDouble()
+        : 230.0;
+    final maxSec = _duration.inSeconds > 0 ? _duration.inSeconds.toDouble() : fallbackSec;
+    final currentSec = _isDragging
+        ? _dragValue.clamp(0.0, maxSec)
+        : _position.inSeconds.toDouble().clamp(0.0, maxSec);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SliderTheme(
+          data: SliderThemeData(
+            trackHeight: 3.5,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
+            activeTrackColor: accent,
+            inactiveTrackColor: const Color(0xFF27272A),
+            thumbColor: accent,
+          ),
+          child: Slider(
+            value: currentSec,
+            min: 0.0,
+            max: maxSec,
+            onChanged: (val) {
+              setState(() {
+                _isDragging = true;
+                _dragValue = val;
+              });
+            },
+            onChangeEnd: (val) {
+              setState(() {
+                _isDragging = false;
+                _position = Duration(seconds: val.toInt());
+              });
+              widget.audioService.seek(Duration(seconds: val.toInt()));
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _formatDuration(_isDragging ? Duration(seconds: _dragValue.toInt()) : _position),
+                style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12, fontWeight: FontWeight.w500),
+              ),
+
+              // Codec & Target Pills (Zinc/Glass)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF141414),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 0.8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.graphic_eq_rounded, color: Colors.white70, size: 11),
+                        const SizedBox(width: 4),
+                        Text(
+                          track.codec,
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  GestureDetector(
+                    onTap: () => _showOutputTargetModal(context),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: widget.audioService.target == AudioTarget.piSpeaker
+                            ? const Color(0xFF16A34A).withValues(alpha: 0.25)
+                            : const Color(0xFF18181B),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: widget.audioService.target == AudioTarget.piSpeaker
+                              ? const Color(0xFF22C55E)
+                              : Colors.white12,
+                          width: 0.8,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      GestureDetector(
-                        onTap: () => _showOutputTargetModal(context),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            widget.audioService.target == AudioTarget.piSpeaker
+                                ? Icons.radio_rounded
+                                : Icons.phone_android_rounded,
                             color: widget.audioService.target == AudioTarget.piSpeaker
-                                ? const Color(0xFF16A34A).withValues(alpha: 0.2)
-                                : const Color(0xFF18181B),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
+                                ? const Color(0xFF22C55E)
+                                : Colors.white70,
+                            size: 11,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.audioService.target == AudioTarget.piSpeaker ? 'pi-aamps' : 'Phone',
+                            style: TextStyle(
                               color: widget.audioService.target == AudioTarget.piSpeaker
                                   ? const Color(0xFF22C55E)
-                                  : Colors.white24,
-                              width: 0.8,
+                                  : Colors.white70,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                widget.audioService.target == AudioTarget.piSpeaker
-                                    ? Icons.radio_rounded
-                                    : Icons.phone_android_rounded,
-                                color: widget.audioService.target == AudioTarget.piSpeaker
-                                    ? const Color(0xFF22C55E)
-                                    : Colors.white70,
-                                size: 14,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                widget.audioService.target == AudioTarget.piSpeaker
-                                    ? 'pi-aamps • ${widget.audioService.piService.ipAddress}:${widget.audioService.piService.port}'
-                                    : 'This Phone Audio',
-                                style: TextStyle(
-                                  color: widget.audioService.target == AudioTarget.piSpeaker
-                                      ? const Color(0xFF22C55E)
-                                      : Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.arrow_drop_down_rounded, color: Colors.white54, size: 18),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Playback Controls (Shuffle, 10s Rewind, Prev, Play/Pause, Next, 15s Forward, Repeat)
-              // Playback Controls (Shuffle, 10s Rewind, Prev, Play/Pause, Next, 15s Forward, Repeat)
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width - 32,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        icon: Icon(
-                          Icons.shuffle_rounded,
-                          color: _isShuffle ? accent : Colors.white38,
-                          size: 24,
-                        ),
-                        tooltip: _isShuffle ? 'Shuffle On' : 'Shuffle Off',
-                        onPressed: () {
-                          setState(() => _isShuffle = !_isShuffle);
-                          widget.audioService.setShuffleModeEnabled(_isShuffle);
-                          AppAlert.show(
-                            context,
-                            _isShuffle ? 'Shuffle enabled' : 'Shuffle disabled',
-                            icon: Icons.shuffle_rounded,
-                            isFullScreen: true,
-                          );
-                        },
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.replay_10_rounded, color: Colors.white70, size: 26),
-                        tooltip: 'Rewind 10s',
-                        onPressed: () => widget.audioService.seekBackward10(),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.skip_previous_rounded, color: Colors.white, size: 34),
-                        tooltip: 'Previous Track',
-                        onPressed: () => widget.audioService.skipToPrevious(),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          if (_isPlaying) {
-                            widget.audioService.pause();
-                          } else {
-                            if (widget.audioService.player.audioSource == null) {
-                               widget.audioService.playTrack(track);
-                            } else {
-                              widget.audioService.resume(fallbackTrack: track);
-                            }
-                          }
-                        },
-                        child: Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            color: accent,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: accent.withValues(alpha: 0.35),
-                                blurRadius: 18,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: (widget.audioService.isLoading && !_isPlaying && !widget.audioService.player.playing)
-                                ? SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      color: accent.computeLuminance() > 0.5 ? Colors.black : Colors.white,
-                                      strokeWidth: 2.5,
-                                    ),
-                                  )
-                                : Icon(
-                                    (_isPlaying || widget.audioService.player.playing)
-                                         ? Icons.pause_rounded
-                                         : Icons.play_arrow_rounded,
-                                    color: accent.computeLuminance() > 0.5 ? Colors.black : Colors.white,
-                                    size: 38,
-                                  ),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 34),
-                        tooltip: 'Next Track',
-                        onPressed: () => widget.audioService.skipToNext(),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        icon: const Icon(Icons.forward_10_rounded, color: Colors.white70, size: 26),
-                        tooltip: 'Forward 15s',
-                        onPressed: () => widget.audioService.seekForward15(),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        icon: Icon(
-                          _loopMode == LoopMode.one
-                              ? Icons.repeat_one_rounded
-                              : Icons.repeat_rounded,
-                          color: _loopMode != LoopMode.off ? accent : Colors.white38,
-                          size: 26,
-                        ),
-                        tooltip: _loopMode == LoopMode.off
-                            ? 'Repeat Off'
-                            : (_loopMode == LoopMode.one ? 'Repeat Track' : 'Repeat All'),
-                        onPressed: () {
-                          setState(() {
-                            if (_loopMode == LoopMode.off) {
-                              _loopMode = LoopMode.all;
-                            } else if (_loopMode == LoopMode.all) {
-                              _loopMode = LoopMode.one;
-                            } else {
-                              _loopMode = LoopMode.off;
-                            }
-                          });
-                          widget.audioService.setLoopMode(_loopMode);
-                          AppAlert.show(
-                            context,
-                            _loopMode == LoopMode.one
-                                ? 'Loop current track'
-                                : (_loopMode == LoopMode.all ? 'Loop all tracks' : 'Loop disabled'),
-                            icon: _loopMode == LoopMode.one
-                                ? Icons.repeat_one_rounded
-                                : Icons.repeat_rounded,
-                            isFullScreen: true,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Volume Slider (Dynamic Accent)
-              Row(
-                children: [
-                  const Icon(Icons.volume_mute_rounded, color: Color(0xFF71717A), size: 20),
-                  Expanded(
-                    child: SliderTheme(
-                      data: SliderThemeData(
-                        trackHeight: 3,
-                        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
-                        activeTrackColor: accent,
-                        inactiveTrackColor: const Color(0xFF27272A),
-                        thumbColor: accent,
-                      ),
-                      child: Slider(
-                        value: _volume,
-                        min: 0.0,
-                        max: 100.0,
-                        onChanged: (val) {
-                          setState(() {
-                            _volume = val;
-                          });
-                          widget.audioService.setVolume(val);
-                        },
+                        ],
                       ),
                     ),
                   ),
-                  const Icon(Icons.volume_up_rounded, color: Color(0xFF71717A), size: 20),
                 ],
               ),
-              const SizedBox(height: 16),
 
-              // Bottom Action Bar (Queue List, Lyrics, Output Target, Sleep Timer, Equalizer/DSP)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.format_list_bulleted_rounded, color: Color(0xFFA1A1AA), size: 22),
-                    tooltip: 'Queue',
-                    onPressed: () => _showQueueModal(context),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.chat_bubble_outline_rounded, color: Color(0xFFA1A1AA), size: 22),
-                    tooltip: 'Lyrics',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LyricsView(
-                            track: track,
-                            audioService: widget.audioService,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: Icon(
-                      widget.audioService.target == AudioTarget.piSpeaker
-                          ? Icons.radio_rounded
-                          : Icons.speaker_group_rounded,
-                      color: widget.audioService.target == AudioTarget.piSpeaker
-                          ? const Color(0xFF22C55E)
-                          : const Color(0xFFA1A1AA),
-                      size: 22,
-                    ),
-                    tooltip: 'Output Target (Phone / pi-aamps)',
-                    onPressed: () => _showOutputTargetModal(context),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.bedtime_outlined, color: Color(0xFFA1A1AA), size: 22),
-                    tooltip: 'Sleep Timer',
-                    onPressed: () => _showSleepTimerModal(context),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.stadium_rounded, color: Color(0xFF1DB954), size: 22),
-                    tooltip: 'Live Concert Arena Mode',
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ConcertView(
-                            audioService: widget.audioService,
-                            initialTrack: track,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.equalizer_rounded, color: Color(0xFFA1A1AA), size: 22),
-                    tooltip: '15-Band Equalizer & AutoEq',
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        isScrollControlled: true,
-                        builder: (context) => const EqualizerSheet(),
-                      );
-                    },
-                  ),
-                ],
+              Text(
+                _formatDuration(_duration > Duration.zero ? _duration : Duration(seconds: maxSec.toInt())),
+                style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12, fontWeight: FontWeight.w500),
               ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildControlsRow(Track track, Color accent) {
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width - 32,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Shuffle
+            IconButton(
+              icon: Icon(
+                Icons.shuffle_rounded,
+                color: _isShuffle ? accent : Colors.white38,
+                size: 24,
+              ),
+              tooltip: _isShuffle ? 'Shuffle On' : 'Shuffle Off',
+              onPressed: () {
+                setState(() => _isShuffle = !_isShuffle);
+                widget.audioService.setShuffleModeEnabled(_isShuffle);
+                AppAlert.show(
+                  context,
+                  _isShuffle ? 'Shuffle enabled' : 'Shuffle disabled',
+                  icon: Icons.shuffle_rounded,
+                  isFullScreen: true,
+                );
+              },
+            ),
+
+            // Previous Track
+            IconButton(
+              icon: const Icon(Icons.skip_previous_rounded, color: Colors.white, size: 36),
+              tooltip: 'Previous Track',
+              onPressed: () => widget.audioService.skipToPrevious(),
+            ),
+
+            // Center Glowing Play/Pause Button (Reference Image 1 & 2)
+            GestureDetector(
+              onTap: () {
+                if (_isPlaying) {
+                  widget.audioService.pause();
+                } else {
+                  if (widget.audioService.player.audioSource == null) {
+                    widget.audioService.playTrack(track);
+                  } else {
+                    widget.audioService.resume(fallbackTrack: track);
+                  }
+                }
+              },
+              child: Container(
+                width: 66,
+                height: 66,
+                decoration: BoxDecoration(
+                  color: accent,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.35),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: (widget.audioService.isLoading && !_isPlaying && !widget.audioService.player.playing)
+                      ? SizedBox(
+                          width: 26,
+                          height: 26,
+                          child: CircularProgressIndicator(
+                            color: accent.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Icon(
+                          (_isPlaying || widget.audioService.player.playing)
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
+                          color: accent.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                          size: 40,
+                        ),
+                ),
+              ),
+            ),
+
+            // Next Track
+            IconButton(
+              icon: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 36),
+              tooltip: 'Next Track',
+              onPressed: () => widget.audioService.skipToNext(),
+            ),
+
+            // Repeat / Loop
+            IconButton(
+              icon: Icon(
+                _loopMode == LoopMode.one
+                    ? Icons.repeat_one_rounded
+                    : Icons.repeat_rounded,
+                color: _loopMode != LoopMode.off ? accent : Colors.white38,
+                size: 26,
+              ),
+              tooltip: _loopMode == LoopMode.off
+                  ? 'Repeat Off'
+                  : (_loopMode == LoopMode.one ? 'Repeat Track' : 'Repeat All'),
+              onPressed: () {
+                setState(() {
+                  if (_loopMode == LoopMode.off) {
+                    _loopMode = LoopMode.all;
+                  } else if (_loopMode == LoopMode.all) {
+                    _loopMode = LoopMode.one;
+                  } else {
+                    _loopMode = LoopMode.off;
+                  }
+                });
+                widget.audioService.setLoopMode(_loopMode);
+                AppAlert.show(
+                  context,
+                  _loopMode == LoopMode.one
+                      ? 'Loop current track'
+                      : (_loopMode == LoopMode.all ? 'Loop all tracks' : 'Loop disabled'),
+                  icon: _loopMode == LoopMode.one
+                      ? Icons.repeat_one_rounded
+                      : Icons.repeat_rounded,
+                  isFullScreen: true,
+                );
+              },
+            ),
+          ],
+        ),
       ),
-    ],
-  ),
-);
+    );
+  }
+
+  Widget _buildBottomSwipeIndicator(BuildContext context, Track track, Color accent) {
+    return GestureDetector(
+      onTap: () => _showPlaylistAndStudioSheet(context, track, accent),
+      onVerticalDragEnd: (details) {
+        if (details.primaryVelocity != null && details.primaryVelocity! < -80) {
+          _showPlaylistAndStudioSheet(context, track, accent);
+        }
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 6.0, bottom: 4.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white54, size: 18),
+                SizedBox(width: 4),
+                Text(
+                  'Tap or swipe up for Playlist & Sound Studio',
+                  style: TextStyle(
+                    color: Color(0xFFA1A1AA),
+                    fontSize: 11,
+                    letterSpacing: 0.3,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPlaylistAndStudioSheet(BuildContext context, Track track, Color accent) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF121214),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (sheetCtx) => DraggableScrollableSheet(
+        initialChildSize: 0.65,
+        minChildSize: 0.40,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (_, scrollCtrl) => ListView(
+          controller: scrollCtrl,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Quick Studio Hub
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Sound Studio & Queue',
+                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                  onPressed: () => Navigator.pop(sheetCtx),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Action Pills Grid
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildActionChip(
+                  icon: Icons.equalizer_rounded,
+                  label: 'Equalizer & 8D/16D',
+                  color: accent,
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      isScrollControlled: true,
+                      builder: (ctx) => const EqualizerSheet(),
+                    );
+                  },
+                ),
+                _buildActionChip(
+                  icon: Icons.stadium_rounded,
+                  label: 'Concert Arena',
+                  color: const Color(0xFF1DB954),
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ConcertView(
+                          audioService: widget.audioService,
+                          initialTrack: track,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                _buildActionChip(
+                  icon: Icons.speaker_group_rounded,
+                  label: 'Party / Jam',
+                  color: const Color(0xFF10B981),
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => PartyView(audioService: widget.audioService)),
+                    );
+                  },
+                ),
+                _buildActionChip(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: 'Lyrics',
+                  color: Colors.white70,
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (ctx) => LyricsView(track: track, audioService: widget.audioService),
+                      ),
+                    );
+                  },
+                ),
+                _buildActionChip(
+                  icon: Icons.bedtime_outlined,
+                  label: 'Sleep Timer',
+                  color: Colors.white70,
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    _showSleepTimerModal(context);
+                  },
+                ),
+                _buildActionChip(
+                  icon: Icons.speaker_outlined,
+                  label: 'Output Target',
+                  color: Colors.white70,
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    _showOutputTargetModal(context);
+                  },
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 18),
+
+            // Volume Control in Sheet
+            Row(
+              children: [
+                const Icon(Icons.volume_mute_rounded, color: Color(0xFF71717A), size: 20),
+                Expanded(
+                  child: SliderTheme(
+                    data: SliderThemeData(
+                      trackHeight: 3,
+                      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5),
+                      activeTrackColor: accent,
+                      inactiveTrackColor: const Color(0xFF27272A),
+                      thumbColor: accent,
+                    ),
+                    child: Slider(
+                      value: _volume,
+                      min: 0.0,
+                      max: 100.0,
+                      onChanged: (val) {
+                        setState(() => _volume = val);
+                        widget.audioService.setVolume(val);
+                      },
+                    ),
+                  ),
+                ),
+                const Icon(Icons.volume_up_rounded, color: Color(0xFF71717A), size: 20),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+            const Divider(color: Colors.white12),
+            const SizedBox(height: 8),
+
+            // Up Next Queue Preview
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'UP NEXT (${widget.audioService.queue.length})',
+                  style: const TextStyle(
+                    color: Color(0xFFA1A1AA),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(sheetCtx);
+                    _showQueueModal(context);
+                  },
+                  child: const Text('View All', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+
+            ...widget.audioService.queue.take(5).map((qTrack) => ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      qTrack.artworkUrl,
+                      width: 42,
+                      height: 42,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Container(
+                        width: 42,
+                        height: 42,
+                        color: const Color(0xFF222222),
+                        child: const Icon(Icons.music_note_rounded, color: Colors.white54, size: 20),
+                      ),
+                    ),
+                  ),
+                  title: Text(qTrack.title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600), maxLines: 1),
+                  subtitle: Text(qTrack.artist, style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12), maxLines: 1),
+                  trailing: qTrack.id == track.id
+                      ? const Icon(Icons.equalizer_rounded, color: Color(0xFF10B981), size: 20)
+                      : const Icon(Icons.play_arrow_rounded, color: Colors.white54, size: 22),
+                  onTap: () {
+                    Navigator.pop(sheetCtx);
+                    widget.audioService.playTrack(qTrack);
+                  },
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E22),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08), width: 0.8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 6),
+            Text(label, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showOutputTargetModal(BuildContext context) {

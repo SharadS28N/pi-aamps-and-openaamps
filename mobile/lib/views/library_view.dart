@@ -45,6 +45,7 @@ class LibraryView extends StatefulWidget {
 class _LibraryViewState extends State<LibraryView> {
   int _selectedFilterIndex = 0;
   final List<String> _filters = ['Library', 'Playlists', 'Downloaded', 'Songs', 'Albums', 'Artists', 'Folders', 'WebDAV'];
+  String _albumSortBy = 'Title';
 
   // WebDAV Controller state
   final TextEditingController _webDavUrlController = TextEditingController(text: 'https://cloud.example.com/remote.php/dav/files/user/Music/');
@@ -699,13 +700,14 @@ class _LibraryViewState extends State<LibraryView> {
             final topTrack = UserDataRepository.instance.history.firstOrNull?.track ??
                 UserDataRepository.instance.favorites.firstOrNull ??
                 Track(
-                  id: 'yKNxeF4KMsY',
-                  title: 'Yellow',
-                  artist: 'Coldplay',
-                  album: 'Parachutes',
-                  duration: const Duration(minutes: 4, seconds: 29),
-                  artworkUrl: 'https://i.ytimg.com/vi/yKNxeF4KMsY/hqdefault.jpg',
+                  id: '4NRXx6U8ABQ',
+                  title: 'Blinding Lights',
+                  artist: 'The Weeknd',
+                  album: 'After Hours',
+                  duration: const Duration(minutes: 3, seconds: 20),
+                  artworkUrl: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg',
                   streamUrl: '',
+                  codec: 'OPUS 160kbps',
                 );
 
             return GestureDetector(
@@ -1572,51 +1574,157 @@ class _LibraryViewState extends State<LibraryView> {
       ]);
     }
 
+    // Sort albums based on _albumSortBy
+    if (_albumSortBy == 'Artist') {
+      albums.sort((a, b) => a['artist']!.toLowerCase().compareTo(b['artist']!.toLowerCase()));
+    } else if (_albumSortBy == 'Year') {
+      albums.sort((a, b) => b['year']!.compareTo(a['year']!));
+    } else {
+      albums.sort((a, b) => a['title']!.toLowerCase().compareTo(b['title']!.toLowerCase()));
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Albums', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-        ...albums.map((alb) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                tileColor: const Color(0xFF141414),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    alb['cover']!,
-                    width: 46,
-                    height: 46,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: 46,
-                      height: 46,
-                      color: Colors.white12,
-                      child: const Icon(Icons.album_rounded, color: Colors.white54),
+        // Subhead Row: "Album" on left, "Sort by ▾" on right (Reference Image 1)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Album',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.3,
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Sort by',
+                  style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(width: 4),
+                PopupMenuButton<String>(
+                  color: const Color(0xFF1E202B),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  icon: const Icon(Icons.sort_rounded, color: Colors.white70, size: 18),
+                  onSelected: (val) {
+                    setState(() => _albumSortBy = val);
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'Title',
+                      child: Text('Title (${_albumSortBy == "Title" ? "✓" : ""})', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                    ),
+                    PopupMenuItem(
+                      value: 'Artist',
+                      child: Text('Artist (${_albumSortBy == "Artist" ? "✓" : ""})', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                    ),
+                    PopupMenuItem(
+                      value: 'Year',
+                      child: Text('Release Year (${_albumSortBy == "Year" ? "✓" : ""})', style: const TextStyle(color: Colors.white, fontSize: 13)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+
+        // 3-Column Album Grid (Reference Image 1 Screen 2)
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: albums.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 16,
+            childAspectRatio: 0.68,
+          ),
+          itemBuilder: (context, index) {
+            final alb = albums[index];
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AlbumView(
+                      albumTitle: alb['title']!,
+                      artistName: alb['artist']!,
+                      coverUrl: alb['cover']!,
+                      audioService: widget.audioService ?? AudioPlayerService(),
+                      onPlayTrack: widget.onPlayTrack,
                     ),
                   ),
-                ),
-                title: Text(alb['title']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                subtitle: Text('${alb['artist']} • ${alb['year']} • ${alb['songs']}', style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white38, size: 16),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => AlbumView(
-                        albumTitle: alb['title']!,
-                        artistName: alb['artist']!,
-                        coverUrl: alb['cover']!,
-                        audioService: widget.audioService ?? AudioPlayerService(),
-                        onPlayTrack: widget.onPlayTrack,
+                );
+              },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Squircle Album Cover
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.45),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Image.network(
+                          alb['cover']!,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Container(
+                            color: const Color(0xFF1E202B),
+                            child: const Center(
+                              child: Icon(Icons.album_rounded, color: Colors.white38, size: 28),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  );
-                },
+                  ),
+                  const SizedBox(height: 8),
+                  // Album Title
+                  Text(
+                    alb['title']!,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  // Artist Name
+                  Text(
+                    alb['artist']!,
+                    style: const TextStyle(
+                      color: Color(0xFFA1A1AA),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.normal,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-            )),
+            );
+          },
+        ),
       ],
     );
   }

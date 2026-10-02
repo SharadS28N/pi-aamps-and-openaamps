@@ -81,17 +81,19 @@
                 <img src="assets/app_icon.png" alt="OpenAamps" class="w-9 h-9 rounded-xl shadow border border-zinc-800 object-cover group-hover:scale-105 transition">
                 <div class="flex flex-col">
                     <span class="font-extrabold text-lg tracking-tight text-white heading-font leading-tight">OpenAamps</span>
-                    <span class="text-[10px] text-zinc-400 font-mono tracking-wider uppercase">Android App for pi-aamps</span>
+                    <span class="text-[10px] text-zinc-400 font-mono tracking-wider uppercase">Android &amp; iOS App for pi-aamps</span>
                 </div>
             </a>
 
             <!-- Navigation Links -->
-            <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
+            <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-zinc-400">
                 <a href="#about" class="hover:text-white transition">Overview</a>
                 <a href="#features" class="hover:text-white transition">Features</a>
-                <a href="#screenshots" class="hover:text-white transition">Screenshots</a>
+                <a href="#setup" class="hover:text-white transition">Setup Guide</a>
+                <a href="#docs" class="hover:text-white transition">Documentation</a>
+                <a href="#install" class="hover:text-white transition">Android APK</a>
+                <a href="#download-ios" class="hover:text-white transition">iOS iPhone</a>
                 <a href="#updates" class="hover:text-white transition">Changelog</a>
-                <a href="#install" class="hover:text-white transition">Install Guide</a>
             </nav>
 
             <!-- Action Buttons -->
@@ -312,6 +314,126 @@
             </div>
         </section>
 
+        <!-- Core Audio & Distributed Architecture Section -->
+        <section id="architecture" class="py-16 px-6 max-w-6xl mx-auto border-t border-zinc-900">
+            <div class="text-center max-w-3xl mx-auto mb-14">
+                <span class="text-xs font-mono tracking-widest text-emerald-400 uppercase font-bold">Under The Hood</span>
+                <h2 class="text-3xl md:text-5xl font-black text-white tracking-tight heading-font mt-2">
+                    Deep Audio Engine &amp; P2P Architecture
+                </h2>
+                <p class="text-zinc-400 text-sm md:text-base mt-3 leading-relaxed">
+                    How OpenAamps processes sound in 3D binaural space, synchronizes real-time jamming over local Wi-Fi without cloud dependencies, and powers the virtual concert stage.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <!-- Architecture Card 1: 8D/16D Binaural Audio -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white text-lg">
+                                <i class="fa-solid fa-headphones"></i>
+                            </span>
+                            <span class="badge-monochrome px-2.5 py-0.5 rounded-full text-[10px] font-mono text-cyan-400 font-bold">HRTF + DOPPLER</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">8D / 16D Binaural Spatializer</h3>
+                        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                            Audio sources rotate 360 degrees around the listener's head in headphones using physical acoustic models rather than simple volume fading.
+                        </p>
+                        <div class="space-y-2.5 bg-black/60 p-3.5 rounded-xl border border-zinc-800 text-[11px] font-mono text-zinc-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Azimuth Orbital:</span>
+                                <span class="text-white font-bold">θ(t) = ω · t (0° to 360°)</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Doppler Pitch:</span>
+                                <span class="text-white font-bold">Δf = ±0.8% micro-pitch</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Pinna HRTF:</span>
+                                <span class="text-white font-bold">-6dB muffle behind head</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Elevation Tilt:</span>
+                                <span class="text-white font-bold">Figure-8 harmonic (16D)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono text-zinc-500 mt-4 pt-3 border-t border-zinc-900">REAL-TIME 48kHz DSP MATRIX</span>
+                </div>
+
+                <!-- Architecture Card 2: Offline-First P2P Jamming -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white text-lg">
+                                <i class="fa-solid fa-users-rays"></i>
+                            </span>
+                            <span class="badge-monochrome px-2.5 py-0.5 rounded-full text-[10px] font-mono text-emerald-400 font-bold">100% OFFLINE P2P</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Wi-Fi Jamming &amp; Party Mode</h3>
+                        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                            Decentralized peer-to-peer playback synchronization over local Wi-Fi. Works completely without cloud servers, cellular data, or Firebase accounts.
+                        </p>
+                        <div class="space-y-2.5 bg-black/60 p-3.5 rounded-xl border border-zinc-800 text-[11px] font-mono text-zinc-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Direct IP Connect:</span>
+                                <span class="text-white font-bold">ws://&lt;host-ip&gt;:8765</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">UDP Peer Beacon:</span>
+                                <span class="text-white font-bold">255.255.255.255:8766</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Sync Precision:</span>
+                                <span class="text-white font-bold">&lt; 15ms clock drift</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Cloud Relay:</span>
+                                <span class="text-white font-bold">Optional Firestore WAN</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono text-zinc-500 mt-4 pt-3 border-t border-zinc-900">ZERO FIREBASE CRASH RESILIENCE</span>
+                </div>
+
+                <!-- Architecture Card 3: Virtual Concert Arena -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-700 flex items-center justify-center text-white text-lg">
+                                <i class="fa-solid fa-stadium"></i>
+                            </span>
+                            <span class="badge-monochrome px-2.5 py-0.5 rounded-full text-[10px] font-mono text-amber-400 font-bold">4 ACOUSTIC VENUES</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Live Concert Arena Stage</h3>
+                        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                            Transforms songs into live concerts with physical stage acoustics, interactive setlists, and synchronized crowd participation.
+                        </p>
+                        <div class="space-y-2.5 bg-black/60 p-3.5 rounded-xl border border-zinc-800 text-[11px] font-mono text-zinc-300">
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Stage Acoustics:</span>
+                                <span class="text-white font-bold">Stadium, Arena, Amphitheater</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Live Setlist:</span>
+                                <span class="text-white font-bold">1-tap instant track switch</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Crowd Engine:</span>
+                                <span class="text-white font-bold">Digital Lightstick Sync</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-zinc-500">Cheerboard:</span>
+                                <span class="text-white font-bold">Live reaction soundboard</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] font-mono text-zinc-500 mt-4 pt-3 border-t border-zinc-900">STAGE TELEMETRY &amp; AUDIO FX</span>
+                </div>
+            </div>
+        </section>
+
         <!-- Real Screenshots Gallery -->
         <section id="screenshots" class="py-16 px-6 max-w-6xl mx-auto border-t border-zinc-900">
             <div class="text-center max-w-2xl mx-auto mb-12">
@@ -395,6 +517,257 @@
                         <span class="text-[10px] font-mono text-blue-400 font-bold uppercase">System Integration</span>
                         <h4 class="text-sm font-bold text-white mt-0.5">Media Notification</h4>
                         <p class="text-xs text-zinc-400 mt-1">Native Android Media Session with lockscreen seekbar, track controls, and status bar drawer.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Complete Setup Guide Section -->
+        <section id="setup" class="py-16 px-6 max-w-5xl mx-auto border-t border-zinc-900">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span class="text-xs font-mono tracking-widest text-zinc-500 uppercase">Getting Started</span>
+                <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight heading-font mt-2">
+                    Complete Setup Guide
+                </h2>
+                <p class="text-zinc-400 text-sm mt-3">
+                    Choose your platform below for step-by-step setup in under two minutes.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <!-- Card 1: Raspberry Pi Hub -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white mb-4 text-xl">
+                            <i class="fa-solid fa-server"></i>
+                        </div>
+                        <span class="text-[10px] font-mono text-emerald-400 font-bold tracking-wider uppercase block mb-1">Hardware Hub</span>
+                        <h3 class="text-xl font-bold text-white mb-2">Raspberry Pi (pi-aamps)</h3>
+                        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                            Turn your Raspberry Pi 3B+, 4B, 5, or Zero 2W into a dedicated lossless audio receiver and web streaming station.
+                        </p>
+                        <ol class="space-y-3 text-xs text-zinc-300">
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">1</span>
+                                <span>Connect your Pi to your amplifier, soundbar, or DAC via 3.5mm, HDMI, USB, or I2S HAT.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">2</span>
+                                <span>Clone repository and launch the backend server:
+                                    <code class="block mt-1 bg-black p-2 rounded border border-zinc-800 font-mono text-[11px] text-zinc-300 select-all">python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000</code>
+                                </span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">3</span>
+                                <span>Open <code class="text-white">http://raspberrypi.local:8000</code> in your browser for the full web player.</span>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-zinc-800/80">
+                        <span class="text-[11px] font-mono text-zinc-500">Supports Bluetooth Sink &amp; Wi-Fi Lossless Casting</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Android Setup -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white mb-4 text-xl">
+                            <i class="fa-brands fa-android"></i>
+                        </div>
+                        <span class="text-[10px] font-mono text-sky-400 font-bold tracking-wider uppercase block mb-1">Mobile Client</span>
+                        <h3 class="text-xl font-bold text-white mb-2">Android (OpenAamps APK)</h3>
+                        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                            Standalone mobile music player with local DSP, 8D audio engine, and instant zero-config streaming.
+                        </p>
+                        <ol class="space-y-3 text-xs text-zinc-300">
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">1</span>
+                                <span>Download <code class="text-white">OpenAamps-v1.2.6.apk</code> directly from the download button below.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">2</span>
+                                <span>Tap the notification to install. If prompted, toggle "Install unknown apps" for your browser.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">3</span>
+                                <span>Launch OpenAamps. Tap "Continue as Guest" or sign in with Google to sync your playlists and start listening immediately.</span>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-zinc-800/80">
+                        <a href="/api/app/download" class="w-full py-2.5 rounded-full btn-white flex items-center justify-center gap-2 text-xs">
+                            <i class="fa-solid fa-download"></i>
+                            <span>Get Android APK (v1.2.6)</span>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card 3: iPhone / iOS Setup -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800 flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-white mb-4 text-xl">
+                            <i class="fa-brands fa-apple"></i>
+                        </div>
+                        <span class="text-[10px] font-mono text-purple-400 font-bold tracking-wider uppercase block mb-1">Apple iOS</span>
+                        <h3 class="text-xl font-bold text-white mb-2">iPhone &amp; iPad (iOS)</h3>
+                        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                            Three convenient ways to install on iOS 14.0+ with zero jailbreak required.
+                        </p>
+                        <ol class="space-y-3 text-xs text-zinc-300">
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">A</span>
+                                <span><strong>AltStore 1-Click:</strong> Tap "Add to AltStore" to register our official source and install seamlessly.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">B</span>
+                                <span><strong>Sideloadly (PC/Mac):</strong> Drag <code class="text-white">OpenAamps.ipa</code> into Sideloadly and install using any free Apple ID.</span>
+                            </li>
+                            <li class="flex items-start gap-2.5">
+                                <span class="w-5 h-5 rounded-full bg-zinc-800 text-zinc-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">C</span>
+                                <span><strong>Safari PWA:</strong> Tap Share &gt; Add to Home Screen for instant offline web player access.</span>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-zinc-800/80">
+                        <a href="#download-ios" class="w-full py-2.5 rounded-full btn-outline flex items-center justify-center gap-2 text-xs">
+                            <i class="fa-brands fa-apple"></i>
+                            <span>View iOS Options</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Documentation Section -->
+        <section id="docs" class="py-16 px-6 max-w-5xl mx-auto border-t border-zinc-900">
+            <div class="text-center max-w-2xl mx-auto mb-12">
+                <span class="text-xs font-mono tracking-widest text-zinc-500 uppercase">Architecture &amp; Specs</span>
+                <h2 class="text-3xl md:text-4xl font-black text-white tracking-tight heading-font mt-2">
+                    Technical Documentation
+                </h2>
+                <p class="text-zinc-400 text-sm mt-3">
+                    Overview of the core audio pipeline, network casting protocol, and DSP acoustic architecture.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Doc 1: Audio Pipeline -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-emerald-400">
+                            <i class="fa-solid fa-wave-square"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Audio Streaming &amp; Codecs</h3>
+                            <span class="text-[10px] font-mono text-zinc-500">Low-Latency PCM Pipeline</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                        OpenAamps negotiates direct stream delivery with progressive audio decoders. Streams are pre-buffered into memory using just_audio and ExoPlayer for Android and AVPlayer for iOS, preventing playback starvation even over variable mobile connections.
+                    </p>
+                    <div class="space-y-2 text-xs font-mono">
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Supported Formats</span>
+                            <span class="text-white">AAC, OPUS, MP3, FLAC, ALAC</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Sample Rate &amp; Depth</span>
+                            <span class="text-white">44.1 kHz - 96 kHz / 24-bit Hi-Res</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Lyrics Provider</span>
+                            <span class="text-white">LRCLIB Real-Time Synced LRC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doc 2: Sound Studio & DSP -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-purple-400">
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Sound Studio DSP &amp; 8D/16D</h3>
+                            <span class="text-[10px] font-mono text-zinc-500">Binaural Acoustic Virtualization</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                        Studio-grade audio processing with a 10-band ISO equalizer, 8D orbital spatial panning, surround sound virtualization, dynamic bass enhancement, and pitch/speed control without altering playback sample rates.
+                    </p>
+                    <div class="space-y-2 text-xs font-mono">
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Equalizer Bands</span>
+                            <span class="text-white">31Hz, 62Hz, 125Hz, 250Hz, 500Hz, 1kHz, 2kHz, 4kHz, 8kHz, 16kHz</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Presets Available</span>
+                            <span class="text-white">Flat, Bass Boost, Treble, Vocal, Rock, Pop, Jazz, Electronic</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Spatial Engines</span>
+                            <span class="text-white">8D Orbital, 16D Spherical, Reverb Concert</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doc 3: Wi-Fi Remote Casting -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-sky-400">
+                            <i class="fa-solid fa-tower-broadcast"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Local Network Discovery</h3>
+                            <span class="text-[10px] font-mono text-zinc-500">mDNS &amp; WebSocket Casting</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                        When both your mobile device and Raspberry Pi are on the same Wi-Fi network, OpenAamps discovers pi-aamps automatically. You can switch playback between your phone speakers and your home Hi-Fi system with zero audio dropouts.
+                    </p>
+                    <div class="space-y-2 text-xs font-mono">
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Default Service Port</span>
+                            <span class="text-white">8000 (HTTP / WebSocket)</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">State Synchronization</span>
+                            <span class="text-white">Full-duplex WebSocket telemetry</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Authentication</span>
+                            <span class="text-white">Local network session tokens / Guest mode</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doc 4: Online Concert Arena -->
+                <div class="glass-card p-6 md:p-8 rounded-2xl border border-zinc-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-center text-amber-400">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Online Concert Arena &amp; Jamming</h3>
+                            <span class="text-[10px] font-mono text-zinc-500">Synchronized Crowd Telemetry</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+                        The virtual concert arena syncs hundreds of simultaneous listeners to the same audio stream clock. Listeners can wave synchronized digital lightsticks, trigger crowd reactions, and share seat passes.
+                    </p>
+                    <div class="space-y-2 text-xs font-mono">
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Sync Precision</span>
+                            <span class="text-white">Sub-50ms NTP clock alignment</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Lightstick Palette</span>
+                            <span class="text-white">Custom RGB frequency reactive hex</span>
+                        </div>
+                        <div class="flex justify-between py-1.5 border-b border-zinc-800/60">
+                            <span class="text-zinc-500">Jamming Protocol</span>
+                            <span class="text-white">Shared queue voting &amp; DJ host delegation</span>
+                        </div>
                     </div>
                 </div>
             </div>

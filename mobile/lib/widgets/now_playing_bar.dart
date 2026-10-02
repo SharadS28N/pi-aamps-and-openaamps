@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/track.dart';
 import '../services/audio_player_service.dart';
 import '../services/settings_service.dart';
-import 'output_target_modal.dart';
 
 class NowPlayingBar extends StatelessWidget {
   final Track track;
@@ -50,21 +49,40 @@ class NowPlayingBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     child: Row(
                       children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.network(
-                            track.artworkUrl,
-                            width: 44,
-                            height: 44,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              width: 44,
-                              height: 44,
-                              color: const Color(0xFF222222),
-                              child: const Icon(Icons.music_note_rounded, color: Colors.white70, size: 20),
+                        // Circular Avatar with Glowing Ring (Reference Image 1)
+                        Container(
+                          width: 44,
+                          height: 44,
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                accent,
+                                const Color(0xFFEC4899),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: accent.withValues(alpha: 0.35),
+                                blurRadius: 8,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: Image.network(
+                              track.artworkUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                color: const Color(0xFF222222),
+                                child: const Icon(Icons.music_note_rounded, color: Colors.white70, size: 20),
+                              ),
                             ),
                           ),
                         ),
@@ -79,7 +97,7 @@ class NowPlayingBar extends StatelessWidget {
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 13.5,
                                   letterSpacing: -0.2,
                                 ),
                                 maxLines: 1,
@@ -90,7 +108,7 @@ class NowPlayingBar extends StatelessWidget {
                                 track.artist,
                                 style: const TextStyle(
                                   color: Color(0xFFA1A1AA),
-                                  fontSize: 12,
+                                  fontSize: 11.5,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -98,39 +116,34 @@ class NowPlayingBar extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // Target Switcher Button
-                        IconButton(
-                          icon: Icon(
-                            audioService.target == AudioTarget.piSpeaker
-                                ? Icons.radio_rounded
-                                : Icons.phone_android_rounded,
-                            color: audioService.target == AudioTarget.piSpeaker
-                                ? accent
-                                : Colors.white70,
-                            size: 22,
-                          ),
-                          tooltip: audioService.target == AudioTarget.piSpeaker
-                              ? 'Streaming to pi-aamps'
-                              : 'Playing on this Phone',
-                          onPressed: () {
-                            showModalBottomSheet(
-                              context: context,
-                              backgroundColor: Colors.transparent,
-                              builder: (modalCtx) => OutputTargetModal(
-                                currentTarget: audioService.target,
-                                onSelectTarget: (target) {
-                                  audioService.setAudioTarget(target);
-                                },
-                                piService: audioService.piService,
+                        // Duration Timestamp (Reference Image 1 e.g. "2:47")
+                        StreamBuilder<Duration>(
+                          stream: audioService.positionStream,
+                          builder: (context, snapshot) {
+                            final pos = snapshot.data ?? audioService.currentPosition;
+                            final m = pos.inMinutes;
+                            final s = (pos.inSeconds % 60).toString().padLeft(2, '0');
+                            return Text(
+                              '$m:$s',
+                              style: const TextStyle(
+                                color: Color(0xFFA1A1AA),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             );
                           },
+                        ),
+                        const SizedBox(width: 4),
+                        // Next Track Button
+                        IconButton(
+                          icon: const Icon(Icons.skip_next_rounded, color: Colors.white, size: 24),
+                          onPressed: () => audioService.skipToNext(),
                         ),
                         IconButton(
                           icon: Icon(
                             isPlaying ? Icons.pause_circle_filled_rounded : Icons.play_circle_fill_rounded,
                             color: accent,
-                            size: 36,
+                            size: 34,
                           ),
                           onPressed: onPlayPause,
                         ),

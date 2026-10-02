@@ -28,14 +28,14 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
   // Algorithmic curated recommendations
   final List<Track> _curatedQuickPicks = [
     Track(
-      id: 'yKNxeF4KMsY',
-      title: 'Yellow',
-      artist: 'Coldplay',
-      album: 'Parachutes',
-      duration: const Duration(minutes: 4, seconds: 29),
-      artworkUrl: 'https://i.ytimg.com/vi/yKNxeF4KMsY/hqdefault.jpg',
+      id: 'TUVcZfQe-Kw',
+      title: 'Levitating',
+      artist: 'Dua Lipa',
+      album: 'Future Nostalgia',
+      duration: const Duration(minutes: 3, seconds: 23),
+      artworkUrl: 'https://i.ytimg.com/vi/TUVcZfQe-Kw/hqdefault.jpg',
       streamUrl: '',
-      codec: 'AAC 320kbps',
+      codec: 'OPUS 160kbps',
     ),
     Track(
       id: '34Na4j8AVgA',

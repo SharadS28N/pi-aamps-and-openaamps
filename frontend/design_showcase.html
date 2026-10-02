@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#1e1e1e] text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figma — OpenAamps Mobile UI & Audio Architecture System</title>
+    <link rel="icon" type="image/png" href="assets/app_icon.png">
+
+    <!-- Tailwind CSS, FontAwesome 6, Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            user-select: none;
+            overflow: hidden;
+        }
+        .code-font {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .heading-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        /* Figma Dot Grid */
+        .figma-canvas {
+            background-color: #1e1e1e;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        /* Phone Mockup Frame */
+        .device-frame {
+            width: 375px;
+            height: 812px;
+            border-radius: 46px;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 12px #2b2b2e, 0 0 0 14px #404044;
+            position: relative;
+            overflow: hidden;
+            background: #000000;
+        }
+        /* iPhone Dynamic Island / Notch */
+        .device-notch {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 28px;
+            background: #000000;
+            border-radius: 20px;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 10px;
+        }
+        .circular-dial {
+            background: conic-gradient(#ec4899 0%, #a855f7 46%, #27272a 46% 100%);
+            border-radius: 50%;
+        }
+        .circular-dial-bass {
+            background: conic-gradient(#8b5cf6 0%, #3b82f6 80%, #27272a 80% 100%);
+            border-radius: 50%;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333333;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col bg-[#1e1e1e] text-white">
+
+    <!-- Figma Top Toolbar -->
+    <header class="h-12 bg-[#2c2c2c] border-b border-[#383838] flex items-center justify-between px-4 z-40 flex-shrink-0">
+        <!-- Left: Tool & Document Branding -->
+        <div class="flex items-center gap-3">
+            <div class="w-7 h-7 bg-black rounded-lg flex items-center justify-center p-1 border border-zinc-700 shadow">
+                <img src="assets/app_icon.png" alt="OpenAAMPS" class="w-full h-full object-contain">
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-white tracking-wide">OpenAAMPS Mobile Design System</span>
+                <span class="text-[10px] bg-zinc-700 text-zinc-300 px-1.5 py-0.5 rounded font-mono">v1.2.6</span>
+                <span class="text-zinc-500 text-xs">/ Production Spec</span>
+            </div>
+        </div>
+
+        <!-- Center: Figma Tools (Cursor, Hand, Frame, Comment) -->
+        <div class="flex items-center bg-[#1e1e1e] border border-[#383838] rounded-lg p-0.5 text-xs text-zinc-400">
+            <button class="px-2.5 py-1 bg-[#383838] text-white rounded font-medium flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-arrow-pointer text-xs"></i>
+                <span>Select</span>
+            </button>
+            <button class="px-2.5 py-1 hover:text-white rounded flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-hand text-xs"></i>
+                <span>Pan</span>
+            </button>
+            <button class="px-2.5 py-1 hover:text-white rounded flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-crop-simple text-xs"></i>
+                <span>Frame</span>
+            </button>
+            <button class="px-2.5 py-1 hover:text-white rounded flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-comment text-xs"></i>
+                <span>Review</span>
+            </button>
+        </div>
+
+        <!-- Right: Zoom, Mode & Launch Buttons -->
+        <div class="flex items-center gap-3">
+            <div class="flex items-center bg-[#1e1e1e] border border-[#383838] rounded-lg px-2.5 py-1 text-xs text-zinc-300 font-mono">
+                <i class="fa-solid fa-magnifying-glass text-[10px] mr-1.5 text-zinc-500"></i>
+                <span id="zoom-level">85%</span>
+            </div>
+            <a href="/" class="px-3 py-1.5 bg-white text-black hover:bg-zinc-200 text-xs font-bold rounded-lg flex items-center gap-1.5 transition shadow">
+                <i class="fa-solid fa-play text-[10px]"></i>
+                <span>Boot Web Player</span>
+            </a>
+            <a href="/download" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-semibold rounded-lg border border-zinc-700 flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-download text-[10px]"></i>
+                <span>Download App</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Figma Main Area: Layers Tree + Canvas + Inspector -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Left Sidebar: Pages & Layers -->
+        <aside class="w-64 bg-[#252525] border-r border-[#383838] flex flex-col justify-between flex-shrink-0 text-xs">
+            <div class="p-3 border-b border-[#383838]">
+                <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold">Pages</span>
+                <div class="mt-2 space-y-1">
+                    <div class="px-2.5 py-1.5 bg-[#383838] text-white rounded font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-zinc-400 text-xs"></i>
+                        <span>Mobile Reference Screens</span>
+                    </div>
+                    <div class="px-2.5 py-1.5 text-zinc-400 hover:text-white hover:bg-[#2c2c2c] rounded cursor-pointer transition flex items-center gap-2">
+                        <i class="fa-solid fa-swatchbook text-zinc-500 text-xs"></i>
+                        <span>Design Tokens &amp; Theme</span>
+                    </div>
+                    <div class="px-2.5 py-1.5 text-zinc-400 hover:text-white hover:bg-[#2c2c2c] rounded cursor-pointer transition flex items-center gap-2">
+                        <i class="fa-solid fa-microchip text-zinc-500 text-xs"></i>
+                        <span>8D/16D Audio Engine Matrix</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Layers Panel -->
+            <div class="flex-1 overflow-y-auto p-3 space-y-3">
+                <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold">Artboards</span>
+                <div class="space-y-1 font-mono text-[11px]" id="artboard-nav-list">
+                    <div class="artboard-nav-item px-2 py-1 bg-blue-500/20 text-blue-300 border border-blue-500/40 rounded flex items-center gap-2 cursor-pointer transition" data-target="artboard-frame-1">
+                        <i class="fa-solid fa-mobile text-xs"></i>
+                        <span>Frame 1: Now Playing</span>
+                    </div>
+                    <div class="artboard-nav-item px-2 py-1 text-zinc-400 hover:text-white hover:bg-[#2c2c2c] rounded flex items-center gap-2 cursor-pointer transition" data-target="artboard-frame-2">
+                        <i class="fa-solid fa-mobile text-xs"></i>
+                        <span>Frame 2: 3-Col Library</span>
+                    </div>
+                    <div class="artboard-nav-item px-2 py-1 text-zinc-400 hover:text-white hover:bg-[#2c2c2c] rounded flex items-center gap-2 cursor-pointer transition" data-target="artboard-frame-3">
+                        <i class="fa-solid fa-mobile text-xs"></i>
+                        <span>Frame 3: Studio Equalizer</span>
+                    </div>
+                    <div class="artboard-nav-item px-2 py-1 text-zinc-400 hover:text-white hover:bg-[#2c2c2c] rounded flex items-center gap-2 cursor-pointer transition" data-target="artboard-frame-4">
+                        <i class="fa-solid fa-mobile text-xs"></i>
+                        <span>Frame 4: Home "Let The Music"</span>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-[#383838]">
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold">Specs Summary</span>
+                    <div class="mt-2 space-y-2 text-[11px] text-zinc-300">
+                        <div class="flex justify-between">
+                            <span class="text-zinc-500">Framework:</span>
+                            <span class="font-mono text-white">Flutter Native</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-zinc-500">Aspect Ratio:</span>
+                            <span class="font-mono text-white">9:19.5 (375x812)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-zinc-500">Color Profile:</span>
+                            <span class="font-mono text-white">Display P3 / AMOLED</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-zinc-500">Overflow Status:</span>
+                            <span class="font-mono text-emerald-400 font-bold">0px (100% Scaled)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Branding -->
+            <div class="p-3 border-t border-[#383838] flex items-center gap-2">
+                <img src="assets/emblem_dark.png" alt="OpenAamps" class="w-5 h-5 object-contain">
+                <span class="text-[10px] text-zinc-400 font-mono">OpenAamps UI Lab • 2026</span>
+            </div>
+        </aside>
+
+        <!-- Center: Figma Endless Canvas -->
+        <main class="flex-1 figma-canvas overflow-auto p-12 flex items-center justify-start gap-12">
+
+            <!-- FRAME 1: NOW PLAYING (Matches Reference Image 1 Screen 1 & Reference Image 2 Screen 2) -->
+            <div id="artboard-frame-1" class="flex flex-col items-center">
+                <div class="flex items-center gap-2 mb-3 text-xs font-mono text-zinc-400">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span class="font-bold text-white">Frame 1: Now Playing View</span>
+                    <span>(Reference 1 &amp; 2)</span>
+                </div>
+                <div class="device-frame flex flex-col justify-between p-6">
+                    <div class="device-notch">
+                        <span class="text-[10px] font-bold text-white ml-2">9:41</span>
+                        <div class="flex items-center gap-1.5 mr-2">
+                            <i class="fa-solid fa-signal text-[9px] text-white"></i>
+                            <i class="fa-solid fa-wifi text-[9px] text-white"></i>
+                            <i class="fa-solid fa-battery-full text-[10px] text-white"></i>
+                        </div>
+                    </div>
+
+                    <!-- Top Bar -->
+                    <div class="flex items-center justify-between mt-8">
+                        <i class="fa-solid fa-chevron-left text-zinc-300 text-sm cursor-pointer"></i>
+                        <span class="text-xs font-bold text-white tracking-widest uppercase">Now Playing</span>
+                        <i class="fa-solid fa-magnifying-glass text-zinc-300 text-sm cursor-pointer"></i>
+                    </div>
+
+                    <!-- Album Art Squircle -->
+                    <div class="my-auto flex justify-center py-4">
+                        <div class="w-64 h-64 rounded-[28px] overflow-hidden shadow-2xl border border-white/10 relative group">
+                            <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80" alt="Dangerous Woman" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                            <div class="absolute top-4 left-4 text-[11px] font-bold tracking-widest uppercase text-white/80 font-mono">
+                                DANGEROUS WOMAN
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Track Meta (Artist above title) -->
+                    <div class="text-center space-y-1">
+                        <p class="text-sm font-medium text-zinc-400">Ariana Grande</p>
+                        <h2 class="text-2xl font-bold text-white tracking-tight">Dangerous Woman</h2>
+                    </div>
+
+                    <!-- Waveform / Seekbar -->
+                    <div class="mt-5 space-y-2">
+                        <div class="h-1.5 w-full bg-zinc-800 rounded-full relative overflow-hidden">
+                            <div class="h-full w-[45%] bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                            <span>1:45</span>
+                            <span class="text-[9px] px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-300">OPUS 160k</span>
+                            <span>3:25</span>
+                        </div>
+                    </div>
+
+                    <!-- Clean 5-Button Controls Row -->
+                    <div class="flex items-center justify-between px-2 mt-4">
+                        <i class="fa-solid fa-shuffle text-zinc-500 text-sm hover:text-white transition cursor-pointer"></i>
+                        <i class="fa-solid fa-backward-step text-white text-xl hover:scale-110 transition cursor-pointer"></i>
+                        <!-- Glowing Center Play/Pause -->
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-[0_0_24px_rgba(168,85,247,0.45)] hover:scale-105 transition cursor-pointer">
+                            <i class="fa-solid fa-pause"></i>
+                        </div>
+                        <i class="fa-solid fa-forward-step text-white text-xl hover:scale-110 transition cursor-pointer"></i>
+                        <i class="fa-solid fa-repeat text-zinc-500 text-sm hover:text-white transition cursor-pointer"></i>
+                    </div>
+
+                    <!-- Bottom Swipe Up -->
+                    <div class="flex items-center justify-between pt-4 border-t border-zinc-900/60 mt-4">
+                        <div class="w-6"></div>
+                        <div class="flex flex-col items-center cursor-pointer">
+                            <i class="fa-solid fa-chevron-up text-zinc-500 text-xs"></i>
+                            <span class="text-[10px] text-zinc-500 tracking-wider">Swipe up for playlist</span>
+                        </div>
+                        <i class="fa-regular fa-heart text-zinc-400 text-base cursor-pointer hover:text-pink-500 transition"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRAME 2: 3-COLUMN ALBUM LIBRARY (Matches Reference Image 1 Screen 2) -->
+            <div id="artboard-frame-2" class="flex flex-col items-center">
+                <div class="flex items-center gap-2 mb-3 text-xs font-mono text-zinc-400">
+                    <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                    <span class="font-bold text-white">Frame 2: 3-Column Album Grid</span>
+                    <span>(Reference 1 Screen 2)</span>
+                </div>
+                <div class="device-frame flex flex-col justify-between p-5">
+                    <div class="device-notch">
+                        <span class="text-[10px] font-bold text-white ml-2">9:41</span>
+                        <div class="flex items-center gap-1.5 mr-2">
+                            <i class="fa-solid fa-signal text-[9px] text-white"></i>
+                            <i class="fa-solid fa-wifi text-[9px] text-white"></i>
+                            <i class="fa-solid fa-battery-full text-[10px] text-white"></i>
+                        </div>
+                    </div>
+
+                    <!-- Top Bar -->
+                    <div class="flex items-center justify-between mt-8 mb-4">
+                        <i class="fa-solid fa-bars text-zinc-300 text-sm cursor-pointer"></i>
+                        <span class="text-sm font-bold text-white">Library</span>
+                        <i class="fa-solid fa-magnifying-glass text-zinc-300 text-sm cursor-pointer"></i>
+                    </div>
+
+                    <!-- Subhead: Album + Sort By -->
+                    <div class="flex items-center justify-between mb-3 px-1">
+                        <span class="text-base font-bold text-white">Album</span>
+                        <div class="flex items-center gap-1 text-xs text-zinc-400 cursor-pointer hover:text-white">
+                            <span>Sort by</span>
+                            <i class="fa-solid fa-sort text-[10px]"></i>
+                        </div>
+                    </div>
+
+                    <!-- 3-Column Grid of Squircles -->
+                    <div class="grid grid-cols-3 gap-3 overflow-hidden flex-1">
+                        <!-- Card 1 -->
+                        <div class="space-y-1">
+                            <div class="w-full aspect-square rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+                                <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80" alt="Lover Boy" class="w-full h-full object-cover">
+                            </div>
+                            <p class="text-xs font-bold text-white truncate">Lover Boy</p>
+                            <p class="text-[10px] text-zinc-400 truncate">Bjuri Amix</p>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="space-y-1">
+                            <div class="w-full aspect-square rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+                                <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=300&q=80" alt="You & Me" class="w-full h-full object-cover">
+                            </div>
+                            <p class="text-xs font-bold text-white truncate">You &amp; Me</p>
+                            <p class="text-[10px] text-zinc-400 truncate">Authme</p>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="space-y-1">
+                            <div class="w-full aspect-square rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+                                <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=300&q=80" alt="Mine" class="w-full h-full object-cover">
+                            </div>
+                            <p class="text-xs font-bold text-white truncate">Mine</p>
+                            <p class="text-[10px] text-zinc-400 truncate">Prilly Amnez</p>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="space-y-1">
+                            <div class="w-full aspect-square rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+                                <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=300&q=80" alt="When You Die" class="w-full h-full object-cover">
+                            </div>
+                            <p class="text-xs font-bold text-white truncate">When You Die</p>
+                            <p class="text-[10px] text-zinc-400 truncate">Miella Faa</p>
+                        </div>
+                        <!-- Card 5 -->
+                        <div class="space-y-1">
+                            <div class="w-full aspect-square rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+                                <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=300&q=80" alt="Lemon Tree" class="w-full h-full object-cover">
+                            </div>
+                            <p class="text-xs font-bold text-white truncate">Lemon Tree</p>
+                            <p class="text-[10px] text-zinc-400 truncate">Tria Nees</p>
+                        </div>
+                        <!-- Card 6 -->
+                        <div class="space-y-1">
+                            <div class="w-full aspect-square rounded-2xl overflow-hidden bg-zinc-900 border border-white/10">
+                                <img src="https://images.unsplash.com/photo-1487180144351-b8472da7d491?auto=format&fit=crop&w=300&q=80" alt="Do You Love?" class="w-full h-full object-cover">
+                            </div>
+                            <p class="text-xs font-bold text-white truncate">Do You Love?</p>
+                            <p class="text-[10px] text-zinc-400 truncate">Cnthya</p>
+                        </div>
+                    </div>
+
+                    <!-- Mini Player at Bottom with Glowing Circular Avatar -->
+                    <div class="mt-3 p-2.5 rounded-2xl bg-[#141416] border border-white/10 flex items-center justify-between shadow-xl">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-10 h-10 rounded-full p-0.5 bg-gradient-to-tr from-pink-500 to-purple-500 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=150&q=80" alt="Dangerous Woman" class="w-full h-full object-cover rounded-full">
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-white leading-tight">Dangerous Woman</p>
+                                <p class="text-[10px] text-zinc-400">Iffan Arifian</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-mono text-zinc-400">2:47</span>
+                            <i class="fa-solid fa-forward-step text-white text-xs cursor-pointer hover:scale-110"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRAME 3: STUDIO EQUALIZER & DUAL DIALS (Matches Reference Image 1 Screen 3) -->
+            <div id="artboard-frame-3" class="flex flex-col items-center">
+                <div class="flex items-center gap-2 mb-3 text-xs font-mono text-zinc-400">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    <span class="font-bold text-white">Frame 3: Equalizer &amp; Dials</span>
+                    <span>(Reference 1 Screen 3)</span>
+                </div>
+                <div class="device-frame flex flex-col justify-between p-6">
+                    <div class="device-notch">
+                        <span class="text-[10px] font-bold text-white ml-2">9:41</span>
+                        <div class="flex items-center gap-1.5 mr-2">
+                            <i class="fa-solid fa-signal text-[9px] text-white"></i>
+                            <i class="fa-solid fa-wifi text-[9px] text-white"></i>
+                            <i class="fa-solid fa-battery-full text-[10px] text-white"></i>
+                        </div>
+                    </div>
+
+                    <!-- Top Bar -->
+                    <div class="flex items-center justify-between mt-8 mb-4">
+                        <i class="fa-solid fa-chevron-left text-zinc-300 text-sm cursor-pointer"></i>
+                        <span class="text-sm font-bold text-white">Equalizer</span>
+                        <div class="w-8 h-4 rounded-full bg-purple-500 flex items-center justify-end px-0.5 cursor-pointer">
+                            <div class="w-3 h-3 rounded-full bg-white shadow"></div>
+                        </div>
+                    </div>
+
+                    <!-- Preset Row -->
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-sm font-bold text-white">Preset</span>
+                        <div class="px-3 py-1 rounded-lg bg-[#1a1a1c] border border-white/10 text-xs font-medium text-white flex items-center gap-2 cursor-pointer">
+                            <span>Rock</span>
+                            <i class="fa-solid fa-chevron-down text-[10px] text-zinc-400"></i>
+                        </div>
+                    </div>
+
+                    <!-- 5 dB Vertical Sliders -->
+                    <div class="flex items-end justify-between px-2 h-44 mb-6 relative">
+                        <div class="absolute inset-y-0 left-0 flex flex-col justify-between text-[9px] font-mono text-zinc-500">
+                            <span>10</span>
+                            <span>0</span>
+                            <span>-10</span>
+                        </div>
+                        <!-- Slider 1 -->
+                        <div class="flex flex-col items-center gap-2 flex-1 ml-4">
+                            <div class="w-1 h-32 bg-zinc-800 rounded-full relative flex items-center justify-center">
+                                <div class="absolute bottom-0 w-full h-[65%] bg-purple-500 rounded-full"></div>
+                                <div class="absolute bottom-[65%] w-3.5 h-3.5 rounded-full bg-white shadow-lg border border-purple-500"></div>
+                            </div>
+                            <span class="text-[9px] font-mono text-zinc-400">40 Hz</span>
+                        </div>
+                        <!-- Slider 2 -->
+                        <div class="flex flex-col items-center gap-2 flex-1">
+                            <div class="w-1 h-32 bg-zinc-800 rounded-full relative flex items-center justify-center">
+                                <div class="absolute bottom-0 w-full h-[80%] bg-purple-500 rounded-full"></div>
+                                <div class="absolute bottom-[80%] w-3.5 h-3.5 rounded-full bg-white shadow-lg border border-purple-500"></div>
+                            </div>
+                            <span class="text-[9px] font-mono text-zinc-400">131 Hz</span>
+                        </div>
+                        <!-- Slider 3 -->
+                        <div class="flex flex-col items-center gap-2 flex-1">
+                            <div class="w-1 h-32 bg-zinc-800 rounded-full relative flex items-center justify-center">
+                                <div class="absolute bottom-0 w-full h-[45%] bg-purple-500 rounded-full"></div>
+                                <div class="absolute bottom-[45%] w-3.5 h-3.5 rounded-full bg-white shadow-lg border border-purple-500"></div>
+                            </div>
+                            <span class="text-[9px] font-mono text-zinc-400">261 Hz</span>
+                        </div>
+                        <!-- Slider 4 -->
+                        <div class="flex flex-col items-center gap-2 flex-1">
+                            <div class="w-1 h-32 bg-zinc-800 rounded-full relative flex items-center justify-center">
+                                <div class="absolute bottom-0 w-full h-[70%] bg-purple-500 rounded-full"></div>
+                                <div class="absolute bottom-[70%] w-3.5 h-3.5 rounded-full bg-white shadow-lg border border-purple-500"></div>
+                            </div>
+                            <span class="text-[9px] font-mono text-zinc-400">90 kHz</span>
+                        </div>
+                        <!-- Slider 5 -->
+                        <div class="flex flex-col items-center gap-2 flex-1">
+                            <div class="w-1 h-32 bg-zinc-800 rounded-full relative flex items-center justify-center">
+                                <div class="absolute bottom-0 w-full h-[55%] bg-purple-500 rounded-full"></div>
+                                <div class="absolute bottom-[55%] w-3.5 h-3.5 rounded-full bg-white shadow-lg border border-purple-500"></div>
+                            </div>
+                            <span class="text-[9px] font-mono text-zinc-400">87 kHz</span>
+                        </div>
+                    </div>
+
+                    <!-- Dual Circular Dials: Sourround 46% & Bass Booster 80% -->
+                    <div class="grid grid-cols-2 gap-4 my-2">
+                        <!-- Dial 1 -->
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-20 h-20 circular-dial p-2 flex items-center justify-center relative shadow-lg">
+                                <div class="w-16 h-16 rounded-full bg-[#121214] flex flex-col items-center justify-center">
+                                    <span class="text-sm font-bold text-white font-mono">46<span class="text-[10px]">%</span></span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-white mt-2">Sourround</span>
+                            <span class="text-[9px] text-zinc-400 max-w-[120px] mt-0.5 leading-tight">Adding surround sound speakers next level</span>
+                        </div>
+                        <!-- Dial 2 -->
+                        <div class="flex flex-col items-center text-center">
+                            <div class="w-20 h-20 circular-dial-bass p-2 flex items-center justify-center relative shadow-lg">
+                                <div class="w-16 h-16 rounded-full bg-[#121214] flex flex-col items-center justify-center">
+                                    <span class="text-sm font-bold text-white font-mono">80<span class="text-[10px]">%</span></span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-white mt-2">Bass Booster</span>
+                            <span class="text-[9px] text-zinc-400 max-w-[120px] mt-0.5 leading-tight">Bassbooster speakers next level audio</span>
+                        </div>
+                    </div>
+
+                    <!-- Mini Player Bottom -->
+                    <div class="mt-4 p-2.5 rounded-2xl bg-[#141416] border border-white/10 flex items-center justify-between shadow-xl">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-9 h-9 rounded-full p-0.5 bg-gradient-to-tr from-pink-500 to-purple-500 overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=150&q=80" alt="Dangerous Woman" class="w-full h-full object-cover rounded-full">
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-white leading-tight">Dangerous Woman</p>
+                                <p class="text-[10px] text-zinc-400">Iffan Arifian</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-[10px] font-mono text-zinc-400">2:47</span>
+                            <i class="fa-solid fa-forward-step text-white text-xs cursor-pointer"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FRAME 4: HOME VIEW "LET THE MUSIC TAKE YOU AWAY" (Matches Reference Image 2 Screen 1) -->
+            <div id="artboard-frame-4" class="flex flex-col items-center">
+                <div class="flex items-center gap-2 mb-3 text-xs font-mono text-zinc-400">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span class="font-bold text-white">Frame 4: Home Stream</span>
+                    <span>(Reference 2 Screen 1)</span>
+                </div>
+                <div class="device-frame flex flex-col justify-between p-6">
+                    <div class="device-notch">
+                        <span class="text-[10px] font-bold text-white ml-2">9:41</span>
+                        <div class="flex items-center gap-1.5 mr-2">
+                            <i class="fa-solid fa-signal text-[9px] text-white"></i>
+                            <i class="fa-solid fa-wifi text-[9px] text-white"></i>
+                            <i class="fa-solid fa-battery-full text-[10px] text-white"></i>
+                        </div>
+                    </div>
+
+                    <!-- Top Bar -->
+                    <div class="flex items-center justify-between mt-8 mb-4">
+                        <i class="fa-solid fa-bars-staggered text-zinc-300 text-sm cursor-pointer"></i>
+                        <div class="w-4"></div>
+                        <i class="fa-solid fa-magnifying-glass text-zinc-300 text-sm cursor-pointer"></i>
+                    </div>
+
+                    <!-- Display Headline (Reference Image 2 Screen 1) -->
+                    <div class="mb-4">
+                        <h1 class="text-2xl font-black text-white leading-tight tracking-tight heading-font">
+                            Let The Music<br>Take You Away
+                        </h1>
+                    </div>
+
+                    <!-- Section: Recent (Horizontal Squircles) -->
+                    <div class="space-y-2 mb-4">
+                        <span class="text-xs font-bold text-zinc-300">Recent</span>
+                        <div class="flex items-center gap-3 overflow-x-hidden">
+                            <div class="w-16 space-y-1">
+                                <div class="w-16 h-16 rounded-2xl bg-zinc-800 overflow-hidden border border-white/10">
+                                    <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=150&q=80" alt="Rockstar" class="w-full h-full object-cover">
+                                </div>
+                                <span class="block text-[10px] font-semibold text-white truncate">Rockstar</span>
+                            </div>
+                            <div class="w-16 space-y-1">
+                                <div class="w-16 h-16 rounded-2xl bg-zinc-800 overflow-hidden border border-white/10">
+                                    <img src="https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=150&q=80" alt="The Box" class="w-full h-full object-cover">
+                                </div>
+                                <span class="block text-[10px] font-semibold text-white truncate">The Box</span>
+                            </div>
+                            <div class="w-16 space-y-1">
+                                <div class="w-16 h-16 rounded-2xl bg-zinc-800 overflow-hidden border border-white/10">
+                                    <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=150&q=80" alt="Blinding Lights" class="w-full h-full object-cover">
+                                </div>
+                                <span class="block text-[10px] font-semibold text-white truncate">Blinding Lights</span>
+                            </div>
+                            <div class="w-16 space-y-1">
+                                <div class="w-16 h-16 rounded-2xl bg-zinc-800 overflow-hidden border border-white/10">
+                                    <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=150&q=80" alt="Wishing" class="w-full h-full object-cover">
+                                </div>
+                                <span class="block text-[10px] font-semibold text-white truncate">Wishing</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Popular Songs (Featured with Floating Play Button) -->
+                    <div class="space-y-2 mb-2 flex-1">
+                        <span class="text-xs font-bold text-zinc-300">Popular Songs</span>
+                        <div class="relative w-full h-36 rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+                            <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=600&q=80" alt="Midnight Sky" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                            <div class="absolute bottom-4 left-4">
+                                <p class="text-sm font-bold text-white">Midnight Sky</p>
+                                <p class="text-[11px] text-zinc-300">Miley Cyrus</p>
+                            </div>
+                            <!-- Floating Orange Play Button -->
+                            <div class="absolute bottom-3 right-4 w-12 h-12 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 flex items-center justify-center text-white text-lg shadow-[0_0_20px_rgba(249,115,22,0.6)] cursor-pointer hover:scale-105 transition">
+                                <i class="fa-solid fa-play ml-0.5"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Nav (Reference Image 2 Screen 1) -->
+                    <div class="p-3 bg-[#141416]/90 backdrop-blur rounded-2xl border border-white/5 flex items-center justify-around text-zinc-500">
+                        <i class="fa-solid fa-music text-orange-500 text-sm"></i>
+                        <i class="fa-solid fa-compass text-sm hover:text-white transition"></i>
+                        <i class="fa-solid fa-bell text-sm hover:text-white transition"></i>
+                        <i class="fa-solid fa-user text-sm hover:text-white transition"></i>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Right Sidebar: Inspector Panel & Design Tokens -->
+        <aside class="w-80 bg-[#252525] border-l border-[#383838] flex flex-col justify-between flex-shrink-0 text-xs overflow-y-auto">
+            <div class="p-4 border-b border-[#383838]">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold">Inspect Tokens</span>
+                    <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-mono">LIVE CSS</span>
+                </div>
+                <h3 class="text-sm font-bold text-white mb-1">OpenAAMPS Core Design System</h3>
+                <p class="text-[11px] text-zinc-400 leading-relaxed">
+                    Extracted from production Flutter themes &amp; reference specifications.
+                </p>
+            </div>
+
+            <!-- Color Palette Swatches -->
+            <div class="p-4 border-b border-[#383838] space-y-3">
+                <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold">Color Hierarchy</span>
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between p-2 rounded bg-[#1e1e1e] border border-[#333333]">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md bg-[#000000] border border-zinc-700"></div>
+                            <div>
+                                <p class="text-xs font-semibold text-white">AMOLED True Black</p>
+                                <p class="text-[10px] font-mono text-zinc-500">#000000</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono text-zinc-400">Background</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded bg-[#1e1e1e] border border-[#333333]">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md bg-[#141416] border border-zinc-700"></div>
+                            <div>
+                                <p class="text-xs font-semibold text-white">Zinc Surface / Card</p>
+                                <p class="text-[10px] font-mono text-zinc-500">#141416</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono text-zinc-400">Containers</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded bg-[#1e1e1e] border border-[#333333]">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md bg-[#a855f7] shadow-[0_0_10px_rgba(168,85,247,0.5)]"></div>
+                            <div>
+                                <p class="text-xs font-semibold text-white">Electric Purple Accent</p>
+                                <p class="text-[10px] font-mono text-zinc-500">#A855F7</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono text-zinc-400">Primary UI</span>
+                    </div>
+
+                    <div class="flex items-center justify-between p-2 rounded bg-[#1e1e1e] border border-[#333333]">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-5 h-5 rounded-md bg-[#f97316] shadow-[0_0_10px_rgba(249,115,22,0.5)]"></div>
+                            <div>
+                                <p class="text-xs font-semibold text-white">Neon Sunset Orange</p>
+                                <p class="text-[10px] font-mono text-zinc-500">#F97316</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] font-mono text-zinc-400">Home Accent</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Typography & Radii Tokens -->
+            <div class="p-4 space-y-4">
+                <div>
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold">Typography Tokens</span>
+                    <div class="mt-2 space-y-1.5 font-mono text-[11px] text-zinc-300">
+                        <div class="flex justify-between border-b border-[#333333] pb-1">
+                            <span class="text-zinc-500">Display (Home):</span>
+                            <span class="text-white">Space Grotesk 800 (28pt)</span>
+                        </div>
+                        <div class="flex justify-between border-b border-[#333333] pb-1">
+                            <span class="text-zinc-500">Headline (Player):</span>
+                            <span class="text-white">Inter Bold (22pt)</span>
+                        </div>
+                        <div class="flex justify-between border-b border-[#333333] pb-1">
+                            <span class="text-zinc-500">Subhead (Artist):</span>
+                            <span class="text-white">Inter Medium (14pt)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-zinc-500">Timestamps/DSP:</span>
+                            <span class="text-white">JetBrains Mono (11pt)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <span class="text-[10px] font-mono uppercase tracking-wider text-zinc-400 font-bold">Radii &amp; Elevation</span>
+                    <div class="mt-2 space-y-1.5 font-mono text-[11px] text-zinc-300">
+                        <div class="flex justify-between border-b border-[#333333] pb-1">
+                            <span class="text-zinc-500">Player Artwork:</span>
+                            <span class="text-white">28px squircle</span>
+                        </div>
+                        <div class="flex justify-between border-b border-[#333333] pb-1">
+                            <span class="text-zinc-500">Library Cards:</span>
+                            <span class="text-white">16px squircle</span>
+                        </div>
+                        <div class="flex justify-between border-b border-[#333333] pb-1">
+                            <span class="text-zinc-500">Play/Pause Pill:</span>
+                            <span class="text-white">9999px circular</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-zinc-500">Shadow Blur:</span>
+                            <span class="text-white">24px @ 35% opacity</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Code Snippet Button -->
+            <div class="p-4 border-t border-[#383838]">
+                <button id="copy-tokens-btn" class="w-full py-2 bg-[#333333] hover:bg-[#404040] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 transition">
+                    <i class="fa-solid fa-copy text-xs"></i>
+                    <span id="copy-tokens-text">Copy Token CSS / Dart</span>
+                </button>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Interactive Navigation & Canvas Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navItems = document.querySelectorAll('.artboard-nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    const targetId = item.getAttribute('data-target');
+                    const targetEl = document.getElementById(targetId);
+                    if (targetEl) {
+                        targetEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'center' });
+                        navItems.forEach(n => {
+                            n.classList.remove('bg-blue-500/20', 'text-blue-300', 'border', 'border-blue-500/40');
+                            n.classList.add('text-zinc-400');
+                        });
+                        item.classList.add('bg-blue-500/20', 'text-blue-300', 'border', 'border-blue-500/40');
+                        item.classList.remove('text-zinc-400');
+                    }
+                });
+            });
+
+            // Token Copy with inline feedback
+            const copyBtn = document.getElementById('copy-tokens-btn');
+            const copyText = document.getElementById('copy-tokens-text');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const tokens = `// OpenAAMPS Mobile Design Tokens v1.2.6\nstatic const Color background = Color(0xFF000000);\nstatic const Color surface = Color(0xFF141416);\nstatic const Color accentPurple = Color(0xFFA855F7);\nstatic const Color accentPink = Color(0xFFEC4899);\nstatic const BorderRadius squircleArtwork = BorderRadius.circular(28.0);\nstatic const BorderRadius squircleCard = BorderRadius.circular(16.0);`;
+                    navigator.clipboard.writeText(tokens).then(() => {
+                        const original = copyText.textContent;
+                        copyText.textContent = 'Tokens Copied to Clipboard';
+                        setTimeout(() => { copyText.textContent = original; }, 2000);
+                    }).catch(() => {
+                        copyText.textContent = 'Tokens Copied';
+                        setTimeout(() => { copyText.textContent = 'Copy Token CSS / Dart'; }, 2000);
+                    });
+                });
+            }
+        });
+    </script>
+</body>
+</html>

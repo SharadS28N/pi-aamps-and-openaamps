@@ -115,29 +115,50 @@ Built on `just_audio` with low-level spatial processing:
 - **10/15-Band Parametric Equalizer**: 32Hz to 16kHz graphic EQ with audiophile presets (Bass Boost, Vocal Clarity, Treble Air, Hi-Fi Flat).
 - **AutoEq Calibration**: Database of frequency response corrections for over 2,500 headphone models.
 - **8D & 16D Binaural Orbital Engine**:
-  - Real-time stereo panning rotation simulating 360-degree soundstage orbital motion.
-  - Configurable rotation period (2s to 16s), elevation physics, and simulated hall reverb.
+  - **Orbital Azimuth Trajectory**: Evaluates sound source position along the horizontal plane $\theta(t) = \omega \cdot t$ where angular frequency $\omega_{8D} = 0.08\text{ rad/s}$ (~12s per orbit) and $\omega_{16D} = 0.16\text{ rad/s}$ with a dual harmonic vertical figure-8 elevation cycle.
+  - **Doppler Micro-Pitch Shifts**: Physically alters perceived playback frequency as the sound source approaches and recedes from each ear:
+    $$\Delta f = 1.0 + 0.008 \cdot \sin(\theta)$$
+  - **Pinna HRTF (Head-Related Transfer Function) Treble Attenuation**: When the orbital azimuth passes behind the listener's head ($\cos(\theta) < 0$), high-frequency acoustic shadowing is simulated by dynamically attenuating equalizer bands between 2.5kHz and 16kHz by up to -6.0dB, reproducing natural ear flap (pinna) filtering.
+  - **Dynamic Proximity & Loudness Swell**: Synchronously modulates track volume and Android `LoudnessEnhancer` target gain (up to +3.5dB) as the source passes through close proximity points.
 - **Dynamic Codec Management**: Adaptive streaming between AAC 320kbps, Opus 160kbps, and lossless FLAC (24-bit 96kHz).
 
 ### 3.3 Online Concert Arena
 Virtual live performance platform (`ConcertService`):
 - **Stage Broadcasts**: Curated and user-hosted virtual concerts (e.g. Coldplay at Wembley Stadium Arena, Daft Punk Alive 2007).
+- **Live Stage Setlist Integration**: Interactive concert setlist rendered directly on the live stage view with real-time active track indicators, track durations, and 1-tap playback that automatically re-applies venue-specific acoustic impulse filters.
+- **4 Venue Acoustic Impulse Models**:
+  - *Stadium Mega-Bass*: High-power sub-bass resonance, long reverberation tail (2.4s).
+  - *Arena Reverb*: Expansive mid-range hall reflections with distinct spatial decay.
+  - *Amphitheater Surround*: Semi-open outdoor diffusion with wide lateral stereo spread.
+  - *Underground Club*: Tight low-end punch, punchy early reflections, low decay time.
 - **Seat Booking Passes**: Generates unique verifiable passes (`ConcertBookingPass`) across General Admission, VIP Front Row Pit, and Backstage.
 - **Crowd Synchronization**: Interactive synchronized crowd cheering, live applause audio effects, and digital glowstick telemetry.
 
-### 3.4 P2P Wi-Fi Music Jam
+### 3.4 P2P Wi-Fi Music Jam (Offline-First)
 Decentralized collaborative listening (`PartyService`):
-- **Zero-Server Setup**: Host device spins up an embedded HTTP/WebSocket server on the local Wi-Fi subnet.
-- **Automatic Discovery**: UDP broadcast beacon on port `8765` announces nearby listening parties.
-- **Clock Synchronization**: Periodic heartbeat messages adjust playback timestamp offsets to achieve sub-10ms inter-device sync.
+- **Zero Cloud Dependency**: Host device spins up an embedded HTTP/WebSocket server (`PartyHostServer`) on local Wi-Fi port `8765`.
+- **Direct IP Joining**: Peers can connect directly via host local IP (e.g., `192.168.1.150:8765`) or standard 6-character room codes (`JAM-XXXX`).
+- **Automatic UDP Peer Discovery**: UDP broadcast beacon on `255.255.255.255:8766` periodically broadcasts room identity for zero-configuration discovery on the local subnet.
+- **Clock Synchronization**: Periodic heartbeat messages adjust playback timestamp offsets to achieve sub-15ms inter-device sync across peers.
+- **Fault-Tolerant Cloud Fallback**: All Firestore WAN connections are wrapped in graceful offline fallbacks; if Firestore is uninitialized or unauthenticated, local Wi-Fi jamming operates with zero errors and zero crashes.
 
-### 3.5 Clean Architecture & Boundary Enforcement
-The codebase enforces strict separation of concerns verified by unit tests:
-- **Zero Firebase in UI**: `lib/views/` and `lib/widgets/` must NEVER directly import Firebase libraries or `firebase_service.dart`.
-- **Repository Pattern**: All persistence and cloud sync pass through `UserDataRepository` and `AuthRepository`.
-- **Design Guidelines**:
-  - Strictly **ZERO EMOJIS** in user-facing UI, logs, and code comments.
-  - Strictly **ZERO PURPLE** accents (supported vibez: Monochrome White, Electric Red, Spotify Green, Cyber Cyan, Amber Gold).
+### 3.5 Figma Design System Specification
+The visual design language is codified in `frontend/design_showcase.html`:
+- **Canvas Base**: AMOLED True Black (`#000000`) for battery efficiency and high visual contrast.
+- **Surface Elevation**: Zinc containers (`#121214` and `#1E1E22`) with subtle 1px border borders (`rgba(255,255,255,0.08)` to `0.12`).
+- **Color Accents**:
+  - Electric Purple (`#A855F7`): Now playing and equalizer primary tone.
+  - Neon Sunset Orange (`#F97316`): Home view floating play buttons and highlights.
+  - Emerald Green (`#10B981` / `#22C55E`): pi-aamps hardware connection indicators and verified status.
+- **Typography Tokens**:
+  - Display Header: Space Grotesk 800 (28pt) with -0.6 tracking.
+  - Now Playing Title: Inter Bold (22pt) with -0.4 tracking.
+  - Artist Subhead: Inter Medium (14pt to 15pt) in Zinc-400 (`#A1A1AA`).
+  - Codec & Telemetry: JetBrains Mono (10pt to 11pt).
+- **Geometric Radii**:
+  - Album Squircles: 14px (3-column grid) to 28px (Now Playing hero).
+  - Floating Action Buttons: Circular 9999px with soft 20px blur drop shadows.
+  - Zero Overflow Guarantee: Built with responsive `LayoutBuilder` and `SingleChildScrollView`.
 
 ---
 
@@ -213,3 +234,51 @@ python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 1. **AltStore / SideStore**: Add `https://raw.githubusercontent.com/SharadS28N/pi-aamps-and-openaamps/main/releases/altstore.json` as a source, or tap **1-Tap Add to AltStore** on the download page.
 2. **Sideloadly / Scarlet / TrollStore**: Download `OpenAamps-v1.2.6.ipa` and drag into the sideloading tool using any free Apple ID.
 3. **Safari Web App (PWA)**: Navigate to the web player in Safari, tap **Share**, and select **Add to Home Screen**.
+
+---
+
+## 7. Distributed Streaming Architecture & Playback Lifecycle Specification
+
+OpenAAMPS is architected around the design principles of modern global streaming platforms (Spotify, YouTube Music, Apple Music), coordinating a distributed ecosystem:
+
+```
++---------------------------------------------------------------------------------------+
+|                                    CLIENT APPLICATION                                 |
+|                                                                                       |
+|  [ Cold Boot & Capability Verification ]                                              |
+|      |                                                                                |
+|      v                                                                                |
+|  [ Idle Playback Engine (No phantom track, activeTrack = null) ]                      |
+|      |                                                                                |
+|      v                                                                                |
+|  [ Dynamic Catalog Fetch: Trending, Curated Moods, Taste Matrix ]                     |
++------------------------------------------+--------------------------------------------+
+                                           | User Selects Track
+                                           v
++---------------------------------------------------------------------------------------+
+|                                AUDIO DELIVERY PIPELINE                                |
+|                                                                                       |
+|  1. Stream Resolution: YouTube / Invidious / Local Piped CDN Cache                    |
+|  2. Adaptive Delivery: Chunked HTTP proxy with prefetch buffer                        |
+|  3. Hardware Audio Pipeline: Native decoders (AAC-LC / OPUS / FLAC)                   |
+|  4. DSP Processing: Android 10-Band EQ, Loudness Enhancer, Doppler 8D/16D Orbital     |
+|  5. OS Sample Routing: PCM audio fed to Android AudioTrack / PipeWire / Bluetooth A2DP|
+|  6. UI State Emergence: Mini-player slides in, Now Playing queue populated            |
++---------------------------------------------------------------------------------------+
+```
+
+### 1. Cold Boot & Idle State Lifecycle
+- **Clean Initial State**: Upon cold boot, `_activeTrack` is `null` and `AudioPlayerService` is in an `idle` processing state.
+- **No Hardcoded Playback**: The application does NOT auto-populate a default song or force a phantom mini-player on launch. The bottom navigation bar renders flush with the screen base until playback is initiated.
+- **Device & Hardware Capabilities**: Permissions for notifications (Android 13+ lock screen media controls) and audio outputs are verified asynchronously without blocking initial catalog presentation.
+
+### 2. Metadata Catalog Delivery & CDN Caching
+- **Home View Delivery**: Structured metadata (track IDs, titles, artists, albums, artwork CDN URLs, durations, codecs) is requested and rendered.
+- **Dynamic Recent vs. Trending**: When playback history exists, the user's authentic listening trail is showcased under *"Recently Played"*. On fresh boots with zero history, the interface gracefully transitions to *"Trending Hits"*, presenting diverse global chart-toppers.
+- **Cached Asset Pipelines**: Remote artwork thumbnails are cached locally on device storage to prevent redundant network consumption.
+
+### 3. Audio Delivery, Stream Resolution & PCM Decoding Pipeline
+- **Stream URL Resolution**: When the user taps a track, `YoutubeService` resolves the direct media stream endpoint.
+- **Local Proxy Streaming**: `LocalStreamProxy` streams media through a localhost HTTP server, handling chunked transfer encoding, unbounded byte-range requests, and pre-buffering.
+- **Low-Latency PCM Delivery**: Audio samples are decoded via native device decoders and fed into the OS audio subsystem.
+- **Mini-Player Emergence**: Upon track playback initialization, `NowPlayingBar` mounts smoothly at the bottom of the interface, providing rapid access to the full `PlayerView` sound studio.

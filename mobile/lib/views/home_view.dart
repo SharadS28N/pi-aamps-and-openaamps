@@ -60,12 +60,12 @@ class _HomeViewState extends State<HomeView> {
   final Map<String, List<Track>> _seedCategories = {
     'Feel good': [
       Track(
-        id: 'yKNxeF4KMsY',
-        title: 'Yellow',
-        artist: 'Coldplay',
-        album: 'Parachutes',
-        duration: const Duration(minutes: 4, seconds: 29),
-        artworkUrl: 'https://i.ytimg.com/vi/yKNxeF4KMsY/hqdefault.jpg',
+        id: 'G7KNmW9a75Y',
+        title: 'Flowers',
+        artist: 'Miley Cyrus',
+        album: 'Endless Summer Vacation',
+        duration: const Duration(minutes: 3, seconds: 20),
+        artworkUrl: 'https://i.ytimg.com/vi/G7KNmW9a75Y/hqdefault.jpg',
         streamUrl: '',
         codec: 'AAC 320kbps',
       ),
@@ -679,11 +679,30 @@ class _HomeViewState extends State<HomeView> {
                           ),
                         ],
                       ),
-                ],
+                    ],
+                  ),
+              const SizedBox(height: 16),
+
+              // Reference Image 2 Screen 1: Bold Display Heading
+              const Text(
+                'Let The Music\nTake You Away',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.6,
+                  height: 1.15,
+                ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 20),
 
+              // Reference Image 2 Screen 1: Recent Squircle Cards
+              _buildRecentSection(SettingsService.instance.accentColor),
+              const SizedBox(height: 22),
 
+              // Reference Image 2 Screen 1: Popular Songs with Floating Play Button
+              _buildPopularSongsSection(SettingsService.instance.accentColor),
+              const SizedBox(height: 22),
 
               // Category / Mood Filter Chips (Monochrome)
               SizedBox(
@@ -1191,6 +1210,364 @@ class _HomeViewState extends State<HomeView> {
           ),
         );
       },
+    );
+  }
+
+  static final List<Track> _trendingHits = [
+    Track(
+      id: 'H5v3kku4y6Q',
+      title: 'As It Was',
+      artist: 'Harry Styles',
+      album: "Harry's House",
+      duration: const Duration(minutes: 2, seconds: 47),
+      artworkUrl: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'AAC 320kbps',
+    ),
+    Track(
+      id: '4NRXx6U8ABQ',
+      title: 'Blinding Lights',
+      artist: 'The Weeknd',
+      album: 'After Hours',
+      duration: const Duration(minutes: 3, seconds: 20),
+      artworkUrl: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'OPUS 160kbps',
+    ),
+    Track(
+      id: 'TUVcZfQe-Kw',
+      title: 'Levitating',
+      artist: 'Dua Lipa',
+      album: 'Future Nostalgia',
+      duration: const Duration(minutes: 3, seconds: 23),
+      artworkUrl: 'https://i.ytimg.com/vi/TUVcZfQe-Kw/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'OPUS 160kbps',
+    ),
+    Track(
+      id: 'G7KNmW9a75Y',
+      title: 'Flowers',
+      artist: 'Miley Cyrus',
+      album: 'Endless Summer Vacation',
+      duration: const Duration(minutes: 3, seconds: 20),
+      artworkUrl: 'https://i.ytimg.com/vi/G7KNmW9a75Y/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'AAC 320kbps',
+    ),
+    Track(
+      id: '34Na4j8AVgA',
+      title: 'Starboy',
+      artist: 'The Weeknd ft. Daft Punk',
+      album: 'Starboy (Deluxe)',
+      duration: const Duration(minutes: 3, seconds: 50),
+      artworkUrl: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'FLAC 24-bit',
+    ),
+    Track(
+      id: 'JGwWNGJdvx8',
+      title: 'Shape of You',
+      artist: 'Ed Sheeran',
+      album: '÷ (Divide)',
+      duration: const Duration(minutes: 3, seconds: 53),
+      artworkUrl: 'https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'AAC 320kbps',
+    ),
+    Track(
+      id: 'kTJczUoc26U',
+      title: 'Stay',
+      artist: 'The Kid LAROI & Justin Bieber',
+      album: 'F*CK LOVE 3: OVERKILL',
+      duration: const Duration(minutes: 2, seconds: 21),
+      artworkUrl: 'https://i.ytimg.com/vi/kTJczUoc26U/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'AAC 320kbps',
+    ),
+    Track(
+      id: '1r-b_fEQIio',
+      title: 'Bad Habits',
+      artist: 'Ed Sheeran',
+      album: '= (Equals)',
+      duration: const Duration(minutes: 3, seconds: 51),
+      artworkUrl: 'https://i.ytimg.com/vi/1r-b_fEQIio/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'AAC 320kbps',
+    ),
+  ];
+
+  static final List<Track> _popularFeatured = [
+    Track(
+      id: '34Na4j8AVgA',
+      title: 'Starboy',
+      artist: 'The Weeknd ft. Daft Punk',
+      album: 'Starboy (Deluxe)',
+      duration: const Duration(minutes: 3, seconds: 50),
+      artworkUrl: 'https://i.ytimg.com/vi/34Na4j8AVgA/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'FLAC 24-bit',
+    ),
+    Track(
+      id: 'TUVcZfQe-Kw',
+      title: 'Levitating',
+      artist: 'Dua Lipa',
+      album: 'Future Nostalgia',
+      duration: const Duration(minutes: 3, seconds: 23),
+      artworkUrl: 'https://i.ytimg.com/vi/TUVcZfQe-Kw/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'OPUS 160kbps',
+    ),
+    Track(
+      id: 'H5v3kku4y6Q',
+      title: 'As It Was',
+      artist: 'Harry Styles',
+      album: "Harry's House",
+      duration: const Duration(minutes: 2, seconds: 47),
+      artworkUrl: 'https://i.ytimg.com/vi/H5v3kku4y6Q/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'AAC 320kbps',
+    ),
+    Track(
+      id: '4NRXx6U8ABQ',
+      title: 'Blinding Lights',
+      artist: 'The Weeknd',
+      album: 'After Hours',
+      duration: const Duration(minutes: 3, seconds: 20),
+      artworkUrl: 'https://i.ytimg.com/vi/4NRXx6U8ABQ/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'OPUS 160kbps',
+    ),
+    Track(
+      id: 'G7KNmW9a75Y',
+      title: 'Flowers',
+      artist: 'Miley Cyrus',
+      album: 'Endless Summer Vacation',
+      duration: const Duration(minutes: 3, seconds: 20),
+      artworkUrl: 'https://i.ytimg.com/vi/G7KNmW9a75Y/hqdefault.jpg',
+      streamUrl: '',
+      codec: 'AAC 320kbps',
+    ),
+  ];
+
+  Widget _buildRecentSection(Color accent) {
+    final history = widget.audioService?.history ?? [];
+    final bool hasHistory = history.isNotEmpty;
+    final tracks = hasHistory ? history : _trendingHits;
+    final sectionTitle = hasHistory ? 'Recently Played' : 'Trending Hits';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          sectionTitle,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 140,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: tracks.length > 8 ? 8 : tracks.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 14),
+            itemBuilder: (context, index) {
+              final track = tracks[index];
+              return GestureDetector(
+                onTap: () {
+                  widget.audioService?.setQueue(tracks, startIndex: index, autoPlay: false);
+                  widget.onPlayTrack(track);
+                },
+                child: SizedBox(
+                  width: 95,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          width: 95,
+                          height: 95,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1E1E22),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+                          ),
+                          child: Image.network(
+                            track.artworkUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: const Color(0xFF1A1A1A),
+                              child: const Icon(Icons.music_note_rounded, color: Colors.white54, size: 36),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        track.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        track.artist,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFA1A1AA),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPopularSongsSection(Color accent) {
+    final tracks = _popularFeatured;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Popular Songs',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.3,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 145,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: tracks.length > 5 ? 5 : tracks.length,
+            separatorBuilder: (context, index) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              final track = tracks[index];
+              return GestureDetector(
+                onTap: () {
+                  widget.audioService?.setQueue(tracks, startIndex: index, autoPlay: false);
+                  widget.onPlayTrack(track);
+                },
+                child: Container(
+                  width: 240,
+                  height: 145,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1),
+                    image: DecorationImage(
+                      image: NetworkImage(track.artworkUrl),
+                      fit: BoxFit.cover,
+                      colorFilter: ColorFilter.mode(
+                        Colors.black.withValues(alpha: 0.40),
+                        BlendMode.darken,
+                      ),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [Colors.transparent, Color(0xDD000000)],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 14,
+                        bottom: 14,
+                        right: 58,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              track.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              track.artist,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Color(0xFFD4D4D8),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Positioned(
+                        right: 12,
+                        bottom: 12,
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: accent,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: accent.withValues(alpha: 0.45),
+                                blurRadius: 12,
+                                spreadRadius: 1,
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.play_arrow_rounded,
+                              color: accent.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -191,13 +191,15 @@ async def get_app_info():
     }
 
 
-@app.get("/api/app/download")
+@app.api_route("/api/app/download", methods=["GET", "HEAD"])
 async def download_app_apk():
     project_root = os.path.dirname(BASE_DIR)
     candidate_paths = [
         os.path.join(project_root, "openaamps-release.apk"),
         os.path.join(project_root, "releases", "OpenAamps-v1.2.6.apk"),
         os.path.join(project_root, "releases", "OpenAamps-latest.apk"),
+        os.path.join(project_root, "frontend", "releases", "OpenAamps-v1.2.6.apk"),
+        os.path.join(project_root, "frontend", "releases", "OpenAamps-latest.apk"),
         os.path.join(BASE_DIR, "releases", "OpenAamps-v1.2.6.apk"),
         os.path.join(BASE_DIR, "releases", "OpenAamps-latest.apk"),
         os.path.join(project_root, "releases", "OpenAamps-v1.2.2.apk"),
@@ -216,6 +218,12 @@ async def download_app_apk():
             if f.endswith(".apk") and os.path.join(rel_dir, f) not in candidate_paths:
                 candidate_paths.append(os.path.join(rel_dir, f))
 
+    fe_rel_dir = os.path.join(project_root, "frontend", "releases")
+    if os.path.exists(fe_rel_dir):
+        for f in os.listdir(fe_rel_dir):
+            if f.endswith(".apk") and os.path.join(fe_rel_dir, f) not in candidate_paths:
+                candidate_paths.append(os.path.join(fe_rel_dir, f))
+
     for apk_path in candidate_paths:
         if os.path.exists(apk_path):
             filename = os.path.basename(apk_path)
@@ -233,12 +241,14 @@ async def download_app_apk():
     )
 
 
-@app.get("/api/app/download-ipa")
+@app.api_route("/api/app/download-ipa", methods=["GET", "HEAD"])
 async def download_app_ipa():
     project_root = os.path.dirname(BASE_DIR)
     candidate_paths = [
         os.path.join(project_root, "releases", "OpenAamps-v1.2.6.ipa"),
         os.path.join(project_root, "releases", "OpenAamps-latest.ipa"),
+        os.path.join(project_root, "frontend", "releases", "OpenAamps-v1.2.6.ipa"),
+        os.path.join(project_root, "frontend", "releases", "OpenAamps-latest.ipa"),
         os.path.join(BASE_DIR, "releases", "OpenAamps-v1.2.6.ipa"),
         os.path.join(BASE_DIR, "releases", "OpenAamps-latest.ipa"),
     ]
@@ -247,6 +257,12 @@ async def download_app_ipa():
         for f in os.listdir(rel_dir):
             if f.endswith(".ipa") and os.path.join(rel_dir, f) not in candidate_paths:
                 candidate_paths.append(os.path.join(rel_dir, f))
+
+    fe_rel_dir = os.path.join(project_root, "frontend", "releases")
+    if os.path.exists(fe_rel_dir):
+        for f in os.listdir(fe_rel_dir):
+            if f.endswith(".ipa") and os.path.join(fe_rel_dir, f) not in candidate_paths:
+                candidate_paths.append(os.path.join(fe_rel_dir, f))
 
     for ipa_path in candidate_paths:
         if os.path.exists(ipa_path):
@@ -269,9 +285,11 @@ async def download_app_ipa():
 async def get_altstore_source():
     project_root = os.path.dirname(BASE_DIR)
     candidate_paths = [
+        os.path.join(project_root, "frontend", "releases", "altstore.json"),
         os.path.join(project_root, "frontend", "altstore.json"),
         os.path.join(project_root, "releases", "altstore.json"),
         os.path.join(BASE_DIR, "frontend", "altstore.json"),
+        os.path.join(BASE_DIR, "releases", "altstore.json"),
     ]
     for p in candidate_paths:
         if os.path.exists(p):
@@ -287,6 +305,17 @@ async def read_download_page():
     if os.path.exists(download_path):
         return FileResponse(download_path)
     return HTMLResponse("<h1>OpenAamps Download</h1><p><a href='/api/app/download'>Download APK</a></p>")
+
+
+# Serve OpenAamps Figma Design Showcase Page
+@app.get("/design")
+@app.get("/design-showcase")
+@app.get("/design_showcase.html")
+async def read_design_showcase_page():
+    design_path = os.path.join(os.path.dirname(BASE_DIR), "frontend", "design_showcase.html")
+    if os.path.exists(design_path):
+        return FileResponse(design_path)
+    return HTMLResponse("<h1>Design Showcase</h1>")
 
 
 # Serve PWA manifest and service worker at root paths

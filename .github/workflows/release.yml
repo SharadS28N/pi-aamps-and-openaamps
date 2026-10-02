@@ -1,0 +1,134 @@
+name: Release OpenAamps (Android APK & iOS IPA)
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    name: Build Android Release APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Build Release APK
+        working-directory: mobile
+        run: flutter build apk --release
+
+      - name: Stage Release Artifacts
+        run: |
+          mkdir -p build/android_release
+          cp mobile/build/app/outputs/flutter-apk/app-release.apk build/android_release/OpenAamps-${GITHUB_REF_NAME}.apk
+          cp mobile/build/app/outputs/flutter-apk/app-release.apk build/android_release/OpenAamps-latest.apk
+
+      - name: Upload Android Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: openaamps-android-apk
+          path: build/android_release/*.apk
+
+  build-ios:
+    name: Build iOS IPA Package
+    runs-on: macos-14
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        working-directory: mobile
+        run: flutter pub get
+
+      - name: Build iOS Application Bundle
+        working-directory: mobile
+        run: flutter build ios --release --no-codesign
+
+      - name: Package Payload into IPA
+        run: |
+          mkdir -p build/ios_release/Payload
+          cp -r mobile/build/ios/iphoneos/Runner.app build/ios_release/Payload/
+          cd build/ios_release
+          zip -r -9 OpenAamps-${GITHUB_REF_NAME}.ipa Payload
+          cp OpenAamps-${GITHUB_REF_NAME}.ipa OpenAamps-latest.ipa
+
+      - name: Upload iOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: openaamps-ios-ipa
+          path: build/ios_release/*.ipa
+
+  publish-github-release:
+    name: Publish Release Packages
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Android Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: openaamps-android-apk
+          path: artifacts/android
+
+      - name: Download iOS Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: openaamps-ios-ipa
+          path: artifacts/ios
+
+      - name: Copy AltStore Manifest
+        run: |
+          mkdir -p artifacts/manifests
+          cp releases/altstore.json artifacts/manifests/altstore.json
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: OpenAamps Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            artifacts/android/*.apk
+            artifacts/ios/*.ipa
+            artifacts/manifests/altstore.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

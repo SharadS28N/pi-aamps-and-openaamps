@@ -88,15 +88,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
   final AudioPlayerService _audioService = AudioPlayerService();
 
-  Track _activeTrack = Track(
-    id: 'yKNxeF4KMsY',
-    title: 'Yellow',
-    artist: 'Coldplay',
-    album: 'Parachutes',
-    artworkUrl: 'https://i.ytimg.com/vi/yKNxeF4KMsY/hqdefault.jpg',
-    streamUrl: '',
-    codec: 'AAC 320kbps',
-  );
+  Track? _activeTrack;
 
   bool _isPlaying = false;
   StreamSubscription<PlayerState>? _playerStateSub;
@@ -105,6 +97,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   void initState() {
     super.initState();
+    _activeTrack = _audioService.currentTrack;
+    _isPlaying = _audioService.player.playing;
     _requestNotificationPermission();
     _checkUpdateOnLaunch();
     _playerStateSub = _audioService.playerStateStream.listen((state) {
@@ -114,18 +108,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         });
       }
       if (state.processingState == ProcessingState.completed) {
-        AiMusicService.instance.onTrackCompleted(
-          _activeTrack,
-          _activeTrack.duration.inSeconds > 0
-              ? _activeTrack.duration.inSeconds.toDouble()
-              : 180.0,
-        );
+        if (_activeTrack != null) {
+          AiMusicService.instance.onTrackCompleted(
+            _activeTrack!,
+            _activeTrack!.duration.inSeconds > 0
+                ? _activeTrack!.duration.inSeconds.toDouble()
+                : 180.0,
+          );
+        }
       }
     });
 
     // Listen for track changes (notification controls, autoplay, queue advancement)
     _trackChangeSub = _audioService.currentTrackStream.listen((track) {
-      if (mounted && track != null) {
+      if (mounted) {
         setState(() {
           _activeTrack = track;
         });
@@ -168,7 +164,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   void dispose() {
     _playerStateSub?.cancel();
     _trackChangeSub?.cancel();
-    _audioService.dispose();
     super.dispose();
   }
 
@@ -197,40 +192,41 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           body: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 74.0),
+                padding: EdgeInsets.only(bottom: _activeTrack != null ? 74.0 : 0.0),
                 child: IndexedStack(
                   index: _currentIndex.clamp(0, 2),
                   children: screens,
                 ),
               ),
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: NowPlayingBar(
-                  track: _activeTrack,
-                  audioService: _audioService,
-                  isPlaying: _isPlaying,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PlayerView(
-                          track: _activeTrack,
-                          audioService: _audioService,
+              if (_activeTrack != null)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: NowPlayingBar(
+                    track: _activeTrack!,
+                    audioService: _audioService,
+                    isPlaying: _isPlaying,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PlayerView(
+                            track: _activeTrack!,
+                            audioService: _audioService,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  onPlayPause: () {
-                    if (_isPlaying) {
-                      _audioService.pause();
-                    } else {
-                      _audioService.resume(fallbackTrack: _activeTrack);
-                    }
-                  },
+                      );
+                    },
+                    onPlayPause: () {
+                      if (_isPlaying) {
+                        _audioService.pause();
+                      } else {
+                        _audioService.resume(fallbackTrack: _activeTrack);
+                      }
+                    },
+                  ),
                 ),
-              ),
             ],
           ),
           bottomNavigationBar: Container(

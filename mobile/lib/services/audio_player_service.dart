@@ -52,11 +52,54 @@ class AudioPlayerService extends ChangeNotifier {
   final List<Track> _queue = [];
   int _queueIndex = -1;
 
-  // Stream Controllers for unified local & Pi telemetry
-  final StreamController<PlayerState> _playerStateController = StreamController<PlayerState>.broadcast();
-  final StreamController<Duration?> _durationController = StreamController<Duration?>.broadcast();
-  final StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
-  final StreamController<Track?> _currentTrackController = StreamController<Track?>.broadcast();
+  // Stream Controllers for unified local & Pi telemetry (persistent singleton)
+  StreamController<PlayerState> _playerStateController = StreamController<PlayerState>.broadcast();
+  StreamController<Duration?> _durationController = StreamController<Duration?>.broadcast();
+  StreamController<Duration> _positionController = StreamController<Duration>.broadcast();
+  StreamController<Track?> _currentTrackController = StreamController<Track?>.broadcast();
+
+  void _ensureControllersActive() {
+    if (_playerStateController.isClosed) {
+      _playerStateController = StreamController<PlayerState>.broadcast();
+    }
+    if (_durationController.isClosed) {
+      _durationController = StreamController<Duration?>.broadcast();
+    }
+    if (_positionController.isClosed) {
+      _positionController = StreamController<Duration>.broadcast();
+    }
+    if (_currentTrackController.isClosed) {
+      _currentTrackController = StreamController<Track?>.broadcast();
+    }
+  }
+
+  void _safeAddTrack(Track? track) {
+    _ensureControllersActive();
+    if (!_currentTrackController.isClosed) {
+      _currentTrackController.add(track);
+    }
+  }
+
+  void _safeAddPlayerState(PlayerState state) {
+    _ensureControllersActive();
+    if (!_playerStateController.isClosed) {
+      _playerStateController.add(state);
+    }
+  }
+
+  void _safeAddDuration(Duration? dur) {
+    _ensureControllersActive();
+    if (!_durationController.isClosed) {
+      _durationController.add(dur);
+    }
+  }
+
+  void _safeAddPosition(Duration pos) {
+    _ensureControllersActive();
+    if (!_positionController.isClosed) {
+      _positionController.add(pos);
+    }
+  }
 
   AudioPlayer get player => _player;
   PiAampsService get piService => _piService;
@@ -76,10 +119,25 @@ class AudioPlayerService extends ChangeNotifier {
   List<Track> get queue => List.unmodifiable(_queue);
   int get queueIndex => _queueIndex;
 
-  Stream<PlayerState> get playerStateStream => _playerStateController.stream;
-  Stream<Duration?> get durationStream => _durationController.stream;
-  Stream<Duration> get positionStream => _positionController.stream;
-  Stream<Track?> get currentTrackStream => _currentTrackController.stream;
+  Stream<PlayerState> get playerStateStream {
+    _ensureControllersActive();
+    return _playerStateController.stream;
+  }
+
+  Stream<Duration?> get durationStream {
+    _ensureControllersActive();
+    return _durationController.stream;
+  }
+
+  Stream<Duration> get positionStream {
+    _ensureControllersActive();
+    return _positionController.stream;
+  }
+
+  Stream<Track?> get currentTrackStream {
+    _ensureControllersActive();
+    return _currentTrackController.stream;
+  }
 
   Duration get currentPosition {
     if (_target == AudioTarget.piSpeaker) {
@@ -126,7 +184,7 @@ class AudioPlayerService extends ChangeNotifier {
           _queueIndex = idx;
           _currentTrack = _queue[idx];
           IntegrationService.instance.scrobbleTrack(_currentTrack!);
-          _currentTrackController.add(_currentTrack);
+          _safeAddTrack(_currentTrack);
           notifyListeners();
         }
       }
@@ -135,7 +193,7 @@ class AudioPlayerService extends ChangeNotifier {
     // Local player listeners
     _player.playerStateStream.listen((state) {
       if (_target == AudioTarget.phoneLocal) {
-        _playerStateController.add(state);
+        _safeAddPlayerState(state);
       }
       if (state.processingState == ProcessingState.completed) {
         if (_player.loopMode == LoopMode.one) {
@@ -149,7 +207,7 @@ class AudioPlayerService extends ChangeNotifier {
 
     _player.durationStream.listen((dur) {
       if (_target == AudioTarget.phoneLocal) {
-        _durationController.add(dur);
+        _safeAddDuration(dur);
       }
       if (dur != null && dur > Duration.zero && _currentTrack != null) {
         if (_currentTrack!.duration == Duration.zero) {
@@ -161,18 +219,18 @@ class AudioPlayerService extends ChangeNotifier {
 
     _player.positionStream.listen((pos) {
       if (_target == AudioTarget.phoneLocal) {
-        _positionController.add(pos);
+        _safeAddPosition(pos);
       }
     });
 
     // Raspberry Pi telemetry listener
     _piService.stateStream.listen((piState) {
       if (_target == AudioTarget.piSpeaker) {
-        _positionController.add(Duration(milliseconds: (piState.currentPosition * 1000).toInt()));
+        _safeAddPosition(Duration(milliseconds: (piState.currentPosition * 1000).toInt()));
         if (piState.duration > 0) {
-          _durationController.add(Duration(milliseconds: (piState.duration * 1000).toInt()));
+          _safeAddDuration(Duration(milliseconds: (piState.duration * 1000).toInt()));
         }
-        _playerStateController.add(
+        _safeAddPlayerState(
           PlayerState(
             piState.isPlaying,
             piState.isPlaying ? ProcessingState.ready : ProcessingState.idle,
@@ -414,11 +472,11 @@ class AudioPlayerService extends ChangeNotifier {
     );
   }
 
-  void setQueue(List<Track> tracks, {int startIndex = 0}) {
+  void setQueue(List<Track> tracks, {int startIndex = 0, bool autoPlay = true}) {
     _queue.clear();
     _queue.addAll(tracks);
     _queueIndex = startIndex;
-    if (startIndex >= 0 && startIndex < _queue.length) {
+    if (autoPlay && startIndex >= 0 && startIndex < _queue.length) {
       playTrack(_queue[startIndex]);
     }
   }
@@ -520,7 +578,7 @@ class AudioPlayerService extends ChangeNotifier {
     _history.removeWhere((t) => t.id == track.id);
     _history.insert(0, track);
     _saveHistory();
-    _currentTrackController.add(_currentTrack);
+    _safeAddTrack(_currentTrack);
     notifyListeners();
 
     // Scrobble track and update Discord Rich Presence
@@ -763,13 +821,8 @@ class AudioPlayerService extends ChangeNotifier {
   void dispose() {
     _sleepTimer?.cancel();
     _sleepTicker?.cancel();
-    _proxy.stop();
-    _playerStateController.close();
-    _durationController.close();
-    _positionController.close();
-    _currentTrackController.close();
-    _player.dispose();
-    _ytService.dispose();
+    // Do not close persistent broadcast controllers or player
+    // to preserve active background audio session across UI rebuilds.
     super.dispose();
   }
 }

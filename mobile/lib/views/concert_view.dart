@@ -1419,6 +1419,94 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
               },
             ),
           ),
+          const SizedBox(height: 20),
+
+          // LIVE CONCERT SETLIST
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'LIVE CONCERT SETLIST',
+                style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 1),
+              ),
+              Text(
+                '${_concert.currentConcert.setlist.length} tracks',
+                style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...List.generate(_concert.currentConcert.setlist.length, (index) {
+            final track = _concert.currentConcert.setlist[index];
+            final isCurrent = widget.audioService.currentTrack?.id == track.id;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: isCurrent ? primary.withValues(alpha: 0.15) : const Color(0xFF141414),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: isCurrent ? primary : Colors.white10),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    track.artworkUrl,
+                    width: 44,
+                    height: 44,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => Container(
+                      width: 44,
+                      height: 44,
+                      color: const Color(0xFF222222),
+                      child: const Icon(Icons.music_note_rounded, color: Colors.white54, size: 20),
+                    ),
+                  ),
+                ),
+                title: Text(
+                  track.title,
+                  style: TextStyle(
+                    color: isCurrent ? primary : Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                subtitle: Text(
+                  '${track.artist} • ${track.codec}',
+                  style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 11),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${track.duration.inMinutes}:${(track.duration.inSeconds % 60).toString().padLeft(2, '0')}',
+                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      isCurrent && widget.audioService.player.playing
+                          ? Icons.pause_circle_filled_rounded
+                          : Icons.play_circle_fill_rounded,
+                      color: isCurrent ? primary : Colors.white,
+                      size: 28,
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  if (isCurrent && widget.audioService.player.playing) {
+                    widget.audioService.pause();
+                  } else {
+                    widget.audioService.playTrack(track);
+                    _concert.applyCurrentAcoustics();
+                  }
+                },
+              ),
+            );
+          }),
 
           const SizedBox(height: 24),
         ],

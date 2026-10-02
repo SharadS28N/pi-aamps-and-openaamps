@@ -7,38 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.2.6] - 2026-10-01
+## [1.2.6] - 2026-10-02
 
 ### Added
+- **Interactive Figma Design System Showcase**:
+  - Live Figma canvas mockup at `/design` (`frontend/design_showcase.html`) with pan/zoom tools, color tokens, typography scales, radii, and inspectable code.
+  - Interactive artboards for Now Playing, 3-Column Album Library, Studio Equalizer with dual dials, and Home Stream.
+- **8D & 16D Binaural Doppler & Pinna HRTF Spatial Engine**:
+  - Real-time angular azimuth orbital panning $\theta(t) = \omega \cdot t$ (8D at 0.08 rad/s, 16D at 0.16 rad/s).
+  - Doppler frequency micro-pitch shifts ($\pm 0.8\%$) matching orbital direction towards and away from each ear.
+  - Pinna HRTF head-shadow emulation: up to -6.0dB attenuation on treble bands (2.5kHz–16kHz) when audio orbits behind the listener.
+  - Proximity-based volume swell and target gain boost via Android `LoudnessEnhancer`.
+- **Offline-First P2P Jamming & Direct IP Connect**:
+  - Direct host IP connection (`http://<ip>:8765`) alongside standard room codes (`JAM-XXXX`).
+  - Graceful fallback when Firestore is uninitialized or unauthenticated, allowing 100% offline Wi-Fi P2P jamming.
+- **Live Concert Stage Setlist**:
+  - Interactive setlist embedded directly inside the live concert stage view with active track indicators, durations, and 1-tap playback that reapplies venue-specific impulse acoustic responses.
 - **Live 1-Tap Spotify & YouTube Music Sync**:
   - Live Bearer Token OAuth querying official Spotify Web API endpoints (`/v1/me`, `/v1/me/top/artists`, `/v1/me/top/tracks`, `/v1/me/player/recently-played`, `/v1/me/playlists`).
-  - Next.js Embed Scraper extracting tracklists, covers, artists, and durations from any public Spotify link (`open.spotify.com/playlist/...`, `open.spotify.com/album/...`).
-  - Direct YouTube Data API v3 integration for user playlists (`/v3/playlists?mine=true`) and liked songs (`/v3/videos?myRating=like`).
+  - Next.js Embed Scraper extracting tracklists, covers, artists, and durations from any public Spotify link.
+  - Direct YouTube Data API v3 integration for user playlists and liked songs.
   - Channel sync by handle (`@username`) via `YoutubeExplode`.
 - **Universal Deezer & iTunes Artist Portrait Engine**:
   - Uncompressed 1000x1000 official verified artist portraits from Deezer CDN (`picture_xl`) with iTunes Search API fallback.
-  - Persistent disk caching in `SharedPreferences` (`artist_img_{name}`) for instant zero-latency offline loading.
-  - Dynamic user affinity calculation (`getDynamicArtists`) reflecting the listener's actual individual taste across listening history, starred tracks, and synced accounts.
-  - Reusable `ArtistPortrait` widget with shimmer loading and monogram initial fallbacks.
-- **Online Concert Arena**:
-  - Virtual live arena with curated and user-hosted stage broadcasts.
-  - Unique verifiable seat booking passes (`ConcertBookingPass`) across General Admission, VIP Front Row Pit, and Backstage.
-  - Interactive crowd synchronization with applause sound effects and digital glowstick telemetry.
-- **8D & 16D Binaural Orbital Audio Engine**:
-  - Real-time soundstage rotation simulating 360-degree orbital motion with configurable period (2s to 16s).
-  - Elevation physics, room reverb modeling, and headphone acoustic virtualization.
-- **Dedicated Architecture & Context Documentation**:
-  - Added comprehensive `CONTEXT.md` covering system topology, audio DSP, streaming engines, and release packaging.
-- **Dual-Platform Distribution via Web Hub**:
-  - Backend delivery endpoints for both Android (`/api/app/download`) and iOS (`/api/app/download-ipa`).
-  - AltStore / SideStore repository feed at `/altstore.json`.
-  - Python build automation script (`scripts/build_ios_ipa.py`) generating standalone Mach-O ARM64 `.ipa` packages.
+  - Persistent disk caching in `SharedPreferences` for zero-latency offline loading.
 
 ### Fixed
-- **Zero Mock / Zero Stock Data**: Completely purged all generic Unsplash stock photo URLs across models, repositories, and UI views.
-- **Version Alignment & Canonical Packaging**: Cleaned up package naming and synchronized release artifacts to `OpenAamps-v1.2.6.apk` and `OpenAamps-v1.2.6.ipa` under canonical package `com.aamps.openaamps`.
-- **Strict Architectural Separation**: Enforced zero direct Firebase imports in UI views/widgets via unit tests; all persistence routes through `UserDataRepository`.
-- **Design Guidelines**: Strictly zero purple in color accents and strictly zero emojis across user-facing strings and logs.
+- **Mobile UI Overflow Elimination**:
+  - Replaced rigid column constraints in `player_view.dart` with responsive `LayoutBuilder` and `SingleChildScrollView`, dynamically scaling album art and eliminating all `RenderFlex overflowed` errors on any screen size.
+  - Redesigned playback controls to clean 5-button layout matching user reference specifications.
+- **iPhone / iOS Download Visibility**:
+  - Added dedicated iOS download cards, 1-tap AltStore repository buttons, Sideloadly IPA instructions, and Safari PWA setup to both `frontend/download.html` and `frontend/index.html`.
+- **Concert Arena Playback**: Fixed track loading and setlist execution within the virtual concert arena.
+- **Jamming Mode Stability**: Eliminated Firebase uninitialized crashes during party hosting and peer discovery.
 
 ---
 

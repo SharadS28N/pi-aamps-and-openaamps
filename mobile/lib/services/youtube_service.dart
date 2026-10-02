@@ -28,15 +28,21 @@ class YoutubeService {
       final tracks = <Track>[];
 
       for (var video in searchResults.take(15)) {
-        tracks.add(Track(
-          id: video.id.value,
-          title: video.title,
-          artist: video.author,
-          album: 'YouTube Music',
-          duration: video.duration ?? Duration.zero,
-          artworkUrl: video.thumbnails.highResUrl,
-          streamUrl: '',
-        ));
+        try {
+          Duration dur = Duration.zero;
+          try {
+            dur = video.duration ?? Duration.zero;
+          } catch (_) {}
+          tracks.add(Track(
+            id: video.id.value,
+            title: video.title,
+            artist: video.author,
+            album: 'YouTube Music',
+            duration: dur,
+            artworkUrl: video.thumbnails.highResUrl,
+            streamUrl: '',
+          ));
+        } catch (_) {}
       }
       if (tracks.isNotEmpty) return tracks;
     } catch (e) {

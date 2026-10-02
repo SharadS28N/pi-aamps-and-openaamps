@@ -282,27 +282,70 @@ class PartyService extends ChangeNotifier {
     return false;
   }
 
-  // --- Join Listening Party by Room Code ---
+  // --- Join Listening Party by Room Code or Direct Host IP ---
   Future<bool> joinParty(String roomCode) async {
-    // 1. Sanitize room code properly: handles 'JAM-159', 'JAM159', '159', 'jam 159'
-    String clean = roomCode.trim().toUpperCase().replaceAll(' ', '');
-    if (clean.isEmpty) return false;
-    if (clean.startsWith('JAM')) {
-      clean = clean.substring(3);
-      if (clean.startsWith('-')) clean = clean.substring(1);
-    }
-    if (clean.isEmpty) return false;
-    final normalizedCode = 'JAM-$clean';
-    final rawNumber = clean;
+    final rawInput = roomCode.trim();
+    if (rawInput.isEmpty) return false;
 
     _isConnecting = true;
     notifyListeners();
 
     final account = AccountService.instance.activeAccount;
 
-    // 2. Dual-Track Parallel Discovery: Local Wi-Fi + Cloud Firestore (Tokha / WAN / LTE)
-    // Run both concurrently so remote friends join in <400ms without waiting for local subnet timeouts!
+    // 0. Direct IP address or URL connection support (e.g. 192.168.1.150:8765)
+    if (rawInput.contains('.')) {
+      try {
+        final hostIpOrUrl = rawInput.startsWith('http') ? rawInput : 'http://$rawInput';
+        final formattedUrl = (hostIpOrUrl.split(':').length == 2 && !hostIpOrUrl.startsWith('http://'))
+            ? '$hostIpOrUrl:8765'
+            : (hostIpOrUrl.startsWith('http://') && hostIpOrUrl.substring(7).split(':').length == 1)
+                ? '$hostIpOrUrl:8765'
+                : hostIpOrUrl;
 
+        final res = await http.post(
+          Uri.parse('$formattedUrl/api/party/join'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'room_code': 'DIRECT',
+            'member_id': account.id,
+            'member_name': account.name,
+            'device_name': _deviceName,
+            'avatar_url': account.avatarUrl,
+          }),
+        ).timeout(const Duration(seconds: 4));
+
+        if (res.statusCode == 200) {
+          final data = jsonDecode(res.body)['room'];
+          _activePartyBaseUrl = formattedUrl;
+          _applyRoomSnapshot(data);
+          _isInParty = true;
+          _isConnecting = false;
+          _connectWebSocket();
+          _startDriftCorrection();
+          _syncLocalAudioPlayer();
+          notifyListeners();
+          return true;
+        }
+      } catch (e) {
+        debugPrint('[PartyService] Direct IP join error: $e');
+      }
+    }
+
+    // 1. Sanitize room code properly: handles 'JAM-159', 'JAM159', '159', 'jam 159'
+    String clean = rawInput.toUpperCase().replaceAll(' ', '');
+    if (clean.startsWith('JAM')) {
+      clean = clean.substring(3);
+      if (clean.startsWith('-')) clean = clean.substring(1);
+    }
+    if (clean.isEmpty) {
+      _isConnecting = false;
+      notifyListeners();
+      return false;
+    }
+    final normalizedCode = 'JAM-$clean';
+    final rawNumber = clean;
+
+    // 2. Dual-Track Parallel Discovery: Local Wi-Fi + Cloud Firestore (Tokha / WAN / LTE)
     Future<bool> tryLocalLan() async {
       try {
         String? hostBaseUrl = await PartyDiscoveryService.instance.resolveHostBaseUrl(normalizedCode);
@@ -529,20 +572,25 @@ class PartyService extends ChangeNotifier {
 
   void _listenFirestoreRoom(String roomCode) {
     _firestoreSub?.cancel();
-    _firestoreSub = FirebaseFirestore.instance
-        .collection('jam_rooms')
-        .doc(roomCode)
-        .snapshots()
-        .listen((snapshot) {
-      if (snapshot.exists && snapshot.data() != null) {
-        final data = snapshot.data()!;
-        _applyRoomSnapshot(data);
-        _syncLocalAudioPlayer();
-        notifyListeners();
-      }
-    }, onError: (e) {
-      debugPrint('[PartyService] Firestore jam room listener error: $e');
-    });
+    _firestoreSub = null;
+    try {
+      _firestoreSub = FirebaseFirestore.instance
+          .collection('jam_rooms')
+          .doc(roomCode)
+          .snapshots()
+          .listen((snapshot) {
+        if (snapshot.exists && snapshot.data() != null) {
+          final data = snapshot.data()!;
+          _applyRoomSnapshot(data);
+          _syncLocalAudioPlayer();
+          notifyListeners();
+        }
+      }, onError: (e) {
+        debugPrint('[PartyService] Firestore jam room listener error: $e');
+      });
+    } catch (e) {
+      debugPrint('[PartyService] Firestore jam room listener skipped: $e');
+    }
   }
 
   Future<void> _saveRoomToFirestore(String roomCode, Map<String, dynamic> snapshot) async {
