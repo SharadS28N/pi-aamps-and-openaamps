@@ -11,14 +11,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/tag/v1.2.6">
-    <img src="https://img.shields.io/badge/Release-v1.2.6-10B981?style=for-the-badge&logo=github" alt="Release v1.2.6">
+  <a href="https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/tag/v1.2.7">
+    <img src="https://img.shields.io/badge/Release-v1.2.7-10B981?style=for-the-badge&logo=github" alt="Release v1.2.7">
   </a>
-  <a href="releases/OpenAamps-v1.2.6.apk">
-    <img src="https://img.shields.io/badge/Download_APK-Android_v1.2.6-06B6D4?style=for-the-badge&logo=android&logoColor=white" alt="Download APK">
+  <a href="releases/OpenAamps-v1.2.7.apk">
+    <img src="https://img.shields.io/badge/Download_APK-Android_v1.2.7-06B6D4?style=for-the-badge&logo=android&logoColor=white" alt="Download APK">
   </a>
-  <a href="releases/OpenAamps-v1.2.6.ipa">
-    <img src="https://img.shields.io/badge/Download_IPA-iOS_v1.2.6-111827?style=for-the-badge&logo=apple&logoColor=white" alt="Download IPA">
+  <a href="releases/OpenAamps-v1.2.7.ipa">
+    <img src="https://img.shields.io/badge/Download_IPA-iOS_v1.2.7-111827?style=for-the-badge&logo=apple&logoColor=white" alt="Download IPA">
   </a>
   <a href="CONTEXT.md">
     <img src="https://img.shields.io/badge/Architecture-CONTEXT.md-10B981?style=for-the-badge&logo=markdown&logoColor=white" alt="Context Architecture">
@@ -125,8 +125,8 @@ Access the desktop web player in your browser at `http://<your-pi-ip>:8000`.
 ### 2. Android App Installation (OpenAamps)
 
 1. Download the release APK directly to your phone:
-   - **Download Link**: [OpenAamps-v1.2.6.apk](releases/OpenAamps-v1.2.6.apk)
-   - Or from GitHub Releases: [Releases / v1.2.6](https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/tag/v1.2.6)
+   - **Download Link**: [OpenAamps-v1.2.7.apk](releases/OpenAamps-v1.2.7.apk)
+   - Or from GitHub Releases: [Releases / v1.2.7](https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/tag/v1.2.7)
 2. Tap the downloaded file and select **Install** (allow installation from unknown sources if prompted).
 3. Open **OpenAamps**. Tap the audio pill in the player or settings to verify the connection to your Raspberry Pi.
 
@@ -138,7 +138,7 @@ OpenAamps supports all iPhones and iPads running iOS 14.0+ without jailbreaking:
    - Add the official source: `https://raw.githubusercontent.com/SharadS28N/pi-aamps-and-openaamps/main/releases/altstore.json`
    - Or tap the 1-Tap Add button on the web portal at `http://<your-pi-ip>:8000/download#download-ios`.
 2. **Direct IPA Sideloading (Sideloadly / Scarlet / TrollStore)**:
-   - Download the standalone package: [OpenAamps-v1.2.6.ipa](releases/OpenAamps-v1.2.6.ipa).
+   - Download the standalone package: [OpenAamps-v1.2.7.ipa](releases/OpenAamps-v1.2.7.ipa).
    - Drag into Sideloadly on Mac or PC and sign with any free Apple ID.
 3. **Safari Progressive Web App (PWA)**:
    - Open the web player in Safari, tap the iOS **Share** button, and choose **Add to Home Screen**.
@@ -147,7 +147,8 @@ OpenAamps supports all iPhones and iPads running iOS 14.0+ without jailbreaking:
 
 Inspect the production visual design system, mobile UI tokens, and interactive screen mockups in Chrome:
 - **Web Link**: `http://<your-pi-ip>:8000/design` (or open `frontend/design_showcase.html` locally).
-- Features full artboards for Now Playing, 3-Column Album Library, 15-Band Equalizer & Dual Dials, and Home View with live CSS design tokens.
+- **Figma Canvas**: [OpenAamps Hi-Fi Wireframe & System Design](https://www.figma.com/design/c0V5G8aNxKpbeAGRnSNVFz/OpenAamps-%25E2%2580%2594-Hi-Fi-Wireframe---System-Design?node-id=0-1&p=f&t=SfRy9cb1TRNYtT6J-0)
+- Features complete artboards for Home & Concert Arena, Now Playing (with exclusive codec badge), AMOLED Equalizer & 8D Studio DSP (with 270-degree non-looping rotary dial), Deep Learning Hum-to-Song Recognition, Library & WebDAV, and Physical Stadium Ticket Booking.
 
 ---
 
@@ -166,7 +167,7 @@ The compiled binary will be generated at:
 ```bash
 python scripts/build_ios_ipa.py
 ```
-Generates signed ARM64 bundle and updates `releases/OpenAamps-v1.2.6.ipa` and `releases/altstore.json`.
+Generates signed ARM64 bundle and updates `releases/OpenAamps-v1.2.7.ipa` and `releases/altstore.json`.
 
 ### Building Debian Package (`.deb`)
 ```bash
@@ -192,7 +193,7 @@ pi-aamps-and-openaamps/
 │   ├── android/              # Native Android gradle configuration & drawables
 │   └── lib/                  # Dart UI views, services, models, & proxy
 ├── releases/                 # Production compiled APK binaries
-│   └── OpenAamps-v1.2.6.apk  # Verified 70.8 MB standalone release APK
+│   └── OpenAamps-v1.2.7.apk  # Verified 69.6 MB standalone release APK
 ├── install.sh                # Single-line automated Raspberry Pi installer
 └── run.py                    # Local development launcher
 ```

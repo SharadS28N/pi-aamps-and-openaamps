@@ -10,14 +10,14 @@
       "bundleIdentifier": "com.aamps.openaamps",
       "developerName": "OpenAamps Team",
       "subtitle": "Audiophile Music Player",
-      "version": "1.2.6",
-      "versionDate": "2026-10-01",
-      "versionDescription": "Online concert arena, 4-tab clean navbar, subtle iconography, 5 accents, and Spotify/YouTube sync.",
-      "downloadURL": "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.6/OpenAamps-v1.2.6.ipa",
+      "version": "1.2.7",
+      "versionDate": "2026-10-03",
+      "versionDescription": "Deep neural melody humming retrieval (128-d ANN), subtle dark AMOLED equalizer with non-looping 270 studio rotary dial, exclusive in-player audio codec badge, WebDAV layout fix, persistent login sessions, and verified artist headshots.",
+      "downloadURL": "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.7/OpenAamps-v1.2.7.ipa",
       "localizedDescription": "Native music player with DSP acoustics, live concert arenas, synchronized lyrics, and lossless Wi-Fi casting.",
       "iconURL": "https://raw.githubusercontent.com/SharadS28N/pi-aamps-and-openaamps/main/frontend/assets/app_icon.png",
       "tintColor": "1DB954",
-      "size": 27031533,
+      "size": 27094703,
       "minOSVersion": "14.0"
     }
   ]

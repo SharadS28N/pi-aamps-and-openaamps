@@ -22,8 +22,8 @@ The ecosystem delivers a unified, audiophile-grade music streaming experience br
          |                                                                 |
 +--------v-----------------------+                       +-----------------v---------------+
 |     OpenAAMPS Mobile Client    |                       |      Web Application & PWA      |
-|  - Android (APK: v1.2.6)       |                       |  - Hi-Fi Web Player (HTML5/ES6) |
-|  - iOS (IPA / AltStore: v1.2.6)|                       |  - App Showcase & Download Hub  |
+|  - Android (APK: v1.2.7)       |                       |  - Hi-Fi Web Player (HTML5/ES6) |
+|  - iOS (IPA / AltStore: v1.2.7)|                       |  - App Showcase & Download Hub  |
 |  - 10-Band Studio DSP          |                       |  - Direct APK/IPA Distribution  |
 |  - 8D/16D Binaural Engine      |                       +---------------------------------+
 |  - 1-Tap Spotify/YouTube Sync  |
@@ -59,7 +59,7 @@ raspberry-pi-music-player/
 |   |-- altstore.json             # Official AltStore iOS source repository
 |   `-- assets/                   # Vector branding, app icons, badges
 |-- mobile/                       # Flutter mobile client (OpenAAMPS)
-|   |-- pubspec.yaml              # Version specification (1.2.6+22)
+|   |-- pubspec.yaml              # Version specification (1.2.7+23)
 |   |-- lib/
 |   |   |-- models/               # Domain entities (Track, Playlist, UserProfile, Account)
 |   |   |-- repositories/         # UserDataRepository, AuthRepository (clean architecture)
@@ -75,9 +75,9 @@ raspberry-pi-music-player/
 |   |   `-- widgets/              # ArtistPortrait, AccountSyncModal, EqualizerModal, AppAlert
 |   `-- test/                     # Unit, widget, and clean-architecture boundary tests
 |-- releases/                     # Binary build artifacts & package manifests
-|   |-- OpenAamps-v1.2.6.apk      # Production Android APK
+|   |-- OpenAamps-v1.2.7.apk      # Production Android APK
 |   |-- OpenAamps-latest.apk      # Canonical Android APK symlink/copy
-|   |-- OpenAamps-v1.2.6.ipa      # Standalone iOS Application Bundle
+|   |-- OpenAamps-v1.2.7.ipa      # Standalone iOS Application Bundle
 |   |-- OpenAamps-latest.ipa      # Canonical iOS IPA copy
 |   `-- altstore.json             # Production AltStore repository feed
 `-- scripts/                      # Build automation & tooling
@@ -164,20 +164,20 @@ The visual design language is codified in `frontend/design_showcase.html`:
 
 ## 4. Release & Packaging Pipeline
 
-### Version Standard: `1.2.6+22`
+### Version Standard: `1.2.7+23`
 - **Application ID**: `com.aamps.openaamps`
 - **Android Target**: SDK 36 (compileSdk), minSdk 21, targetSdk 35
 - **iOS Target**: iOS 14.0+, 64-bit ARM (`arm64`)
 
 ### Release Artifacts
 All production packages reside in `releases/`:
-- `OpenAamps-v1.2.6.apk` & `OpenAamps-latest.apk`: Signed Android application package.
-- `OpenAamps-v1.2.6.ipa` & `OpenAamps-latest.ipa`: iOS application archive containing Mach-O ARM64 binaries and Flutter assets.
+- `OpenAamps-v1.2.7.apk` & `OpenAamps-latest.apk`: Signed Android application package.
+- `OpenAamps-v1.2.7.ipa` & `OpenAamps-latest.ipa`: iOS application archive containing Mach-O ARM64 binaries and Flutter assets.
 - `altstore.json`: AltStore / SideStore compatible repository manifest.
 
 ### Web Distribution Endpoints (`backend/main.py`)
-- `GET /api/app/download`: Delivers the latest production APK with `Content-Disposition: attachment; filename="OpenAamps-v1.2.6.apk"`.
-- `GET /api/app/download-ipa`: Delivers the latest iOS IPA with `Content-Disposition: attachment; filename="OpenAamps-v1.2.6.ipa"`.
+- `GET /api/app/download`: Delivers the latest production APK with `Content-Disposition: attachment; filename="OpenAamps-v1.2.7.apk"`.
+- `GET /api/app/download-ipa`: Delivers the latest iOS IPA with `Content-Disposition: attachment; filename="OpenAamps-v1.2.7.ipa"`.
 - `GET /api/app/info`: JSON metadata with version, download URLs, and package name.
 - `GET /altstore.json`: Serves the AltStore repository manifest.
 - `GET /download` or `GET /download.html`: Serves the download showcase website.
@@ -211,7 +211,7 @@ python scripts/build_ios_ipa.py
 
 # 5. Install on Connected Android Device
 adb devices
-adb install -r releases/OpenAamps-v1.2.6.apk
+adb install -r releases/OpenAamps-v1.2.7.apk
 
 # 6. Launch Mobile App via ADB
 adb shell am start -n com.aamps.openaamps/com.openaamps.open_aamps.MainActivity
@@ -226,13 +226,13 @@ python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ## 6. Sideloading Instructions for End Users
 
 ### Android
-1. Download `OpenAamps-v1.2.6.apk` from the web portal (`/download`).
+1. Download `OpenAamps-v1.2.7.apk` from the web portal (`/download`).
 2. When prompted, enable "Install unknown apps" in system settings.
 3. Tap Install. Future updates will overwrite in place under `com.aamps.openaamps`.
 
 ### iOS (iPhone & iPad)
 1. **AltStore / SideStore**: Add `https://raw.githubusercontent.com/SharadS28N/pi-aamps-and-openaamps/main/releases/altstore.json` as a source, or tap **1-Tap Add to AltStore** on the download page.
-2. **Sideloadly / Scarlet / TrollStore**: Download `OpenAamps-v1.2.6.ipa` and drag into the sideloading tool using any free Apple ID.
+2. **Sideloadly / Scarlet / TrollStore**: Download `OpenAamps-v1.2.7.ipa` and drag into the sideloading tool using any free Apple ID.
 3. **Safari Web App (PWA)**: Navigate to the web player in Safari, tap **Share**, and select **Add to Home Screen**.
 
 ---

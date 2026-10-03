@@ -892,7 +892,7 @@ class _SettingsViewState extends State<SettingsView> {
                       ),
                       SizedBox(height: 2),
                       Text(
-                        'Version 1.2.6 (Build 22) • Canonical Package',
+                        'Version 1.2.7 (Build 23) • Canonical Package',
                         style: TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
                       ),
                     ],
@@ -903,7 +903,7 @@ class _SettingsViewState extends State<SettingsView> {
                       color: Colors.white10,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text('v1.2.6', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                    child: const Text('v1.2.7', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -945,7 +945,7 @@ class _SettingsViewState extends State<SettingsView> {
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('You are using the latest release of OpenAamps (v1.2.6)!'),
+                            content: Text('You are using the latest release of OpenAamps (v1.2.7)!'),
                             backgroundColor: Color(0xFF10B981),
                           ),
                         );

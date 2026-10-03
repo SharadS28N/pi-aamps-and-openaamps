@@ -7,6 +7,42 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.7] - 2026-10-03
+
+### Added
+- **Deep Neural Melody Hum-to-Song Retrieval Pipeline**:
+  - Windowed STFT log-mel spectrogram extraction (80 frequency bins over time slices).
+  - Deep convolutional-residual melody encoder generating 128-dimensional unit melody embeddings.
+  - Sub-millisecond approximate nearest neighbor (ANN) cosine similarity search against indexed vector database.
+  - Triplet-loss distance ranking and calibrated confidence metrics for instant song identification.
+- **Dual-Mode Live Concert Arena Platform**:
+  - Online Virtual Live Stage with 4K 60FPS video stream preview and 3D binaural spatial audio.
+  - Multi-camera angle switcher (Main Stage, Front Row 360, Drummer Cam, Drone Cam) with virtual audience cheering.
+  - Physical Stadium Tour Ticket Pass Management featuring authentic tour schedules (Coldplay, The Weeknd, Billie Eilish).
+  - Digital contactless NFC / dynamic QR pass cards with VIP tier selection, row and seat allocation.
+- **High-Fidelity Figma System Design**:
+  - Live Figma wireframe canvas at `https://www.figma.com/design/c0V5G8aNxKpbeAGRnSNVFz/OpenAamps-%25E2%2580%2594-Hi-Fi-Wireframe---System-Design?node-id=0-1&p=f&t=SfRy9cb1TRNYtT6J-0`.
+  - 801 vector nodes across 6 production screen frames: Home & Concert Arena, Now Playing (with exclusive codec badge), AMOLED Studio Equalizer, Deep Learning Hum-to-Song Recognition, Library & WebDAV, and Physical Stadium Booking.
+
+### Changed & Fixed
+- **Equalizer & 8D Studio DSP Overhaul**:
+  - Subtle AMOLED black theme (`#0F0F13` / `#0A0A0E`) matching dynamic system accent color.
+  - Completely eliminated 8D audio dropouts and buffer stutter by removing high-frequency pitch re-sampling and JNI spam.
+  - Replaced rotary dial calculation with a 270-degree studio knob arc (135° to 45° with 90° bottom deadzone).
+  - Implemented strict 0% min and 100% max midpoint boundary clamping, eliminating the 98% to 0% wrap-around loop.
+  - Mapped Bass Boost directly to hardware low-shelf (<250 Hz) and Virtualizer to high-shelf spatial presence (2.5 kHz to 16 kHz).
+- **Exclusive Audio Codec Badge Placement**:
+  - Removed all inline audio codec badges from Quick Picks, search results, recognition modals, library track subtitles, and concert setlists.
+  - Codec badges are now shown exclusively in the Audio Player (`PlayerView` / `NowPlayingView`).
+- **Persistent User Login Sessions**:
+  - Cached authentication sessions persist across app cold starts until explicit user sign-out.
+- **WebDAV Personal Cloud Storage Card**:
+  - Fixed card layout using flex container constraints with `TextOverflow.ellipsis`, ensuring the `DISCONNECTED` status badge stays neatly inside the card container.
+- **Verified Artist Headshots**:
+  - Replaced song artwork and movie poster fallbacks with official uncompressed artist portraits in "Keep listening".
+
+---
+
 ## [1.2.6] - 2026-10-02
 
 ### Added

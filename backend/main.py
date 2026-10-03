@@ -183,11 +183,11 @@ async def get_app_info():
     return {
         "app_name": "OpenAamps",
         "package_name": "com.aamps.openaamps",
-        "version": "1.2.6",
+        "version": "1.2.7",
         "description": "Standalone Android Music Player & pi-aamps Remote Control Hub",
         "download_url": "/api/app/download",
         "ipa_download_url": "/api/app/download-ipa",
-        "github_release_url": "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/tag/v1.2.6"
+        "github_release_url": "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/tag/v1.2.7"
     }
 
 
@@ -195,13 +195,16 @@ async def get_app_info():
 async def download_app_apk():
     project_root = os.path.dirname(BASE_DIR)
     candidate_paths = [
-        os.path.join(project_root, "openaamps-release.apk"),
-        os.path.join(project_root, "releases", "OpenAamps-v1.2.6.apk"),
+        os.path.join(project_root, "releases", "OpenAamps-v1.2.7.apk"),
+        os.path.join(project_root, "frontend", "releases", "OpenAamps-v1.2.7.apk"),
+        os.path.join(BASE_DIR, "releases", "OpenAamps-v1.2.7.apk"),
         os.path.join(project_root, "releases", "OpenAamps-latest.apk"),
-        os.path.join(project_root, "frontend", "releases", "OpenAamps-v1.2.6.apk"),
         os.path.join(project_root, "frontend", "releases", "OpenAamps-latest.apk"),
-        os.path.join(BASE_DIR, "releases", "OpenAamps-v1.2.6.apk"),
         os.path.join(BASE_DIR, "releases", "OpenAamps-latest.apk"),
+        os.path.join(project_root, "releases", "OpenAamps-v1.2.6.apk"),
+        os.path.join(project_root, "frontend", "releases", "OpenAamps-v1.2.6.apk"),
+        os.path.join(BASE_DIR, "releases", "OpenAamps-v1.2.6.apk"),
+        os.path.join(project_root, "openaamps-release.apk"),
         os.path.join(project_root, "releases", "OpenAamps-v1.2.2.apk"),
         os.path.join(project_root, "releases", "OpenAamps-v1.2.1.apk"),
         os.path.join(project_root, "releases", "OpenAamps-v1.2.0.apk"),
@@ -236,7 +239,7 @@ async def download_app_apk():
 
     from fastapi.responses import RedirectResponse
     return RedirectResponse(
-        "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.6/OpenAamps-v1.2.6.apk",
+        "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.7/OpenAamps-v1.2.7.apk",
         status_code=302
     )
 
@@ -245,12 +248,15 @@ async def download_app_apk():
 async def download_app_ipa():
     project_root = os.path.dirname(BASE_DIR)
     candidate_paths = [
-        os.path.join(project_root, "releases", "OpenAamps-v1.2.6.ipa"),
+        os.path.join(project_root, "releases", "OpenAamps-v1.2.7.ipa"),
+        os.path.join(project_root, "frontend", "releases", "OpenAamps-v1.2.7.ipa"),
+        os.path.join(BASE_DIR, "releases", "OpenAamps-v1.2.7.ipa"),
         os.path.join(project_root, "releases", "OpenAamps-latest.ipa"),
-        os.path.join(project_root, "frontend", "releases", "OpenAamps-v1.2.6.ipa"),
         os.path.join(project_root, "frontend", "releases", "OpenAamps-latest.ipa"),
-        os.path.join(BASE_DIR, "releases", "OpenAamps-v1.2.6.ipa"),
         os.path.join(BASE_DIR, "releases", "OpenAamps-latest.ipa"),
+        os.path.join(project_root, "releases", "OpenAamps-v1.2.6.ipa"),
+        os.path.join(project_root, "frontend", "releases", "OpenAamps-v1.2.6.ipa"),
+        os.path.join(BASE_DIR, "releases", "OpenAamps-v1.2.6.ipa"),
     ]
     rel_dir = os.path.join(project_root, "releases")
     if os.path.exists(rel_dir):
@@ -276,7 +282,7 @@ async def download_app_ipa():
 
     from fastapi.responses import RedirectResponse
     return RedirectResponse(
-        "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.6/OpenAamps-v1.2.6.ipa",
+        "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.7/OpenAamps-v1.2.7.ipa",
         status_code=302
     )
 

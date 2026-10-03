@@ -121,7 +121,7 @@ def build_ipa(project_root):
     releases_dir = os.path.join(project_root, "releases")
     os.makedirs(releases_dir, exist_ok=True)
     
-    ipa_path = os.path.join(releases_dir, "OpenAamps-v1.2.6.ipa")
+    ipa_path = os.path.join(releases_dir, "OpenAamps-v1.2.7.ipa")
     latest_ipa_path = os.path.join(releases_dir, "OpenAamps-latest.ipa")
     
     staging_dir = os.path.join(project_root, "releases", "ipa_staging")
@@ -165,7 +165,7 @@ def build_ipa(project_root):
 \t<key>CFBundlePackageType</key>
 \t<string>APPL</string>
 \t<key>CFBundleShortVersionString</key>
-\t<string>1.2.6</string>
+\t<string>1.2.7</string>
 \t<key>CFBundleSignature</key>
 \t<string>????</string>
 \t<key>CFBundleSupportedPlatforms</key>
@@ -173,7 +173,7 @@ def build_ipa(project_root):
 \t\t<string>iPhoneOS</string>
 \t</array>
 \t<key>CFBundleVersion</key>
-\t<string>1.2.6</string>
+\t<string>1.2.7</string>
 \t<key>DTCompiler</key>
 \t<string>com.apple.compilers.llvm.clang.1_0</string>
 \t<key>DTPlatformBuild</key>
@@ -292,7 +292,7 @@ def build_ipa(project_root):
     create_macho_arm64_binary(os.path.join(app_dir, "Frameworks", "App.framework", "App"))
 
     # 6. Package into ZIP with .ipa extension
-    print("Zipping Payload into OpenAamps-v1.2.6.ipa...")
+    print("Zipping Payload into OpenAamps-v1.2.7.ipa...")
     with zipfile.ZipFile(ipa_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         for root, dirs, files in os.walk(os.path.join(staging_dir, "Payload")):
             for file in files:
@@ -320,10 +320,10 @@ def build_ipa(project_root):
                 "bundleIdentifier": "com.aamps.openaamps",
                 "developerName": "OpenAamps Team",
                 "subtitle": "Audiophile Music Player",
-                "version": "1.2.6",
-                "versionDate": "2026-10-01",
-                "versionDescription": "Online concert arena, 4-tab clean navbar, subtle iconography, 5 accents, and Spotify/YouTube sync.",
-                "downloadURL": "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.6/OpenAamps-v1.2.6.ipa",
+                "version": "1.2.7",
+                "versionDate": "2026-10-03",
+                "versionDescription": "Deep neural melody humming retrieval (128-d ANN), subtle dark AMOLED equalizer with non-looping 270 studio rotary dial, exclusive in-player audio codec badge, WebDAV layout fix, persistent login sessions, and verified artist headshots.",
+                "downloadURL": "https://github.com/SharadS28N/pi-aamps-and-openaamps/releases/download/v1.2.7/OpenAamps-v1.2.7.ipa",
                 "localizedDescription": "Native music player with DSP acoustics, live concert arenas, synchronized lyrics, and lossless Wi-Fi casting.",
                 "iconURL": "https://raw.githubusercontent.com/SharadS28N/pi-aamps-and-openaamps/main/frontend/assets/app_icon.png",
                 "tintColor": "1DB954",

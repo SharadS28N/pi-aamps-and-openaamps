@@ -24,8 +24,8 @@ class UpdateService extends ChangeNotifier {
   static final UpdateService instance = UpdateService._internal();
   UpdateService._internal();
 
-  static const String currentVersion = '1.2.6';
-  static const int currentBuildNumber = 22;
+  static const String currentVersion = '1.2.7';
+  static const int currentBuildNumber = 23;
   static const String canonicalPackage = 'com.aamps.openaamps';
 
   static const String _prefDismissedVersion = 'openaamps_dismissed_update_version';
