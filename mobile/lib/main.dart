@@ -192,7 +192,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           body: Stack(
             children: [
               Padding(
-                padding: EdgeInsets.only(bottom: _activeTrack != null ? 74.0 : 0.0),
+                padding: EdgeInsets.only(bottom: _activeTrack != null ? 82.0 : 0.0),
                 child: IndexedStack(
                   index: _currentIndex.clamp(0, 2),
                   children: screens,

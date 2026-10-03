@@ -1474,7 +1474,7 @@ class _ConcertViewState extends State<ConcertView> with TickerProviderStateMixin
                   overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
-                  '${track.artist} • ${track.codec}',
+                  track.artist,
                   style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 11),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

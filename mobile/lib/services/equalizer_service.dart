@@ -173,6 +173,23 @@ class EqualizerService extends ChangeNotifier {
                 closestGain = _bandGains[i];
               }
             }
+
+            // Real Hardware-grade Bass Boost shaping (< 250 Hz)
+            if (centerHz <= 60) {
+              closestGain += (_bassBoost * 9.5);
+            } else if (centerHz <= 120) {
+              closestGain += (_bassBoost * 7.5);
+            } else if (centerHz <= 250) {
+              closestGain += (_bassBoost * 4.0);
+            }
+
+            // Real Hardware-grade Virtualizer / Surround spatial widening (> 2.5 kHz)
+            if (centerHz >= 2500 && centerHz <= 8000) {
+              closestGain += (_virtualizer * 5.5);
+            } else if (centerHz > 8000) {
+              closestGain += (_virtualizer * 4.0);
+            }
+
             final clampedGain = closestGain.clamp(params.minDecibels, params.maxDecibels);
             await nativeBand.setGain(clampedGain);
           }
@@ -188,8 +205,8 @@ class EqualizerService extends ChangeNotifier {
         final shouldBoost = _isEnabled && (_bassBoost > 0 || _is8dAudio || _is16dAudio || _virtualizer > 0 || norm);
         await _androidLoudnessEnhancer!.setEnabled(shouldBoost);
         if (shouldBoost) {
-          final normBoost = norm ? 3.5 : 0.0;
-          final boost = normBoost + (_bassBoost * 4.5) + (_is8dAudio ? 2.5 : (_is16dAudio ? 4.0 : 0.0));
+          final normBoost = norm ? 3.0 : 0.0;
+          final boost = normBoost + (_bassBoost * 5.0) + (_is8dAudio ? 2.5 : (_is16dAudio ? 4.0 : 0.0));
           await _androidLoudnessEnhancer!.setTargetGain(boost.clamp(0.0, 10.0));
         }
       } catch (e) {
@@ -341,50 +358,22 @@ class EqualizerService extends ChangeNotifier {
   void _startSpatialOrbitalLoop({required double speedMultiplier}) {
     _spatialOrbitalTimer?.cancel();
     _orbitalAngle = 0.0;
-    int tickCount = 0;
 
-    // 50ms tick for fluid 3D spatial rotation around head
-    _spatialOrbitalTimer = Timer.periodic(const Duration(milliseconds: 50), (_) async {
-      _orbitalAngle += 0.05 * speedMultiplier;
+    // Apply native spatialized EQ preset and loudness headroom once
+    applyToNativeEffects();
+
+    // 100ms smooth gentle acoustic orbit without resetting audio processor buffers
+    _spatialOrbitalTimer = Timer.periodic(const Duration(milliseconds: 100), (_) async {
+      _orbitalAngle += 0.04 * speedMultiplier;
       if (_orbitalAngle > 2 * math.pi) {
         _orbitalAngle -= 2 * math.pi;
       }
-      tickCount++;
 
-      final headShadow = math.cos(_orbitalAngle); // +1.0 in front, -1.0 behind head
-      final lateralPan = math.sin(_orbitalAngle); // +1.0 right ear, -1.0 left ear
-
-      // 1. Doppler Pitch Modulation (pitch rises approaching ear, dips receding)
+      // Smooth subtle proximity acoustic swell (0.94 - 1.0) without volume dips
+      final headShadow = math.cos(_orbitalAngle);
       if (_audioPlayer != null) {
-        final doppler = 1.0 + (_is16dAudio ? 0.008 : 0.005) * lateralPan;
-        _audioPlayer!.setPitch(doppler.clamp(0.985, 1.015));
-
-        // 2. Proximity volume & 3D distance attenuation
-        final dynamicVolume = (0.80 + 0.20 * ((headShadow + 1) / 2)).clamp(0.55, 1.0);
+        final dynamicVolume = (0.94 + 0.06 * ((headShadow + 1) / 2)).clamp(0.92, 1.0);
         _audioPlayer!.setVolume(dynamicVolume);
-      }
-
-      // 3. Dynamic Hardware Loudness Enhancer Swell
-      if (_androidLoudnessEnhancer != null && tickCount % 3 == 0) {
-        try {
-          final boost = (_bassBoost * 4.5) + ((headShadow + 1) * (_is16dAudio ? 2.5 : 1.5));
-          _androidLoudnessEnhancer!.setTargetGain(boost.clamp(0.0, 10.0));
-        } catch (_) {}
-      }
-
-      // 4. Pinna HRTF Treble/Mid Filtering across EQ bands
-      if (_cachedNativeBands != null && tickCount % 3 == 0 && _isEnabled) {
-        try {
-          final numBands = _cachedNativeBands!.length;
-          for (int i = 0; i < numBands; i++) {
-            // High frequencies muffle when sound orbits behind the head
-            final bandWeight = (i / numBands);
-            final hrtfMod = bandWeight * headShadow * (_is16dAudio ? 5.0 : 3.5);
-            final baseGain = i < _bandGains.length ? _bandGains[i] : 0.0;
-            final modulated = (baseGain + hrtfMod).clamp(-12.0, 12.0);
-            _cachedNativeBands![i].setGain(modulated);
-          }
-        } catch (_) {}
       }
     });
   }
@@ -393,7 +382,6 @@ class EqualizerService extends ChangeNotifier {
     _spatialOrbitalTimer?.cancel();
     _spatialOrbitalTimer = null;
     _audioPlayer?.setVolume(1.0);
-    _audioPlayer?.setPitch(1.0);
     applyToNativeEffects();
   }
 

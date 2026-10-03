@@ -1,10 +1,13 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../models/track.dart';
 import '../services/youtube_service.dart';
 import '../services/download_service.dart';
 import '../services/settings_service.dart';
 import '../services/artist_metadata_service.dart';
+import '../services/recognition_service.dart';
+import '../services/query_parser.dart';
 import '../widgets/artist_portrait.dart';
 import '../widgets/app_alert.dart';
 
@@ -172,24 +175,28 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
   }
 
   void _performSearch([String? explicitQuery]) async {
-    final query = (explicitQuery ?? _searchController.text).trim();
-    if (query.isEmpty) return;
+    final raw = (explicitQuery ?? _searchController.text).trim();
+    if (raw.isEmpty) return;
 
     FocusScope.of(context).unfocus();
 
+    // Natural Query and Typo Parsing (e.g., 'songs by The Weeknd', 'blinding lites', etc.)
+    final parsed = NaturalQueryParser.instance.parse(raw);
+    final cleanTerm = parsed.cleanSearchTerm.isNotEmpty ? parsed.cleanSearchTerm : raw;
+
     setState(() {
       _isLoading = true;
-      _activeSearchQuery = query;
-      _searchController.text = query;
+      _activeSearchQuery = cleanTerm;
+      _searchController.text = cleanTerm;
     });
 
     // Pure music search guarantee: append audio filter keywords if not already present
-    String searchQuery = query;
+    String searchQuery = cleanTerm;
     if (!searchQuery.toLowerCase().contains('audio') &&
         !searchQuery.toLowerCase().contains('song') &&
         !searchQuery.toLowerCase().contains('track') &&
         !searchQuery.toLowerCase().contains('music')) {
-      searchQuery = '$query official audio';
+      searchQuery = '$cleanTerm official audio';
     }
 
     final results = await _ytService.searchTracks(searchQuery);
@@ -375,7 +382,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
   Widget _buildExploreTab(Color accent) {
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.only(bottom: 110),
       children: [
         // Section: Browse Genres & Moods
         const Row(
@@ -533,7 +540,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
   Widget _buildSuggestionsTab(Color accent) {
     return ListView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.zero,
+      padding: const EdgeInsets.only(bottom: 110),
       children: [
         // Section 1: Quick Picks For You
         Row(
@@ -633,27 +640,11 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              Text(
-                                track.artist,
-                                style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 11.5),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.08),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  track.codec,
-                                  style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            ],
+                          Text(
+                            track.artist,
+                            style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 11.5),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
@@ -787,6 +778,7 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
           Expanded(
             child: ListView.separated(
               physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.only(bottom: 110),
               itemCount: _searchResults.length,
               separatorBuilder: (_, _) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
@@ -834,18 +826,6 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Container(
-                          margin: const EdgeInsets.only(left: 6),
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            track.codec,
-                            style: const TextStyle(color: Colors.white70, fontSize: 9, fontWeight: FontWeight.bold),
-                          ),
-                        ),
                       ],
                     ),
                     trailing: Row(
@@ -884,6 +864,10 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
           onQueryRecognized: (query) {
             Navigator.pop(ctx);
             _performSearch(query);
+          },
+          onPlayTrack: (track) {
+            Navigator.pop(ctx);
+            widget.onPlayTrack(track);
           },
         );
       },
@@ -951,14 +935,16 @@ class _SearchViewState extends State<SearchView> with SingleTickerProviderStateM
   }
 }
 
-// --- VOICE & HUM RECOGNITION SHEET ---
+// --- PRODUCTION-GRADE VOICE & HUM RECOGNITION SHEET ---
 class _VoiceAndHumRecognitionSheet extends StatefulWidget {
   final Color accentColor;
   final Function(String) onQueryRecognized;
+  final Function(Track) onPlayTrack;
 
   const _VoiceAndHumRecognitionSheet({
     required this.accentColor,
     required this.onQueryRecognized,
+    required this.onPlayTrack,
   });
 
   @override
@@ -967,22 +953,20 @@ class _VoiceAndHumRecognitionSheet extends StatefulWidget {
 
 class _VoiceAndHumRecognitionSheetState extends State<_VoiceAndHumRecognitionSheet>
     with SingleTickerProviderStateMixin {
-  final stt.SpeechToText _speech = stt.SpeechToText();
+  final AudioRecognitionService _recService = AudioRecognitionService.instance;
   late AnimationController _pulseController;
-  bool _isListening = false;
-  String _recognizedWords = '';
-  String _statusText = 'Initializing microphone...';
+  StreamSubscription<double>? _levelSub;
+  double _smoothLevel = 0.0;
   bool _isHumMode = false;
 
-  final List<String> _quickVoiceSuggestions = [
-    'Yellow Coldplay',
+  final List<String> _quickHumPrompts = [
     'Blinding Lights',
     'Starboy',
+    'Yellow',
     'As It Was',
     'Levitating',
     'Flowers',
     'Bohemian Rhapsody',
-    'Acoustic Ballads',
   ];
 
   @override
@@ -990,106 +974,80 @@ class _VoiceAndHumRecognitionSheetState extends State<_VoiceAndHumRecognitionShe
     super.initState();
     _pulseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 1400),
     )..repeat(reverse: true);
 
-    _startSpeechListening();
-  }
+    _recService.addListener(_onServiceChanged);
 
-  Future<void> _startSpeechListening() async {
-    try {
-      final available = await _speech.initialize(
-        onStatus: (status) {
-          if (mounted) {
-            setState(() {
-              if (status == 'listening') {
-                _isListening = true;
-                _statusText = _isHumMode
-                    ? 'Humming detected... keep going!'
-                    : 'Listening... speak song title or singer';
-              } else if (status == 'notListening' || status == 'done') {
-                _isListening = false;
-                if (_recognizedWords.isEmpty) {
-                  _statusText = 'Tap mic to listen again or pick a song';
-                }
-              }
-            });
-          }
-        },
-        onError: (err) {
-          if (mounted) {
-            setState(() {
-              _isListening = false;
-              _statusText = 'Speech service ready. Tap to speak or hum.';
-            });
-          }
-        },
-      );
-
-      if (available && mounted) {
-        setState(() {
-          _isListening = true;
-          _statusText = _isHumMode
-              ? 'Hum your tune close to device...'
-              : 'Listening... say a song title or singer';
-        });
-
-        await _speech.listen(
-          onResult: (result) {
-            if (mounted) {
-              setState(() {
-                _recognizedWords = result.recognizedWords;
-                if (_recognizedWords.isNotEmpty) {
-                  _statusText = 'Recognized: "$_recognizedWords"';
-                }
-              });
-            }
-          },
-          listenOptions: stt.SpeechListenOptions(
-            listenMode: stt.ListenMode.confirmation,
-            partialResults: true,
-          ),
-        );
-      } else if (mounted) {
-        setState(() {
-          _statusText = 'Mic ready. Tap mic button or choose a quick song.';
-        });
-      }
-    } catch (e) {
+    _levelSub = _recService.soundLevelStream.listen((lvl) {
       if (mounted) {
         setState(() {
-          _statusText = 'Listening active. Tap a suggested song or retry.';
+          _smoothLevel = (_smoothLevel * 0.4) + (lvl * 0.6);
         });
       }
+    });
+
+    _startCurrentMode();
+  }
+
+  void _onServiceChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _startCurrentMode() {
+    if (_isHumMode) {
+      _recService.startHummingRecognition(
+        onRecognized: (res) {
+          if (mounted) setState(() {});
+        },
+        onError: (err) {
+          if (mounted) setState(() {});
+        },
+      );
+    } else {
+      _recService.startVoiceSearch(
+        onRecognized: (res) {
+          if (mounted) setState(() {});
+        },
+        onError: (err) {
+          if (mounted) setState(() {});
+        },
+      );
     }
   }
 
-  void _stopListening() async {
-    await _speech.stop();
-    setState(() => _isListening = false);
-  }
-
-  void _submitRecognized() {
-    if (_recognizedWords.trim().isNotEmpty) {
-      widget.onQueryRecognized(_recognizedWords.trim());
+  void _switchMode(bool humMode) {
+    if (_isHumMode != humMode) {
+      _recService.stopListening();
+      setState(() {
+        _isHumMode = humMode;
+        _smoothLevel = 0.0;
+      });
+      _startCurrentMode();
     }
   }
 
   @override
   void dispose() {
+    _levelSub?.cancel();
+    _recService.removeListener(_onServiceChanged);
+    _recService.stopListening();
     _pulseController.dispose();
-    _speech.stop();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final effectiveAccent = widget.accentColor == Colors.white ? const Color(0xFF10B981) : widget.accentColor;
+    final isListening = _recService.isListening;
+    final lastResult = _recService.lastResult;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 18),
       decoration: BoxDecoration(
-        color: const Color(0xFF101014),
+        color: const Color(0xFF0F0F13),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
       ),
       child: SafeArea(
         child: SingleChildScrollView(
@@ -1097,186 +1055,352 @@ class _VoiceAndHumRecognitionSheetState extends State<_VoiceAndHumRecognitionShe
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-            // Modal Handle
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Mode Selector Pill (Voice Speech vs Hum Melody)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildModePill('Voice Search', !_isHumMode, () {
-                  setState(() => _isHumMode = false);
-                  _startSpeechListening();
-                }),
-                const SizedBox(width: 8),
-                _buildModePill('Hum & Play', _isHumMode, () {
-                  setState(() => _isHumMode = true);
-                  _startSpeechListening();
-                }),
-              ],
-            ),
-            const SizedBox(height: 28),
-
-            // Pulsing Mic Sphere
-            GestureDetector(
-              onTap: () {
-                if (_isListening) {
-                  _stopListening();
-                } else {
-                  _startSpeechListening();
-                }
-              },
-              child: ScaleTransition(
-                scale: Tween<double>(begin: 0.94, end: 1.06).animate(
-                  CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-                ),
+              // Grab Handle
+              Center(
                 child: Container(
-                  width: 90,
-                  height: 90,
+                  width: 38,
+                  height: 4,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _isListening
-                        ? widget.accentColor.withValues(alpha: 0.2)
-                        : Colors.white.withValues(alpha: 0.08),
-                    border: Border.all(
-                      color: _isListening ? widget.accentColor : Colors.white24,
-                      width: 2,
-                    ),
-                    boxShadow: _isListening
-                        ? [
-                            BoxShadow(
-                              color: widget.accentColor.withValues(alpha: 0.35),
-                              blurRadius: 24,
-                              spreadRadius: 4,
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Center(
-                    child: Icon(
-                      _isHumMode ? Icons.graphic_eq_rounded : Icons.mic_rounded,
-                      color: _isListening ? widget.accentColor : Colors.white70,
-                      size: 38,
-                    ),
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
-            // Status message
-            Text(
-              _statusText,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+              // Mode Selector Pills
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildModePill('Voice Search', !_isHumMode, () => _switchMode(false), effectiveAccent),
+                  const SizedBox(width: 10),
+                  _buildModePill('Hum & Melody', _isHumMode, () => _switchMode(true), effectiveAccent),
+                ],
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              _isHumMode
-                  ? 'Hum the melody or rhythm of any song'
-                  : 'Speak clearly into the microphone',
-              style: const TextStyle(color: Color(0xFF71717A), fontSize: 12),
-            ),
+              const SizedBox(height: 26),
 
-            if (_recognizedWords.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E1E26),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: widget.accentColor.withValues(alpha: 0.4)),
-                ),
-                child: Row(
+              // Animated Pulsing Mic Ring & Waveform Visualizer
+              GestureDetector(
+                onTap: () {
+                  if (isListening) {
+                    _recService.stopListening();
+                  } else {
+                    _startCurrentMode();
+                  }
+                },
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    const Icon(Icons.check_circle_outline_rounded, color: Colors.white70, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _recognizedWords,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                    // Outer Glow Ring
+                    if (isListening)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        width: 108 + (_smoothLevel * 30),
+                        height: 108 + (_smoothLevel * 30),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: effectiveAccent.withValues(alpha: 0.15 + (_smoothLevel * 0.18)),
+                          border: Border.all(
+                            color: effectiveAccent.withValues(alpha: 0.35),
+                            width: 1.5,
+                          ),
+                        ),
                       ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: widget.accentColor == Colors.white ? const Color(0xFF333333) : widget.accentColor,
-                        foregroundColor: widget.accentColor == Colors.white ? Colors.white : Colors.black,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+
+                    // Inner Core
+                    ScaleTransition(
+                      scale: Tween<double>(begin: 0.95, end: 1.05).animate(
+                        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
                       ),
-                      onPressed: _submitRecognized,
-                      child: const Text('Search', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      child: Container(
+                        width: 86,
+                        height: 86,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isListening ? const Color(0xFF1A1A24) : const Color(0xFF141418),
+                          border: Border.all(
+                            color: isListening ? effectiveAccent : Colors.white24,
+                            width: 2,
+                          ),
+                          boxShadow: isListening
+                              ? [
+                                  BoxShadow(
+                                    color: effectiveAccent.withValues(alpha: 0.4),
+                                    blurRadius: 20,
+                                    spreadRadius: 2,
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Center(
+                          child: Icon(
+                            _isHumMode ? Icons.graphic_eq_rounded : Icons.mic_rounded,
+                            color: isListening ? effectiveAccent : Colors.white70,
+                            size: 36,
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
+              const SizedBox(height: 18),
 
-            const SizedBox(height: 24),
+              // Real-Time 7-Bar Audio Waveform Visualizer
+              if (isListening) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(7, (index) {
+                    final factor = sin((index + 1) * 0.6).abs();
+                    final barHeight = (10 + (_smoothLevel * 32 * factor)).clamp(8.0, 42.0);
+                    return Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: 4,
+                      height: barHeight,
+                      decoration: BoxDecoration(
+                        color: effectiveAccent.withValues(alpha: 0.65 + (factor * 0.35)),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    );
+                  }),
+                ),
+                const SizedBox(height: 14),
+              ],
 
-            // Quick Prompt Chips
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Quick Song Matches',
-                style: TextStyle(color: Color(0xFF71717A), fontSize: 12, fontWeight: FontWeight.w600),
+              // Status Message
+              Text(
+                _recService.statusMessage,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _quickVoiceSuggestions.map((song) {
-                return InkWell(
-                  onTap: () => widget.onQueryRecognized(song),
-                  borderRadius: BorderRadius.circular(14),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF181820),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                    ),
-                    child: Text(
-                      song,
-                      style: const TextStyle(color: Colors.white70, fontSize: 11.5),
-                    ),
+              const SizedBox(height: 4),
+              Text(
+                _isHumMode
+                    ? 'Acoustic FFT & Melodic contour tracking active'
+                    : 'Speak song title, artist, or natural query',
+                style: const TextStyle(color: Color(0xFF71717A), fontSize: 12),
+              ),
+
+              // Live Spoken Transcript (Voice Mode)
+              if (!_isHumMode && _recService.liveTranscript.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E26),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: effectiveAccent.withValues(alpha: 0.4)),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-          ],
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle_outline_rounded, color: Colors.white70, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _recService.liveTranscript,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: effectiveAccent,
+                          foregroundColor: Colors.black,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        ),
+                        onPressed: () {
+                          widget.onQueryRecognized(_recService.liveTranscript.trim());
+                        },
+                        child: const Text('Search', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Matched Song Card (Humming or Voice result)
+              if (lastResult != null) ...[
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF181822),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: effectiveAccent.withValues(alpha: 0.6), width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: effectiveAccent.withValues(alpha: 0.2),
+                        blurRadius: 16,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              lastResult.track.artworkUrl,
+                              width: 52,
+                              height: 52,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, _, _) => Container(
+                                width: 52,
+                                height: 52,
+                                color: const Color(0xFF22222E),
+                                child: const Icon(Icons.music_note_rounded, color: Colors.white70),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: effectiveAccent.withValues(alpha: 0.18),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        '${lastResult.confidencePercentage} Melodic Match',
+                                        style: TextStyle(
+                                          color: effectiveAccent,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  lastResult.track.title,
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  lastResult.track.artist,
+                                  style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: effectiveAccent,
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                              ),
+                              icon: const Icon(Icons.play_arrow_rounded, size: 20),
+                              label: const Text('Play Now', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              onPressed: () {
+                                widget.onPlayTrack(lastResult.track);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Colors.white24),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                            ),
+                            onPressed: () {
+                              widget.onQueryRecognized(lastResult.track.title);
+                            },
+                            child: const Text('Search', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 22),
+
+              // Quick Melodic Prompts
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _isHumMode ? 'Quick Melodic Cues' : 'Voice Query Examples',
+                  style: const TextStyle(color: Color(0xFF71717A), fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _quickHumPrompts.map((song) {
+                  return InkWell(
+                    onTap: () {
+                      if (_isHumMode) {
+                        _recService.startHummingRecognition(
+                          onRecognized: (res) {
+                            if (mounted) setState(() {});
+                          },
+                          onError: (_) {},
+                        );
+                      } else {
+                        widget.onQueryRecognized(song);
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF181820),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                      ),
+                      child: Text(
+                        _isHumMode ? 'Hum "$song"' : song,
+                        style: const TextStyle(color: Colors.white70, fontSize: 11.5),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 
-  Widget _buildModePill(String title, bool isSelected, VoidCallback onTap) {
+  Widget _buildModePill(String title, bool isSelected, VoidCallback onTap, Color accent) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF242430) : const Color(0xFF141418),
+          color: isSelected ? const Color(0xFF242432) : const Color(0xFF141418),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? widget.accentColor.withValues(alpha: 0.5) : Colors.white12,
+            color: isSelected ? accent.withValues(alpha: 0.6) : Colors.white12,
+            width: isSelected ? 1.2 : 1.0,
           ),
         ),
         child: Text(
@@ -1291,3 +1415,4 @@ class _VoiceAndHumRecognitionSheetState extends State<_VoiceAndHumRecognitionShe
     );
   }
 }
+

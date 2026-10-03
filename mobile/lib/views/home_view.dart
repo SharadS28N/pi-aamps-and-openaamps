@@ -564,7 +564,7 @@ class _HomeViewState extends State<HomeView> {
 
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+              padding: const EdgeInsets.fromLTRB(20.0, 12.0, 20.0, 110.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -698,11 +698,11 @@ class _HomeViewState extends State<HomeView> {
 
               // Reference Image 2 Screen 1: Recent Squircle Cards
               _buildRecentSection(SettingsService.instance.accentColor),
-              const SizedBox(height: 22),
+              const SizedBox(height: 18),
 
-              // Reference Image 2 Screen 1: Popular Songs with Floating Play Button
-              _buildPopularSongsSection(SettingsService.instance.accentColor),
-              const SizedBox(height: 22),
+              // OpenAAMPS Live Concert Arena Hero Banner (Online Livestream & Physical Stage)
+              _buildConcertLiveArenaBanner(SettingsService.instance.accentColor),
+              const SizedBox(height: 18),
 
               // Category / Mood Filter Chips (Monochrome)
               SizedBox(
@@ -738,10 +738,6 @@ class _HomeViewState extends State<HomeView> {
                   },
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // OpenAAMPS Live Concert Arena Hero Banner
-              _buildConcertLiveArenaBanner(SettingsService.instance.accentColor),
 
               const SizedBox(height: 10),
 

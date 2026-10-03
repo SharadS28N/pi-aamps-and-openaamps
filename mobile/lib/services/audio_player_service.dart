@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -541,6 +542,9 @@ class AudioPlayerService extends ChangeNotifier {
     }
   }
 
+  Future<void> skipNext() => skipToNext();
+  Future<void> skipPrevious() => skipToPrevious();
+
   Future<void> _playThroughProxy(String streamUrl, String container, Track track) async {
     await _proxy.start();
     _proxy.setStream(streamUrl);
@@ -815,6 +819,13 @@ class AudioPlayerService extends ChangeNotifier {
       await _player.setVolume(volume / 100.0);
     }
     notifyListeners();
+  }
+
+  Future<void> setReplayGain(double gainDb) async {
+    final linear = math.pow(10.0, gainDb / 20.0).toDouble().clamp(0.1, 2.0);
+    if (_target == AudioTarget.phoneLocal) {
+      await _player.setVolume(linear.clamp(0.0, 1.0));
+    }
   }
 
   @override

@@ -149,6 +149,8 @@ class AppAuthRepository implements AuthRepository {
     } catch (_) {}
   }
 
+  bool _isExplicitSignOut = false;
+
   /// Called once on singleton initialization — restores persistent session and hooks Firebase auth.
   Future<void> _init() async {
     // 1. Immediately restore local session for instant app launch (0ms delay)
@@ -176,21 +178,37 @@ class AppAuthRepository implements AuthRepository {
           if (firebaseUser != null) {
             _currentUser = await _fetchOrCreateProfile(firebaseUser);
             await _persistSessionLocally(_currentUser!);
+            _isInitialized = true;
+            _authStateController.add(_currentUser);
           } else {
-            // Only clear if no offline session exists or user explicitly signed out
-            if (_auth?.currentUser == null) {
+            // Only clear if the user explicitly clicked Sign Out
+            if (_isExplicitSignOut) {
               _currentUser = null;
               await _clearPersistedSession();
+              _isInitialized = true;
+              _authStateController.add(null);
+            } else {
+              // Retain valid cached session (guest mode or offline credentials)
+              if (_currentUser == null) {
+                final restored = await _restoreCachedSession();
+                if (restored != null) {
+                  _currentUser = restored;
+                }
+              }
+              _isInitialized = true;
+              _authStateController.add(_currentUser);
             }
           }
-          _isInitialized = true;
-          _authStateController.add(_currentUser);
         });
       } else {
         if (_currentUser == null) {
-          _isInitialized = true;
-          _authStateController.add(null);
+          final restored = await _restoreCachedSession();
+          if (restored != null) {
+            _currentUser = restored;
+          }
         }
+        _isInitialized = true;
+        _authStateController.add(_currentUser);
       }
     } catch (e) {
       debugPrint('[Auth] Auth initialization warning: $e');
@@ -454,6 +472,7 @@ class AppAuthRepository implements AuthRepository {
   // ─── Sign-Out ────────────────────────────────────────────────────────────────
   @override
   Future<void> signOut() async {
+    _isExplicitSignOut = true;
     try {
       await _googleSignIn.signOut();
     } catch (_) {}

@@ -519,7 +519,7 @@ class _LibraryViewState extends State<LibraryView> {
       backgroundColor: const Color(0xFF000000),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+          padding: const EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 110.0),
           children: [
             // Top Bar with App Logo
             Row(
@@ -1495,7 +1495,7 @@ class _LibraryViewState extends State<LibraryView> {
                   child: Image.network(track.artworkUrl, width: 46, height: 46, fit: BoxFit.cover),
                 ),
                 title: Text(track.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14), maxLines: 1),
-                subtitle: Text('${track.artist} • ${track.codec}', style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
+                subtitle: Text(track.artist, style: const TextStyle(color: Color(0xFFA1A1AA), fontSize: 12)),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1942,23 +1942,23 @@ class _LibraryViewState extends State<LibraryView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Row(
-                children: [
-                  Icon(Icons.cloud_sync_rounded, color: Colors.white, size: 22),
-                  SizedBox(width: 8),
-                  Text(
-                    'WebDAV Personal Cloud Storage',
-                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ],
+              const Icon(Icons.cloud_sync_rounded, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'WebDAV Cloud Storage',
+                  style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: _isWebDavConnected ? Colors.green.withValues(alpha: 0.2) : Colors.white12,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   _isWebDavConnected ? 'CONNECTED' : 'DISCONNECTED',

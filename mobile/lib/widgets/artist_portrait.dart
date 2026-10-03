@@ -42,19 +42,30 @@ class _ArtistPortraitState extends State<ArtistPortrait> {
   }
 
   Future<void> _resolvePortrait() async {
+    final name = widget.artistName.trim();
+    if (name.isNotEmpty) {
+      final verified = await ArtistMetadataService.instance.getArtistImageUrl(name);
+      if (verified != null && verified.isNotEmpty) {
+        if (mounted) setState(() => _resolvedUrl = verified);
+        return;
+      }
+    }
+
     final directUrl = widget.fallbackUrl;
     if (directUrl != null &&
         directUrl.isNotEmpty &&
         !directUrl.contains('unsplash.com') &&
+        !directUrl.contains('ytimg.com') &&
+        !directUrl.contains('googleusercontent.com') &&
         directUrl.startsWith('http')) {
       if (mounted) setState(() => _resolvedUrl = directUrl);
       return;
     }
 
-    if (widget.artistName.trim().isEmpty) return;
+    if (name.isEmpty) return;
 
     if (mounted) setState(() => _isLoading = true);
-    final url = await ArtistMetadataService.instance.getArtistImageUrl(widget.artistName);
+    final url = await ArtistMetadataService.instance.getArtistImageUrl(name);
     if (mounted) {
       setState(() {
         _resolvedUrl = url;
